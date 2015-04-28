@@ -1,6 +1,6 @@
-package com.orctom.core.util;
+package com.orctom.laputa.util;
 
-import com.orctom.core.exception.ClassLoadingException;
+import com.orctom.laputa.util.exception.ClassLoadingException;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +18,7 @@ import java.util.List;
 public class ClassUtils {
 
     /**
-     * @param packageName The base package
+     * @param packageName     The base package
      * @param annotationClass The annotation class
      * @return The classes
      * @throws ClassLoadingException
@@ -61,8 +61,6 @@ public class ClassUtils {
             for (File directory : dirs) {
                 classes.addAll(findClasses(directory, packageName));
             }
-        } catch (UnsupportedEncodingException e) {
-            throw new ClassLoadingException(e);
         } catch (IOException e) {
             throw new ClassLoadingException(e);
         }
@@ -73,9 +71,9 @@ public class ClassUtils {
      * Recursive method used to find all classes in a given directory and
      * subdirs.
      *
-     * @param directory The base directory
+     * @param directory   The base directory
      * @param packageName The package name for classes found inside the base
-     *        directory
+     *                    directory
      * @return The classes
      * @throws ClassLoadingException
      */
@@ -85,6 +83,9 @@ public class ClassUtils {
             return classes;
         }
         File[] files = directory.listFiles();
+        if (null == files) {
+            return classes;
+        }
         for (File file : files) {
             if (file.isDirectory()) {
                 assert !file.getName().contains(".");

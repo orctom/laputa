@@ -66,6 +66,7 @@
 
     <modules>
         <module>laputa-client</module>
+        <module>laputa-util</module>
     </modules>
 
 </project>
