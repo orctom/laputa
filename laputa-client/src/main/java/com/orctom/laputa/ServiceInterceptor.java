@@ -11,21 +11,17 @@ import java.lang.reflect.Method;
  */
 public class ServiceInterceptor {
 
-    @RuntimeType
-    public Object intercept(@AllArguments Object[] allArguments, @Origin Method method) {
-        System.out.println("method name: " + method.getName());
-        for (Object arg : allArguments) {
-            System.out.println("arg: " + arg);
-        }
-        return "dummy from ServiceInterceptor";
-    }
+	@RuntimeType
+	public Object intercept(@AllArguments Object[] allArguments, @Origin Method method) {
+		System.out.println("method name: " + method.getName());
+		for (Object arg : allArguments) {
+			System.out.println("arg: " + arg);
+		}
+		return "dummy from ServiceInterceptor";
+	}
 
-
-
-
-
-    private String getEndpointURL(String serviceId) {
-        //TODO
-        return "http://dummy:8080/context";
-    }
+	private String getEndpointURL(String serviceId) {
+		// TODO
+		return "http://dummy:8080/context";
+	}
 }

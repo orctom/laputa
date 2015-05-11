@@ -7,5 +7,5 @@ import com.orctom.laputa.annotation.LaputaService;
  */
 public interface DummyService extends MicroService {
 
-    String hello(String name);
+	String hello(String name);
 }

@@ -5,3 +5,7 @@
 *.iws
 build/
 target/
+
+*/.classpath
+*/.project
+.settings/

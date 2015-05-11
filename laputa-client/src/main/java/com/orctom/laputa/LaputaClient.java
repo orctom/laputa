@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
  */
 public class LaputaClient {
 
-    public static <T> T consume(String serviceURL, String endpoint, Class<T> returnClass, Object... args) {
-        return null;
-    }
+	public static <T> T consume(String serviceURL, String endpoint, Class<T> returnClass, Object... args) {
+		return null;
+	}
 }
