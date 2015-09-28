@@ -8,24 +8,24 @@ import java.util.List;
 public class SampleServer {
 
 	public static void main(String[] args) {
-//		try {
-//			new LaputaService(9000)
-//					.scanPackage("com.orctom.laputa.server.test")
-//					.forAnnotation(Export.class)
-//					.startup();
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
+		try {
+			new LaputaService(9000)
+					.scanPackage("com.orctom.laputa.server.test")
+					.forAnnotation(Export.class)
+					.startup();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-		SampleServer tester = new SampleServer();
-		tester.printPortions("/");
-		tester.printPortions("test");
-		tester.printPortions("/hello");
-		tester.printPortions("/hello/world");
-		tester.printPortions("/hello/world/test");
-		tester.printPortions("/hello/world/test/");
-		tester.printPortions("/hey");
-		tester.printPortions("/hey/");
+//		SampleServer tester = new SampleServer();
+//		tester.printPortions("/");
+//		tester.printPortions("test");
+//		tester.printPortions("/hello");
+//		tester.printPortions("/hello/world");
+//		tester.printPortions("/hello/world/test");
+//		tester.printPortions("/hello/world/test/");
+//		tester.printPortions("/hey");
+//		tester.printPortions("/hey/");
 	}
 
 	public void printPortions(String path) {

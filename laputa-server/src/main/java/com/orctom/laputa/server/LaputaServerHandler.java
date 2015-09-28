@@ -1,13 +1,14 @@
 package com.orctom.laputa.server;
 
+import com.orctom.laputa.server.config.HTTPMethod;
+import com.orctom.laputa.server.config.Handler;
+import com.orctom.laputa.server.config.MappingConfig;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.*;
+import io.netty.util.Mapping;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
@@ -32,17 +33,57 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 				ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
 			}
 			boolean keepAlive = HttpHeaders.isKeepAlive(req);
-			FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.wrappedBuffer(CONTENT));
-			response.headers().set(CONTENT_TYPE, "text/plain");
-			response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
+			HttpMethod method = req.getMethod();
+			String uri = req.getUri();
+
+			// remove hash
+			uri = uri.substring(0, uri.indexOf("#"));
+
+			// get query string
+			int questionMarkIndex = uri.indexOf("?");
+			String queryStr = null;
+			if (questionMarkIndex > 0) {
+				queryStr = uri.substring(questionMarkIndex + 1);
+				uri = uri.substring(0, questionMarkIndex);
+			}
+			System.out.println("uri      = " + uri);
+			System.out.println("queryStr = " + queryStr);
+
+			Handler handler = MappingConfig.getInstance().getHandler(uri, getHttpMethod(method));
+
+			Object data = handler.process(uri);
+
+
+			FullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.wrappedBuffer(CONTENT));
+			res.headers().set(CONTENT_TYPE, "text/plain");
+			res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
 
 			if (!keepAlive) {
-				ctx.write(response).addListener(ChannelFutureListener.CLOSE);
+				ctx.write(res).addListener(ChannelFutureListener.CLOSE);
 			} else {
-				response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-				ctx.write(response);
+				res.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+				ctx.write(res);
 			}
 		}
+	}
+
+	private HTTPMethod getHttpMethod(HttpMethod method) {
+		if (HttpMethod.DELETE == method) {
+			return HTTPMethod.DELETE;
+		}
+		if (HttpMethod.HEAD == method) {
+			return HTTPMethod.HEAD;
+		}
+		if (HttpMethod.OPTIONS == method) {
+			return HTTPMethod.OPTIONS;
+		}
+		if (HttpMethod.POST == method) {
+			return HTTPMethod.POST;
+		}
+		if (HttpMethod.PUT == method) {
+			return HTTPMethod.PUT;
+		}
+		return HTTPMethod.GET;
 	}
 
 	@Override
