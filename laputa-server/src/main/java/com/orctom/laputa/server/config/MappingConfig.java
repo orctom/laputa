@@ -2,8 +2,11 @@ package com.orctom.laputa.server.config;
 
 import com.google.common.base.Strings;
 import com.orctom.laputa.server.annotation.*;
+import com.orctom.laputa.server.internal.handler.DefaultHandler;
 import com.orctom.laputa.util.ClassUtils;
 import com.orctom.laputa.util.exception.ClassLoadingException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -16,7 +19,7 @@ import java.util.regex.Pattern;
  */
 public class MappingConfig {
 
-	private static final MappingConfig INSTANCE = new MappingConfig();
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	private Map<String, Handler> staticMappings = new HashMap<>();
 	private PathTrie wildcardMappings = new PathTrie();
@@ -25,9 +28,12 @@ public class MappingConfig {
 	private static final Pattern PATTERN_TAIL_SLASH = Pattern.compile("/$");
 	private static final String KEY_PATH_PARAM = "{*}";
 
-	private MappingConfig() {}
+	private static final MappingConfig INSTANCE = new MappingConfig();
 
-	public static  MappingConfig getInstance() {
+	private MappingConfig() {
+	}
+
+	public static MappingConfig getInstance() {
 		return INSTANCE;
 	}
 
@@ -37,7 +43,16 @@ public class MappingConfig {
 			return handler;
 		}
 
-		return getHandlerForWildcardUri(uri, httpMethod);
+		handler = getHandlerForWildcardUri(uri, httpMethod);
+		if (null != handler) {
+			return handler;
+		}
+
+		return _404();
+	}
+
+	private Handler _404() {
+		return staticMappings.get("/404/@get");
 	}
 
 	/**
@@ -84,37 +99,44 @@ public class MappingConfig {
 
 	public void scan(Class<? extends Annotation> annotation, String... basePackages) throws ClassLoadingException {
 		List<Class<?>> services = new ArrayList<>();
+
+		services.add(DefaultHandler.class);
+
 		for (String packageName : basePackages) {
 			services.addAll(ClassUtils.getClassesWithAnnotation(packageName, annotation));
 		}
-		for (Class<?> serviceClass : services) {
-			configureMappings(serviceClass);
-		}
 
-		System.out.println("static mappings:");
-		for (Handler handler : staticMappings.values()) {
-			System.out.println(handler.toString());
-		}
-		System.out.println("dynamic mappings:");
-		System.out.println(wildcardMappings.toString());
+		services.forEach(this::configureMappings);
+
+		logMappingInfo();
 	}
 
-	private void configureMappings(Class<?> clazz) {
+	private void logMappingInfo() {
+		LOGGER.info("static mappings:");
+		for (Handler handler : new TreeMap<>(staticMappings).values()) {
+			LOGGER.info(handler.toString());
+		}
+
+		LOGGER.info("dynamic mappings:");
+		LOGGER.info(wildcardMappings.toString());
+	}
+
+	protected void configureMappings(Class<?> clazz) {
 		String basePath = "";
 		if (clazz.isAnnotationPresent(Path.class)) {
 			basePath = clazz.getAnnotation(Path.class).value();
 		}
 
-		for (Method  method : clazz.getMethods()) {
+		for (Method method : clazz.getMethods()) {
 			Path path = method.getAnnotation(Path.class);
-			HTTPMethod httpMethod = getHttpMethod(method);
 			if (null != path) {
-				String uri = path.value();
-				if (Strings.isNullOrEmpty(uri)) {
+				String pathValue = path.value().trim();
+				if (Strings.isNullOrEmpty(pathValue)) {
 					throw new IllegalArgumentException(
 							"Empty value of Path annotation on " + clazz.getCanonicalName() + " " + method.getName());
 				}
-				addToMappings(clazz, method, basePath + path.value(), httpMethod);
+				String uri = basePath + pathValue;
+				addToMappings(clazz, method, uri);
 			}
 		}
 	}
@@ -138,13 +160,15 @@ public class MappingConfig {
 		return HTTPMethod.GET;
 	}
 
-	private void addToMappings(Class<?> clazz, Method method, String rawPath, HTTPMethod httpMethod) {
+	private void addToMappings(Class<?> clazz, Method method, String rawPath) {
 		String uri = normalize(rawPath);
+		String httpMethodKey = getHttpMethod(method).getKey();
 		if (uri.contains("{")) {
-			addToWildCardMappings(clazz, method, uri, httpMethod);
+			addToWildCardMappings(clazz, method, uri, httpMethodKey);
+		} else {
+			staticMappings.put(uri + "/" + httpMethodKey, new Handler(uri, clazz, method));
 		}
 
-		staticMappings.put(uri + "/" + httpMethod.getKey(), new Handler(uri, clazz, method));
 	}
 
 	private String normalize(String uri) {
@@ -154,32 +178,30 @@ public class MappingConfig {
 		return uri;
 	}
 
-	private void addToWildCardMappings(Class<?> clazz, Method method, String uri, HTTPMethod httpMethod) {
+	private void addToWildCardMappings(Class<?> clazz, Method method, String uri, String httpMethodKey) {
 		String[] paths = uri.split("/");
 
 		if (paths.length < 2) {
 			return;
 		}
 
-		PathTrie parent = wildcardMappings;
-		for (int i = 1; i < paths.length; i++) {
-			String path = paths[i];
+		Map<String, PathTrie> children = wildcardMappings.getChildren();
+
+		for (String path : paths) {
 			boolean containsParam = path.contains("{");
-			PathTrie child = parent.getChildren().get(path);
+			String pathKey = containsParam ? KEY_PATH_PARAM : path;
+			PathTrie child = children.get(pathKey);
 
 			if (null == child) {
 				child = new PathTrie();
-				parent.getChildren().put(containsParam ? KEY_PATH_PARAM : path, child);
+				children.put(pathKey, child);
 			}
 
-			parent = child;
-
-			boolean setHandler = i == paths.length - 1;
-			if (setHandler) {
-				PathTrie leaf = new PathTrie(uri, clazz, method);
-				child.getChildren().put(httpMethod.getKey(), leaf);
-			}
+			children = child.getChildren();
 		}
+
+		PathTrie leaf = new PathTrie(uri, clazz, method);
+		children.put(httpMethodKey, leaf);
 	}
 
 }

@@ -35,12 +35,17 @@ public class PathTrie {
 
 	@Override
 	public String toString() {
-		StringBuilder str = new StringBuilder();
-		str.append("/");
-		for (Map.Entry<String, PathTrie> entry : children.entrySet()) {
-			str.append("\n\t").append(entry.getKey()).append("\t").append(entry.getValue().toString());
-		}
+		return getChildMappings(this);
+	}
 
+	public String getChildMappings(PathTrie parent) {
+		StringBuilder str = new StringBuilder();
+		if (null != parent.getHandler()) {
+			str.append("\n").append(parent.getHandler().toString());
+		}
+		for (Map.Entry<String, PathTrie> entry : parent.getChildren().entrySet()) {
+			str.append(getChildMappings(entry.getValue()));
+		}
 		return str.toString();
 	}
 }

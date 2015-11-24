@@ -6,16 +6,29 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 
 /**
+ * Class Utils
  * Created by hao-chen2 on 1/5/2015.
  */
 public class ClassUtils {
+
+	private static final Set<Class<?>> primitiveWrapperTypes = new HashSet<>(8);
+
+	static {
+		primitiveWrapperTypes.add(Boolean.class);
+		primitiveWrapperTypes.add(Byte.class);
+		primitiveWrapperTypes.add(Character.class);
+		primitiveWrapperTypes.add(Double.class);
+		primitiveWrapperTypes.add(Float.class);
+		primitiveWrapperTypes.add(Integer.class);
+		primitiveWrapperTypes.add(Long.class);
+		primitiveWrapperTypes.add(Short.class);
+	}
 
 	/**
 	 * @param packageName
@@ -103,5 +116,22 @@ public class ClassUtils {
 			}
 		}
 		return classes;
+	}
+
+	public static boolean isSimpleValueType(Class<?> clazz) {
+		return isPrimitiveOrWrapper(clazz) || clazz.isEnum() ||
+				CharSequence.class.isAssignableFrom(clazz) ||
+				Number.class.isAssignableFrom(clazz) ||
+				Date.class.isAssignableFrom(clazz) ||
+				URI.class == clazz || URL.class == clazz ||
+				Locale.class == clazz || Class.class == clazz;
+	}
+
+	public static boolean isPrimitiveOrWrapper(Class<?> clazz) {
+		return (clazz.isPrimitive() || isPrimitiveWrapper(clazz));
+	}
+
+	public static boolean isPrimitiveWrapper(Class<?> clazz) {
+		return primitiveWrapperTypes.contains(clazz);
 	}
 }

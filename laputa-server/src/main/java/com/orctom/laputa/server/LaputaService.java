@@ -93,6 +93,7 @@ public class LaputaService {
 		workerGroup = new NioEventLoopGroup();
 
 		setupSSLContext();
+
 		try {
 			ServerBootstrap b = new ServerBootstrap();
 			b.option(ChannelOption.SO_BACKLOG, 1024);
@@ -119,6 +120,7 @@ public class LaputaService {
 	}
 
 	private void shutdown() {
+		System.out.println("stopping................................");
 		bossGroup.shutdownGracefully();
 		workerGroup.shutdownGracefully();
 	}

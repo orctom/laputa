@@ -3,6 +3,7 @@ package com.orctom.laputa.server;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -12,9 +13,14 @@ import java.util.stream.Stream;
 public class PathParamsUtils {
 
 	private static final Pattern TOKEN_START = Pattern.compile("[^{]");
-	private static final Pattern TOKEN_END = Pattern.compile("[^{]");
+	private static final Pattern TOKEN_END = Pattern.compile("[^}]");
+	private static final Pattern TOKEN_CONTAINS = Pattern.compile("[{}]");
 
 	public static Map<String, String> extractParams(String pattern, String path) {
+		if (!TOKEN_START.matcher(pattern).matches()) {
+			return Collections.<String, String>emptyMap();
+		}
+
 		Map<String, String> params = new HashMap<>();
 		String[] patternItems = pattern.split("/");
 		String[] pathItems = path.split("/");

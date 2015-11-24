@@ -6,7 +6,8 @@
 build/
 target/
 
-*/.classpath
-*/.project
+.classpath
 .settings/
 .project
+
+diagrams
