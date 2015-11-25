@@ -3,6 +3,7 @@ package com.orctom.laputa.server.test;
 import com.orctom.laputa.server.annotation.Export;
 import com.orctom.laputa.server.annotation.Path;
 import com.orctom.laputa.server.annotation.PathParam;
+import com.orctom.laputa.server.test.model.SKU;
 
 @Export
 @Path("/product")
@@ -11,6 +12,11 @@ public class Product {
 	@Path("/hello")
 	public String hello() {
 		return "hello";
+	}
+
+	@Path("/sku")
+	public SKU sku() {
+		return new SKU("315515", "folder", 123456, 100000);
 	}
 
 	@Path("/hello/{name}")

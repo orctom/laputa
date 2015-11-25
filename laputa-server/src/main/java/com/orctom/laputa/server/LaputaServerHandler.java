@@ -3,6 +3,10 @@ package com.orctom.laputa.server;
 import com.orctom.laputa.server.config.HTTPMethod;
 import com.orctom.laputa.server.config.Handler;
 import com.orctom.laputa.server.config.MappingConfig;
+import com.orctom.laputa.server.encoder.JsonResponseEncoder;
+import com.orctom.laputa.server.encoder.ResponseEncoder;
+import com.orctom.laputa.server.encoder.ResponseEncoders;
+import com.orctom.laputa.server.internal.ContentTypeResolver;
 import com.orctom.laputa.util.ClassUtils;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -26,6 +30,8 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
 	private static final Logger LOGGER = LogManager.getLogger();
+
+	private static final byte[] ERROR_CONTENT = {'5', '0', '0'};
 
 	@Override
 	public void channelReadComplete(ChannelHandlerContext ctx) {
@@ -60,16 +66,18 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
 			Handler handler = MappingConfig.getInstance().getHandler(uri, getHttpMethod(method));
 
-			byte[] content = {'5', '0', '0'};
+			String contentType = ContentTypeResolver.resolve(req);
+
+			byte[] content = ERROR_CONTENT;
 			try {
 				Object data = handler.process(uri);
-				content = encode(req, handler.getHandlerMethod().getReturnType(), data);
+				content = encode(contentType, data);
 			} catch (Throwable e) {
-				LOGGER.error(e);
+				LOGGER.error(e.getMessage(), e);
 			}
 
 			FullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.wrappedBuffer(content));
-			res.headers().set(CONTENT_TYPE, "text/plain");
+			res.headers().set(CONTENT_TYPE, contentType);
 			res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
 
 			if (!keepAlive) {
@@ -81,11 +89,14 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
-	private byte[] encode(HttpRequest req, Class<?> returnType, Object data) {
-		if (ClassUtils.isSimpleValueType(returnType)) {
-			return ("{'message': '" + String.valueOf(data) + "'}").getBytes();
+	private byte[] encode(String contentType, Object data) {
+		ResponseEncoder encoder = ResponseEncoders.getEncoder(contentType);
+		try {
+			return encoder.encode(data);
+		} catch (IOException e) {
+			LOGGER.error(e.getMessage(), e);
+			return ERROR_CONTENT;
 		}
-		return "{'this is some data'}".getBytes();
 	}
 
 	private String removeHashFromUri(String uri) {

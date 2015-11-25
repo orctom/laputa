@@ -38,12 +38,17 @@ public class MappingConfig {
 	}
 
 	public Handler getHandler(String uri, HTTPMethod httpMethod) {
-		Handler handler = staticMappings.get(uri + "/" + httpMethod.getKey());
+		String path = uri;
+		int dotIndex = path.lastIndexOf(".");
+		if (dotIndex > 0) {
+			path = path.substring(0, dotIndex);
+		}
+		Handler handler = staticMappings.get(path + "/" + httpMethod.getKey());
 		if (null != handler) {
 			return handler;
 		}
 
-		handler = getHandlerForWildcardUri(uri, httpMethod);
+		handler = getHandlerForWildcardUri(path, httpMethod);
 		if (null != handler) {
 			return handler;
 		}
