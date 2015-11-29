@@ -13,6 +13,7 @@ public class ResponseEncoders {
 
 	static {
 		add(JsonResponseEncoder.TYPE, new JsonResponseEncoder());
+		add(XmlResponseEncoder.TYPE, new XmlResponseEncoder());
 	}
 
 	public static void add(String type, ResponseEncoder encoder) {
