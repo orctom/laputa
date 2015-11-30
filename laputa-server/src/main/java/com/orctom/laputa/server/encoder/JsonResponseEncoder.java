@@ -1,7 +1,7 @@
 package com.orctom.laputa.server.encoder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.orctom.laputa.server.MediaTypes;
+import com.orctom.laputa.server.MediaType;
 
 import java.io.IOException;
 
@@ -11,7 +11,7 @@ import java.io.IOException;
  */
 public class JsonResponseEncoder implements ResponseEncoder {
 
-	public static final String TYPE = MediaTypes.APPLICATION_JSON;
+	public static final MediaType TYPE = MediaType.APPLICATION_JSON;
 
 	private static ObjectMapper mapper = new ObjectMapper();
 

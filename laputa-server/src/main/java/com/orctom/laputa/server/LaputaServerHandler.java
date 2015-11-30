@@ -3,24 +3,21 @@ package com.orctom.laputa.server;
 import com.orctom.laputa.server.config.HTTPMethod;
 import com.orctom.laputa.server.config.Handler;
 import com.orctom.laputa.server.config.MappingConfig;
-import com.orctom.laputa.server.encoder.JsonResponseEncoder;
-import com.orctom.laputa.server.encoder.ResponseEncoder;
 import com.orctom.laputa.server.encoder.ResponseEncoders;
-import com.orctom.laputa.server.internal.ContentTypeResolver;
-import com.orctom.laputa.util.ClassUtils;
+import com.orctom.laputa.server.internal.EncodedResponse;
+import com.orctom.laputa.server.internal.ResponseTypeEncoder;
+import com.orctom.laputa.server.internal.handler.DefaultHandler;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
-import io.netty.util.Mapping;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Optional;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
@@ -32,6 +29,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	private static final byte[] ERROR_CONTENT = {'5', '0', '0'};
+	private static final byte[] ERROR_CONTENT_404 = {'4', '0', '4'};
 
 	@Override
 	public void channelReadComplete(ChannelHandlerContext ctx) {
@@ -40,44 +38,20 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) {
-		if (msg instanceof HttpRequest) {
-			HttpRequest req = (HttpRequest) msg;
+		if (msg instanceof DefaultHttpRequest) {
+			DefaultHttpRequest req = (DefaultHttpRequest) msg;
 
 			if (HttpHeaders.is100ContinueExpected(req)) {
 				ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
 			}
 
 			boolean keepAlive = HttpHeaders.isKeepAlive(req);
-			HttpMethod method = req.getMethod();
-			String uri = req.getUri();
 
-			// remove hash
-			uri = removeHashFromUri(uri);
+			EncodedResponse encodedResponse = handleRequest(req);
 
-			// get query string
-			int questionMarkIndex = uri.indexOf("?");
-			String queryStr = null;
-			if (questionMarkIndex > 0) {
-				queryStr = uri.substring(questionMarkIndex + 1);
-				uri = uri.substring(0, questionMarkIndex);
-			}
-			System.out.println("uri      = " + uri);
-			System.out.println("queryStr = " + queryStr);
-
-			Handler handler = MappingConfig.getInstance().getHandler(uri, getHttpMethod(method));
-
-			String contentType = ContentTypeResolver.resolve(req);
-
-			byte[] content = ERROR_CONTENT;
-			try {
-				Object data = handler.process(uri);
-				content = encode(contentType, data);
-			} catch (Throwable e) {
-				LOGGER.error(e.getMessage(), e);
-			}
-
-			FullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.wrappedBuffer(content));
-			res.headers().set(CONTENT_TYPE, contentType);
+			FullHttpResponse res = new DefaultFullHttpResponse(
+					HTTP_1_1, OK, Unpooled.wrappedBuffer(encodedResponse.getContent()));
+			res.headers().set(CONTENT_TYPE, encodedResponse.getMediaType());
 			res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
 
 			if (!keepAlive) {
@@ -89,13 +63,37 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
-	private byte[] encode(String contentType, Object data) {
-		ResponseEncoder encoder = ResponseEncoders.getEncoder(contentType);
-		try {
-			return encoder.encode(data);
-		} catch (IOException e) {
-			LOGGER.error(e.getMessage(), e);
-			return ERROR_CONTENT;
+	private EncodedResponse handleRequest(DefaultHttpRequest req) {
+		HttpMethod method = req.getMethod();
+		String uri = req.getUri();
+
+		// remove hash
+		uri = removeHashFromUri(uri);
+
+		// get query string
+		int questionMarkIndex = uri.indexOf("?");
+		String queryStr = null;
+		if (questionMarkIndex > 0) {
+			queryStr = uri.substring(questionMarkIndex + 1);
+			uri = uri.substring(0, questionMarkIndex);
+		}
+		System.out.println("uri      = " + uri);
+		System.out.println("queryStr = " + queryStr);
+
+		Handler handler = MappingConfig.getInstance().getHandler(uri, getHttpMethod(method));
+
+		Optional<ResponseTypeEncoder> typeEncoder = ResponseEncoders.getEncoder(req);
+		if (typeEncoder.isPresent()) {
+			try {
+				Object data = handler.process(uri);
+				byte[] encoded = typeEncoder.get().getEncoder().encode(data);
+				return new EncodedResponse(typeEncoder.get().getResponseType(), encoded);
+			} catch (Throwable e) {
+				LOGGER.error(e.getMessage(), e);
+				return new EncodedResponse(typeEncoder.get().getResponseType(), ERROR_CONTENT);
+			}
+		} else {
+			return new EncodedResponse(MediaType.TEXT_HTML.getValue(), ERROR_CONTENT_404);
 		}
 	}
 
