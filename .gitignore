@@ -10,4 +10,7 @@ target/
 .settings/
 .project
 
+*.log
+*tmp*
+*temp*
 diagrams
