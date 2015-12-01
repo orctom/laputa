@@ -16,7 +16,7 @@ public class PathParamsUtilTest {
 		String pattern = "/products/{id}";
 		String path = "/products/234235234";
 		Stopwatch sw = Stopwatch.createStarted();
-		Map<String, String> params = PathParamsUtils.extractParams(pattern, path);
+		Map<String, String> params = PathParamsUtils.extractParams(pattern, path).get();
 		sw.stop();
 		System.out.println(sw.toString());
 		assertThat(params.size(), equalTo(1));
@@ -28,7 +28,7 @@ public class PathParamsUtilTest {
 		String pattern = "/products/{id}/attributes/{attid}";
 		String path = "/products/234235234/attributes/2222223";
 		Stopwatch sw = Stopwatch.createStarted();
-		Map<String, String> params = PathParamsUtils.extractParams(pattern, path);
+		Map<String, String> params = PathParamsUtils.extractParams(pattern, path).get();
 		sw.stop();
 		System.out.println(sw.toString());
 		assertThat(params.size(), equalTo(2));
@@ -41,7 +41,7 @@ public class PathParamsUtilTest {
 		String pattern = "/say{sth}to";
 		String path = "/sayhelloto";
 		Stopwatch sw = Stopwatch.createStarted();
-		Map<String, String> params = PathParamsUtils.extractParams(pattern, path);
+		Map<String, String> params = PathParamsUtils.extractParams(pattern, path).get();
 		sw.stop();
 		System.out.println(sw.toString());
 		assertThat(params.size(), equalTo(1));

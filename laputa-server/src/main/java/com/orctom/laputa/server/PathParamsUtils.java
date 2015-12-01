@@ -2,23 +2,41 @@ package com.orctom.laputa.server;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Strings;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class PathParamsUtils {
 
 	private static final Pattern TOKEN_START = Pattern.compile("[^{]");
 	private static final Pattern TOKEN_END = Pattern.compile("[^}]");
-	private static final Pattern TOKEN_CONTAINS = Pattern.compile("[{}]");
 
-	public static Map<String, String> extractParams(String pattern, String path) {
+	public static Optional<Map<String, String>> extractParams(String pattern, String path, String queryStr) {
+		Optional<Map<String, String>> pathParams = extractParams(pattern, path);
+		Optional<Map<String, String>> queryParams = extractParams(queryStr);
+
+		if (!pathParams.isPresent() && !queryParams.isPresent()) {
+			return Optional.empty();
+		}
+
+		Map<String, String> params = new HashMap<>();
+		if (pathParams.isPresent()) {
+			params.putAll(pathParams.get());
+		}
+		if (queryParams.isPresent()) {
+			params.putAll(queryParams.get());
+		}
+
+		return Optional.of(params);
+	}
+
+	public static Optional<Map<String, String>> extractParams(String pattern, String path) {
 		if (!TOKEN_START.matcher(pattern).matches()) {
-			return Collections.<String, String>emptyMap();
+			return Optional.empty();
 		}
 
 		Map<String, String> params = new HashMap<>();
@@ -44,7 +62,18 @@ public class PathParamsUtils {
 			String varValue = pathItem.substring(tokenStartIndex, varValueEndIndex);
 			params.put(varName, varValue);
 		}
-		return params;
+		return Optional.ofNullable(params);
+	}
+
+	public static Optional<Map<String, String>> extractParams(String queryStr) {
+		if (Strings.isNullOrEmpty(queryStr)) {
+			return Optional.empty();
+		}
+
+		Map<String, String> params = Arrays.stream(queryStr.split("&"))
+				.map(item -> item.split("="))
+				.collect(Collectors.toMap(p -> p[0], p -> p[1]));
+		return Optional.ofNullable(params);
 	}
 
 	public static void validate(String pattern) {

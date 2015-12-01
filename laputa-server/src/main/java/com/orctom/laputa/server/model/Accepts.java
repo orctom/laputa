@@ -1,8 +1,6 @@
 package com.orctom.laputa.server.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -11,13 +9,18 @@ import java.util.stream.Collectors;
  */
 public class Accepts {
 
-	private List<Tuple<String, String>> accepts;
+	private static Map<String, List<String>> cache = new HashMap<>();
 
-	public Accepts(String accept) {
+	public static List<String> sortAsList(String accept) {
+		List<String> sorted = cache.get(accept);
+		if (null != sorted) {
+			return sorted;
+		}
+
 		String[] acceptArray = accept.split(",");
 		int len = acceptArray.length;
 
-		accepts = new ArrayList<>(len);
+		List<Tuple<String, String>>accepts = new ArrayList<>(len);
 
 		for (String item : acceptArray) {
 			int semiColonIndex = item.indexOf(";");
@@ -29,10 +32,11 @@ public class Accepts {
 				accepts.add(new Tuple<>(item, "q=1.0"));
 			}
 		}
-	}
 
-	public List<String> getAccepts() {
 		Collections.sort(accepts, (o1, o2) -> o2.getValue().compareTo(o1.getValue()));
-		return accepts.stream().map(Tuple::getKey).collect(Collectors.toList());
+		sorted = accepts.stream().map(Tuple::getKey).collect(Collectors.toList());
+		cache.put(accept, sorted);
+
+		return sorted;
 	}
 }

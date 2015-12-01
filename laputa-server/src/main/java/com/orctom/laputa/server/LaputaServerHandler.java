@@ -29,7 +29,6 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	private static final byte[] ERROR_CONTENT = {'5', '0', '0'};
-	private static final byte[] ERROR_CONTENT_404 = {'4', '0', '4'};
 
 	@Override
 	public void channelReadComplete(ChannelHandlerContext ctx) {
@@ -82,18 +81,14 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
 		Handler handler = MappingConfig.getInstance().getHandler(uri, getHttpMethod(method));
 
-		Optional<ResponseTypeEncoder> typeEncoder = ResponseEncoders.getEncoder(req);
-		if (typeEncoder.isPresent()) {
-			try {
-				Object data = handler.process(uri);
-				byte[] encoded = typeEncoder.get().getEncoder().encode(data);
-				return new EncodedResponse(typeEncoder.get().getResponseType(), encoded);
-			} catch (Throwable e) {
-				LOGGER.error(e.getMessage(), e);
-				return new EncodedResponse(typeEncoder.get().getResponseType(), ERROR_CONTENT);
-			}
-		} else {
-			return new EncodedResponse(MediaType.TEXT_HTML.getValue(), ERROR_CONTENT_404);
+		ResponseTypeEncoder typeEncoder = ResponseEncoders.getEncoder(req);
+		try {
+			Object data = handler.process(uri, queryStr);
+			byte[] encoded = typeEncoder.getEncoder().encode(data);
+			return new EncodedResponse(typeEncoder.getResponseType(), encoded);
+		} catch (Throwable e) {
+			LOGGER.error(e.getMessage(), e);
+			return new EncodedResponse(typeEncoder.getResponseType(), ERROR_CONTENT);
 		}
 	}
 

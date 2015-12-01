@@ -1,12 +1,17 @@
 package com.orctom.laputa.server.config;
 
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.orctom.laputa.server.PathParamsUtils;
 import com.orctom.laputa.server.internal.BeanFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class Handler {
 
@@ -28,14 +33,15 @@ public class Handler {
 		return handlerMethod;
 	}
 
-	public Object process(String uri) throws InvocationTargetException, IllegalAccessException {
+	public Object process(String uri, String queryString) throws InvocationTargetException, IllegalAccessException {
 		Object target = BeanFactory.getFactory().getInstance(handlerClass);
-		Map<String, String> params = PathParamsUtils.extractParams(uriPattern, uri);
-		if (params.isEmpty()) {
-			return handlerMethod.invoke(target);
-		} else {
-			Object args = resolveArgs(params);
+		Optional<Map<String, String>> params = PathParamsUtils.extractParams(uriPattern, uri, queryString);
+
+		if (params.isPresent()) {
+			Object args = resolveArgs(params.get());
 			return handlerMethod.invoke(target, args);
+		} else {
+			return handlerMethod.invoke(target);
 		}
 	}
 
