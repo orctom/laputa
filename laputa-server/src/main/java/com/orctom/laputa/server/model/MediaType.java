@@ -1,4 +1,4 @@
-package com.orctom.laputa.server;
+package com.orctom.laputa.server.model;
 
 
 /**

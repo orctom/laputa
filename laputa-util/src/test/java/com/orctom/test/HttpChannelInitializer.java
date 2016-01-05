@@ -24,10 +24,10 @@ public class HttpChannelInitializer extends ChannelInitializer<Channel> {
 		pipeline.addLast(new TimeServerHandler());
 		if (client) {
 			pipeline.addLast("decoder", new HttpResponseDecoder());        //1
-			pipeline.addLast("encoder", new HttpRequestEncoder());        //2
+			pipeline.addLast("translator", new HttpRequestEncoder());        //2
 		} else {
 			pipeline.addLast("decoder", new HttpRequestDecoder());        //3
-			pipeline.addLast("encoder", new HttpResponseEncoder());        //4
+			pipeline.addLast("translator", new HttpResponseEncoder());        //4
 		}
 	}
 }

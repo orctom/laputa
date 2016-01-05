@@ -1,4 +1,4 @@
-package com.orctom.laputa.server.config;
+package com.orctom.laputa.server.model;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -10,22 +10,22 @@ import java.util.Map;
  */
 public class PathTrie {
 
-	private Handler handler;
+	private RequestMapping handler;
 
 	private Map<String, PathTrie> children = new HashMap<>();
 
 	public PathTrie() {
 	}
 
-	public PathTrie(Handler handler) {
+	public PathTrie(RequestMapping handler) {
 		this.handler = handler;
 	}
 
 	public PathTrie(String uri, Class<?> handlerClass, Method handlerMethod) {
-		this.handler = new Handler(uri, handlerClass, handlerMethod);
+		this.handler = new RequestMapping(uri, handlerClass, handlerMethod);
 	}
 
-	public Handler getHandler() {
+	public RequestMapping getHandler() {
 		return handler;
 	}
 

@@ -3,6 +3,9 @@ package com.orctom.laputa.server.config;
 import com.google.common.base.Strings;
 import com.orctom.laputa.server.annotation.*;
 import com.orctom.laputa.server.internal.handler.DefaultHandler;
+import com.orctom.laputa.server.model.HTTPMethod;
+import com.orctom.laputa.server.model.PathTrie;
+import com.orctom.laputa.server.model.RequestMapping;
 import com.orctom.laputa.util.ClassUtils;
 import com.orctom.laputa.util.exception.ClassLoadingException;
 import org.apache.logging.log4j.LogManager;
@@ -21,7 +24,7 @@ public class MappingConfig {
 
 	private static final Logger LOGGER = LogManager.getLogger();
 
-	private Map<String, Handler> staticMappings = new HashMap<>();
+	private Map<String, RequestMapping> staticMappings = new HashMap<>();
 	private PathTrie wildcardMappings = new PathTrie();
 
 	private static final Pattern PATTERN_DOUBLE_SLASHES = Pattern.compile("//");
@@ -37,13 +40,13 @@ public class MappingConfig {
 		return INSTANCE;
 	}
 
-	public Handler getHandler(String uri, HTTPMethod httpMethod) {
+	public RequestMapping getMapping(String uri, HTTPMethod httpMethod) {
 		String path = uri;
 		int dotIndex = path.lastIndexOf(".");
 		if (dotIndex > 0) {
 			path = path.substring(0, dotIndex);
 		}
-		Handler handler = staticMappings.get(path + "/" + httpMethod.getKey());
+		RequestMapping handler = staticMappings.get(path + "/" + httpMethod.getKey());
 		if (null != handler) {
 			return handler;
 		}
@@ -56,7 +59,7 @@ public class MappingConfig {
 		return _404();
 	}
 
-	private Handler _404() {
+	private RequestMapping _404() {
 		return staticMappings.get("/404/@get");
 	}
 
@@ -67,7 +70,7 @@ public class MappingConfig {
 	 * <li>3) dynamic at middle of the uri</li>
 	 * <li>4) dynamic at end of the uri</li>
 	 */
-	private Handler getHandlerForWildcardUri(String uri, HTTPMethod httpMethod) {
+	private RequestMapping getHandlerForWildcardUri(String uri, HTTPMethod httpMethod) {
 		String[] paths = uri.split("/");
 		if (2 < paths.length) {
 			return null;
@@ -118,7 +121,7 @@ public class MappingConfig {
 
 	private void logMappingInfo() {
 		LOGGER.info("static mappings:");
-		for (Handler handler : new TreeMap<>(staticMappings).values()) {
+		for (RequestMapping handler : new TreeMap<>(staticMappings).values()) {
 			LOGGER.info(handler.toString());
 		}
 
@@ -171,7 +174,7 @@ public class MappingConfig {
 		if (uri.contains("{")) {
 			addToWildCardMappings(clazz, method, uri, httpMethodKey);
 		} else {
-			staticMappings.put(uri + "/" + httpMethodKey, new Handler(uri, clazz, method));
+			staticMappings.put(uri + "/" + httpMethodKey, new RequestMapping(uri, clazz, method));
 		}
 
 	}

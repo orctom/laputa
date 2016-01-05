@@ -1,4 +1,4 @@
-package com.orctom.laputa.server.config;
+package com.orctom.laputa.server.model;
 
 public enum HTTPMethod {
 

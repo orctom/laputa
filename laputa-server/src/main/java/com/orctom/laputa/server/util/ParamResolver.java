@@ -1,42 +1,66 @@
-package com.orctom.laputa.server;
+package com.orctom.laputa.server.util;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
+import com.orctom.laputa.server.annotation.DefaultValue;
+import com.orctom.laputa.util.ClassUtils;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class PathParamsUtils {
+public class ParamResolver {
 
 	private static final Pattern TOKEN_START = Pattern.compile("[^{]");
 	private static final Pattern TOKEN_END = Pattern.compile("[^}]");
 
-	public static Optional<Map<String, String>> extractParams(String pattern, String path, String queryStr) {
-		Optional<Map<String, String>> pathParams = extractParams(pattern, path);
-		Optional<Map<String, String>> queryParams = extractParams(queryStr);
+	public static Map<String, String> extractParams(
+			Method method, String pattern, String path, String queryStr) {
+		Map<String, String> params = new HashMap<>();
 
-		if (!pathParams.isPresent() && !queryParams.isPresent()) {
-			return Optional.empty();
+		params.putAll(extractDefaultValues(method));
+		params.putAll(extractQueryParams(queryStr));
+		params.putAll(extractPathParams(pattern, path));
+
+		return params;
+	}
+
+	public static Map<String, String> extractDefaultValues(Method method) {
+		Parameter[] methodParameters = method.getParameters();
+		if (0 == methodParameters.length) {
+			return Collections.emptyMap();
 		}
 
 		Map<String, String> params = new HashMap<>();
-		if (pathParams.isPresent()) {
-			params.putAll(pathParams.get());
-		}
-		if (queryParams.isPresent()) {
-			params.putAll(queryParams.get());
+		for (Parameter parameter : methodParameters) {
+			DefaultValue defaultValue = parameter.getAnnotation(DefaultValue.class);
+			if (null != defaultValue && ClassUtils.isPrimitiveOrWrapper(parameter.getType())) {
+				params.put(parameter.getName(), defaultValue.value());
+			}
 		}
 
-		return Optional.of(params);
+		return params;
 	}
 
-	public static Optional<Map<String, String>> extractParams(String pattern, String path) {
+	public static Map<String, String> extractQueryParams(String queryStr) {
+		if (Strings.isNullOrEmpty(queryStr)) {
+			return Collections.emptyMap();
+		}
+
+		return Arrays.stream(queryStr.split("&"))
+				.map(item -> item.split("="))
+				.collect(Collectors.toMap(p -> p[0], p -> p[1]));
+	}
+
+	public static Map<String, String> extractPathParams(String pattern, String path) {
 		if (!TOKEN_START.matcher(pattern).matches()) {
-			return Optional.empty();
+			return Collections.emptyMap();
 		}
 
 		Map<String, String> params = new HashMap<>();
@@ -62,18 +86,7 @@ public class PathParamsUtils {
 			String varValue = pathItem.substring(tokenStartIndex, varValueEndIndex);
 			params.put(varName, varValue);
 		}
-		return Optional.ofNullable(params);
-	}
-
-	public static Optional<Map<String, String>> extractParams(String queryStr) {
-		if (Strings.isNullOrEmpty(queryStr)) {
-			return Optional.empty();
-		}
-
-		Map<String, String> params = Arrays.stream(queryStr.split("&"))
-				.map(item -> item.split("="))
-				.collect(Collectors.toMap(p -> p[0], p -> p[1]));
-		return Optional.ofNullable(params);
+		return params;
 	}
 
 	public static void validate(String pattern) {

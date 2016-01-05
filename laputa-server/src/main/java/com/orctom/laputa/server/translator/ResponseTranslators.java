@@ -1,7 +1,6 @@
-package com.orctom.laputa.server.encoder;
+package com.orctom.laputa.server.translator;
 
-import com.orctom.laputa.server.MediaType;
-import com.orctom.laputa.server.internal.ResponseTypeEncoder;
+import com.orctom.laputa.server.model.MediaType;
 import com.orctom.laputa.server.model.Accepts;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -9,23 +8,23 @@ import io.netty.handler.codec.http.HttpHeaders;
 import java.util.*;
 
 /**
- * ResponseEncoder registry
+ * ResponseTranslator registry
  * Created by hao on 11/25/15.
  */
-public class ResponseEncoders {
+public class ResponseTranslators {
 
-	private static final Map<String, ResponseEncoder> ENCODERS = new HashMap<>();
+	private static final Map<String, ResponseTranslator> ENCODERS = new HashMap<>();
 
 	static {
-		add(JsonResponseEncoder.TYPE.getValue(), new JsonResponseEncoder());
-		add(XmlResponseEncoder.TYPE.getValue(), new XmlResponseEncoder());
+		add(JsonResponseTranslator.TYPE.getValue(), new JsonResponseTranslator());
+		add(XmlResponseTranslator.TYPE.getValue(), new XmlResponseTranslator());
 	}
 
-	public static void add(String type, ResponseEncoder encoder) {
+	public static void add(String type, ResponseTranslator encoder) {
 		ENCODERS.put(type, encoder);
 	}
 
-	public static ResponseTypeEncoder getEncoder(DefaultHttpRequest request) {
+	public static ResponseTranslator getTranslator(DefaultHttpRequest request) {
 		String uri = request.getUri();
 		if (uri.endsWith(".json")) {
 			return getResponseTypeEncoder(MediaType.APPLICATION_JSON);
@@ -41,16 +40,16 @@ public class ResponseEncoders {
 		List<String> accepts = Accepts.sortAsList(accept);
 
 		for (String type :accepts) {
-			ResponseEncoder encoder = ENCODERS.get(type);
+			ResponseTranslator encoder = ENCODERS.get(type);
 			if (null != encoder) {
-				return new ResponseTypeEncoder(type, encoder);
+				return encoder;
 			}
 		}
 
 		return getResponseTypeEncoder(MediaType.APPLICATION_JSON);
 	}
 
-	private static ResponseTypeEncoder getResponseTypeEncoder(MediaType mediaType) {
-		return new ResponseTypeEncoder(mediaType, ENCODERS.get(mediaType.getValue()));
+	private static ResponseTranslator getResponseTypeEncoder(MediaType mediaType) {
+		return ENCODERS.get(mediaType.getValue());
 	}
 }

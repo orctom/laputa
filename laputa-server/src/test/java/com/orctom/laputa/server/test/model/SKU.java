@@ -11,6 +11,8 @@ public class SKU {
 	private int category;
 	private int stock;
 
+	public static final SKU EMPTY = new SKU();
+
 	public SKU() {
 	}
 
@@ -20,6 +22,8 @@ public class SKU {
 		this.category = category;
 		this.stock = stock;
 	}
+
+
 
 	public int getCategory() {
 		return category;

@@ -17,4 +17,9 @@ public class Store {
 	public String id(String id) {
 		return "hello " + id;
 	}
+
+	@Path(("/search"))
+	public String search(String query) {
+		return "searching for: " + query;
+	}
 }
