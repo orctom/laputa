@@ -42,6 +42,11 @@ public class LaputaService {
 		return this;
 	}
 
+	public LaputaService enableDebug(boolean setDebugEnabled) {
+		ServiceConfig.getInstance().setDebugEnabled(setDebugEnabled);
+		return this;
+	}
+
 	public LaputaService withBeanFactory(BeanFactory beanFactory) {
 		ServiceConfig.getInstance().setBeanFactory(beanFactory);
 		return this;
@@ -56,7 +61,6 @@ public class LaputaService {
 	private void validate() {
 		Preconditions.checkArgument(null != basePackages, "'base packages' not set");
 		Preconditions.checkArgument(null != annotation, "'annotation' to scan not set");
-//		Preconditions.checkArgument(null != beanFactory, "'bean factory' to scan not set");
 	}
 
 	private void loadMappings() throws ClassLoadingException {

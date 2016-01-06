@@ -1,5 +1,6 @@
 package com.orctom.laputa.server.processor.impl;
 
+import com.orctom.laputa.server.config.ServiceConfig;
 import com.orctom.laputa.server.util.ParamResolver;
 import com.orctom.laputa.server.model.HTTPMethod;
 import com.orctom.laputa.server.config.MappingConfig;
@@ -27,6 +28,8 @@ import java.util.Map;
 public class DefaultRequestProcessor implements RequestProcessor {
 
 	private static final Logger LOGGER = LogManager.getLogger();
+
+	private static final BeanFactory beanFactory = ServiceConfig.getInstance().getBeanFactory();
 
 	private static final byte[] ERROR_CONTENT = {'5', '0', '0'};
 
@@ -93,7 +96,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 			throws InvocationTargetException, IllegalAccessException {
 		Class<?> handlerClass = mapping.getHandlerClass();
 		Method handlerMethod = mapping.getHandlerMethod();
-		Object target = BeanFactory.getFactory().getInstance(handlerClass);
+		Object target = beanFactory.getInstance(handlerClass);
 
 		Parameter[] methodParameters = handlerMethod.getParameters();
 		if (0 == methodParameters.length) {
