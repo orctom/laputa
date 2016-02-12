@@ -6,19 +6,19 @@ package com.orctom.laputa.server.model;
  */
 public class Response {
 
-	private String mediaType;
-	private byte[] content;
+  private String mediaType;
+  private byte[] content;
 
-	public Response(String mediaType, byte[] content) {
-		this.content = content;
-		this.mediaType = mediaType;
-	}
+  public Response(String mediaType, byte[] content) {
+    this.content = content;
+    this.mediaType = mediaType;
+  }
 
-	public byte[] getContent() {
-		return content;
-	}
+  public byte[] getContent() {
+    return content;
+  }
 
-	public String getMediaType() {
-		return mediaType;
-	}
+  public String getMediaType() {
+    return mediaType;
+  }
 }

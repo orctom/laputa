@@ -7,5 +7,5 @@ import java.lang.annotation.*;
 @Documented
 public @interface DefaultValue {
 
-	String value();
+  String value();
 }

@@ -9,8 +9,8 @@ import java.io.IOException;
  */
 public interface ResponseTranslator {
 
-	String getMediaType();
+  String getMediaType();
 
-	byte[] translate(Object data) throws IOException;
+  byte[] translate(Object data) throws IOException;
 
 }

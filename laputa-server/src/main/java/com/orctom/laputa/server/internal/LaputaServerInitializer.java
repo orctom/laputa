@@ -9,19 +9,19 @@ import io.netty.handler.ssl.SslContext;
 
 public class LaputaServerInitializer extends ChannelInitializer<SocketChannel> {
 
-	private final SslContext sslContext;
+  private final SslContext sslContext;
 
-	public LaputaServerInitializer(SslContext sslContext) {
-		this.sslContext = sslContext;
-	}
+  public LaputaServerInitializer(SslContext sslContext) {
+    this.sslContext = sslContext;
+  }
 
-	@Override
-	public void initChannel(SocketChannel ch) {
-		ChannelPipeline p = ch.pipeline();
-		if (sslContext != null) {
-			p.addLast(sslContext.newHandler(ch.alloc()));
-		}
-		p.addLast(new HttpServerCodec());
-		p.addLast(new LaputaServerHandler());
-	}
+  @Override
+  public void initChannel(SocketChannel ch) {
+    ChannelPipeline p = ch.pipeline();
+    if (sslContext != null) {
+      p.addLast(sslContext.newHandler(ch.alloc()));
+    }
+    p.addLast(new HttpServerCodec());
+    p.addLast(new LaputaServerHandler());
+  }
 }

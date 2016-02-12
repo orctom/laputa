@@ -7,5 +7,5 @@ import java.lang.annotation.*;
 @Documented
 public @interface Path {
 
-	String value();
+  String value();
 }

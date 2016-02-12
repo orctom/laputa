@@ -10,42 +10,42 @@ import java.util.Map;
  */
 public class PathTrie {
 
-	private RequestMapping handler;
+  private RequestMapping handler;
 
-	private Map<String, PathTrie> children = new HashMap<>();
+  private Map<String, PathTrie> children = new HashMap<>();
 
-	public PathTrie() {
-	}
+  public PathTrie() {
+  }
 
-	public PathTrie(RequestMapping handler) {
-		this.handler = handler;
-	}
+  public PathTrie(RequestMapping handler) {
+    this.handler = handler;
+  }
 
-	public PathTrie(String uri, Class<?> handlerClass, Method handlerMethod) {
-		this.handler = new RequestMapping(uri, handlerClass, handlerMethod);
-	}
+  public PathTrie(String uri, Class<?> handlerClass, Method handlerMethod) {
+    this.handler = new RequestMapping(uri, handlerClass, handlerMethod);
+  }
 
-	public RequestMapping getHandler() {
-		return handler;
-	}
+  public RequestMapping getHandler() {
+    return handler;
+  }
 
-	public Map<String, PathTrie> getChildren() {
-		return children;
-	}
+  public Map<String, PathTrie> getChildren() {
+    return children;
+  }
 
-	@Override
-	public String toString() {
-		return getChildMappings(this);
-	}
+  @Override
+  public String toString() {
+    return getChildMappings(this);
+  }
 
-	public String getChildMappings(PathTrie parent) {
-		StringBuilder str = new StringBuilder();
-		if (null != parent.getHandler()) {
-			str.append("\n").append(parent.getHandler().toString());
-		}
-		for (Map.Entry<String, PathTrie> entry : parent.getChildren().entrySet()) {
-			str.append(getChildMappings(entry.getValue()));
-		}
-		return str.toString();
-	}
+  public String getChildMappings(PathTrie parent) {
+    StringBuilder str = new StringBuilder();
+    if (null != parent.getHandler()) {
+      str.append("\n").append(parent.getHandler().toString());
+    }
+    for (Map.Entry<String, PathTrie> entry : parent.getChildren().entrySet()) {
+      str.append(getChildMappings(entry.getValue()));
+    }
+    return str.toString();
+  }
 }

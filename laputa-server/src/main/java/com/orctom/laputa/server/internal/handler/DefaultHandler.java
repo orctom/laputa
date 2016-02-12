@@ -8,13 +8,13 @@ import com.orctom.laputa.server.annotation.Path;
  */
 public class DefaultHandler {
 
-	@Path("/404")
-	public String _404() {
-		return "The requested resource does not exist.";
-	}
+  @Path("/404")
+  public String _404() {
+    return "The requested resource does not exist.";
+  }
 
-	@Path("/500")
-	public String _500() {
-		return "The server can not process your last request, please try again later.";
-	}
+  @Path("/500")
+  public String _500() {
+    return "The server can not process your last request, please try again later.";
+  }
 }

@@ -7,5 +7,5 @@ import java.lang.annotation.*;
 @Documented
 public @interface QueryParam {
 
-	String value();
+  String value();
 }

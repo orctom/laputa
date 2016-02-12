@@ -27,86 +27,86 @@ import java.util.Map;
  */
 public class DefaultRequestProcessor implements RequestProcessor {
 
-	private static final Logger LOGGER = LogManager.getLogger();
+  private static final Logger LOGGER = LogManager.getLogger();
 
-	private static final BeanFactory beanFactory = ServiceConfig.getInstance().getBeanFactory();
+  private static final BeanFactory beanFactory = ServiceConfig.getInstance().getBeanFactory();
 
-	private static final byte[] ERROR_CONTENT = {'5', '0', '0'};
+  private static final byte[] ERROR_CONTENT = {'5', '0', '0'};
 
-	@Override
-	public Response handleRequest(DefaultHttpRequest req) {
-		HttpMethod method = req.getMethod();
-		String uri = req.getUri();
+  @Override
+  public Response handleRequest(DefaultHttpRequest req) {
+    HttpMethod method = req.getMethod();
+    String uri = req.getUri();
 
-		// remove hash
-		uri = removeHashFromUri(uri);
+    // remove hash
+    uri = removeHashFromUri(uri);
 
-		// get query string
-		int questionMarkIndex = uri.indexOf("?");
-		String queryStr = null;
-		if (questionMarkIndex > 0) {
-			queryStr = uri.substring(questionMarkIndex + 1);
-			uri = uri.substring(0, questionMarkIndex);
-		}
-		System.out.println("uri      = " + uri);
-		System.out.println("queryStr = " + queryStr);
+    // get query string
+    int questionMarkIndex = uri.indexOf("?");
+    String queryStr = null;
+    if (questionMarkIndex > 0) {
+      queryStr = uri.substring(questionMarkIndex + 1);
+      uri = uri.substring(0, questionMarkIndex);
+    }
+    System.out.println("uri      = " + uri);
+    System.out.println("queryStr = " + queryStr);
 
-		RequestMapping mapping = MappingConfig.getInstance().getMapping(uri, getHttpMethod(method));
+    RequestMapping mapping = MappingConfig.getInstance().getMapping(uri, getHttpMethod(method));
 
-		ResponseTranslator translator = ResponseTranslators.getTranslator(req);
-		try {
-			Object data = processRequest(uri, queryStr, mapping);
-			byte[] content = translator.translate(data);
-			return new Response(translator.getMediaType(), content);
-		} catch (Throwable e) {
-			LOGGER.error(e.getMessage(), e);
-			return new Response(translator.getMediaType(), ERROR_CONTENT);
-		}
-	}
+    ResponseTranslator translator = ResponseTranslators.getTranslator(req);
+    try {
+      Object data = processRequest(uri, queryStr, mapping);
+      byte[] content = translator.translate(data);
+      return new Response(translator.getMediaType(), content);
+    } catch (Throwable e) {
+      LOGGER.error(e.getMessage(), e);
+      return new Response(translator.getMediaType(), ERROR_CONTENT);
+    }
+  }
 
-	private String removeHashFromUri(String uri) {
-		int hashIndex = uri.indexOf("#");
-		if (hashIndex > 0) {
-			return uri.substring(0, hashIndex);
-		} else {
-			return uri;
-		}
-	}
+  private String removeHashFromUri(String uri) {
+    int hashIndex = uri.indexOf("#");
+    if (hashIndex > 0) {
+      return uri.substring(0, hashIndex);
+    } else {
+      return uri;
+    }
+  }
 
-	private HTTPMethod getHttpMethod(HttpMethod method) {
-		if (HttpMethod.DELETE == method) {
-			return HTTPMethod.DELETE;
-		}
-		if (HttpMethod.HEAD == method) {
-			return HTTPMethod.HEAD;
-		}
-		if (HttpMethod.OPTIONS == method) {
-			return HTTPMethod.OPTIONS;
-		}
-		if (HttpMethod.POST == method) {
-			return HTTPMethod.POST;
-		}
-		if (HttpMethod.PUT == method) {
-			return HTTPMethod.PUT;
-		}
-		return HTTPMethod.GET;
-	}
+  private HTTPMethod getHttpMethod(HttpMethod method) {
+    if (HttpMethod.DELETE == method) {
+      return HTTPMethod.DELETE;
+    }
+    if (HttpMethod.HEAD == method) {
+      return HTTPMethod.HEAD;
+    }
+    if (HttpMethod.OPTIONS == method) {
+      return HTTPMethod.OPTIONS;
+    }
+    if (HttpMethod.POST == method) {
+      return HTTPMethod.POST;
+    }
+    if (HttpMethod.PUT == method) {
+      return HTTPMethod.PUT;
+    }
+    return HTTPMethod.GET;
+  }
 
-	public Object processRequest(String uri, String queryString, RequestMapping mapping)
-			throws InvocationTargetException, IllegalAccessException {
-		Class<?> handlerClass = mapping.getHandlerClass();
-		Method handlerMethod = mapping.getHandlerMethod();
-		Object target = beanFactory.getInstance(handlerClass);
+  public Object processRequest(String uri, String queryString, RequestMapping mapping)
+      throws InvocationTargetException, IllegalAccessException {
+    Class<?> handlerClass = mapping.getHandlerClass();
+    Method handlerMethod = mapping.getHandlerMethod();
+    Object target = beanFactory.getInstance(handlerClass);
 
-		Parameter[] methodParameters = handlerMethod.getParameters();
-		if (0 == methodParameters.length) {
-			return handlerMethod.invoke(target);
-		}
+    Parameter[] methodParameters = handlerMethod.getParameters();
+    if (0 == methodParameters.length) {
+      return handlerMethod.invoke(target);
+    }
 
-		Map<String, String> params = ParamResolver.extractParams(
-				handlerMethod, mapping.getUriPattern(), uri, queryString);
+    Map<String, String> params = ParamResolver.extractParams(
+        handlerMethod, mapping.getUriPattern(), uri, queryString);
 
-		Object[] args = ArgsResolver.resolveArgs(handlerMethod, params);
-		return handlerMethod.invoke(target, args);
-	}
+    Object[] args = ArgsResolver.resolveArgs(handlerMethod, params);
+    return handlerMethod.invoke(target, args);
+  }
 }

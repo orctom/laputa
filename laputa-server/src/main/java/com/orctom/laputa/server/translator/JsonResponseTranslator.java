@@ -11,17 +11,17 @@ import java.io.IOException;
  */
 public class JsonResponseTranslator implements ResponseTranslator {
 
-	public static final MediaType TYPE = MediaType.APPLICATION_JSON;
+  public static final MediaType TYPE = MediaType.APPLICATION_JSON;
 
-	private static ObjectMapper mapper = new ObjectMapper();
+  private static ObjectMapper mapper = new ObjectMapper();
 
-	@Override
-	public String getMediaType() {
-		return TYPE.getValue();
-	}
+  @Override
+  public String getMediaType() {
+    return TYPE.getValue();
+  }
 
-	@Override
-	public byte[] translate(Object data) throws IOException {
-		return mapper.writeValueAsBytes(data);
-	}
+  @Override
+  public byte[] translate(Object data) throws IOException {
+    return mapper.writeValueAsBytes(data);
+  }
 }

@@ -7,5 +7,5 @@ import java.lang.annotation.*;
 @Documented
 public @interface CookieParam {
 
-	String value();
+  String value();
 }

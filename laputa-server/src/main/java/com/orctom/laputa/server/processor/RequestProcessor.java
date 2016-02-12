@@ -9,6 +9,6 @@ import io.netty.handler.codec.http.DefaultHttpRequest;
  */
 public interface RequestProcessor {
 
-	Response handleRequest(DefaultHttpRequest req);
+  Response handleRequest(DefaultHttpRequest req);
 
 }

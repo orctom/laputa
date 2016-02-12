@@ -9,30 +9,31 @@ import com.orctom.laputa.server.internal.NaiveBeanFactory;
  */
 public class ServiceConfig {
 
-	private boolean debugEnabled = false;
-	private BeanFactory beanFactory = new NaiveBeanFactory();
+  private boolean debugEnabled = false;
+  private BeanFactory beanFactory = new NaiveBeanFactory();
 
-	private static final ServiceConfig INSTANCE = new ServiceConfig();
+  private static final ServiceConfig INSTANCE = new ServiceConfig();
 
-	private ServiceConfig() {}
+  private ServiceConfig() {
+  }
 
-	public static ServiceConfig getInstance() {
-		return INSTANCE;
-	}
+  public static ServiceConfig getInstance() {
+    return INSTANCE;
+  }
 
-	public BeanFactory getBeanFactory() {
-		return beanFactory;
-	}
+  public BeanFactory getBeanFactory() {
+    return beanFactory;
+  }
 
-	public void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
-	}
+  public void setBeanFactory(BeanFactory beanFactory) {
+    this.beanFactory = beanFactory;
+  }
 
-	public boolean isDebugEnabled() {
-		return debugEnabled;
-	}
+  public boolean isDebugEnabled() {
+    return debugEnabled;
+  }
 
-	public void setDebugEnabled(boolean debugEnabled) {
-		this.debugEnabled = debugEnabled;
-	}
+  public void setDebugEnabled(boolean debugEnabled) {
+    this.debugEnabled = debugEnabled;
+  }
 }

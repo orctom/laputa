@@ -19,43 +19,43 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
-	private RequestProcessor requestProcessor = new DefaultRequestProcessor();
+  private RequestProcessor requestProcessor = new DefaultRequestProcessor();
 
-	@Override
-	public void channelReadComplete(ChannelHandlerContext ctx) {
-		ctx.flush();
-	}
+  @Override
+  public void channelReadComplete(ChannelHandlerContext ctx) {
+    ctx.flush();
+  }
 
-	@Override
-	public void channelRead(ChannelHandlerContext ctx, Object msg) {
-		if (msg instanceof DefaultHttpRequest) {
-			DefaultHttpRequest req = (DefaultHttpRequest) msg;
+  @Override
+  public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    if (msg instanceof DefaultHttpRequest) {
+      DefaultHttpRequest req = (DefaultHttpRequest) msg;
 
-			if (HttpHeaders.is100ContinueExpected(req)) {
-				ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
-			}
+      if (HttpHeaders.is100ContinueExpected(req)) {
+        ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
+      }
 
-			boolean keepAlive = HttpHeaders.isKeepAlive(req);
+      boolean keepAlive = HttpHeaders.isKeepAlive(req);
 
-			Response response = requestProcessor.handleRequest(req);
+      Response response = requestProcessor.handleRequest(req);
 
-			FullHttpResponse res = new DefaultFullHttpResponse(
-					HTTP_1_1, OK, Unpooled.wrappedBuffer(response.getContent()));
-			res.headers().set(CONTENT_TYPE, response.getMediaType());
-			res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
+      FullHttpResponse res = new DefaultFullHttpResponse(
+          HTTP_1_1, OK, Unpooled.wrappedBuffer(response.getContent()));
+      res.headers().set(CONTENT_TYPE, response.getMediaType());
+      res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
 
-			if (!keepAlive) {
-				ctx.write(res).addListener(ChannelFutureListener.CLOSE);
-			} else {
-				res.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-				ctx.write(res);
-			}
-		}
-	}
+      if (!keepAlive) {
+        ctx.write(res).addListener(ChannelFutureListener.CLOSE);
+      } else {
+        res.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+        ctx.write(res);
+      }
+    }
+  }
 
-	@Override
-	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-		cause.printStackTrace();
-		ctx.close();
-	}
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+    cause.printStackTrace();
+    ctx.close();
+  }
 }

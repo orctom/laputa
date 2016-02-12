@@ -12,17 +12,17 @@ import java.io.IOException;
  */
 public class XmlResponseTranslator implements ResponseTranslator {
 
-	public static final MediaType TYPE = MediaType.APPLICATION_XML;
+  public static final MediaType TYPE = MediaType.APPLICATION_XML;
 
-	private static ObjectMapper mapper = new XmlMapper();
+  private static ObjectMapper mapper = new XmlMapper();
 
-	@Override
-	public String getMediaType() {
-		return TYPE.getValue();
-	}
+  @Override
+  public String getMediaType() {
+    return TYPE.getValue();
+  }
 
-	@Override
-	public byte[] translate(Object data) throws IOException {
-		return mapper.writeValueAsBytes(data);
-	}
+  @Override
+  public byte[] translate(Object data) throws IOException {
+    return mapper.writeValueAsBytes(data);
+  }
 }
