@@ -10,7 +10,7 @@ import com.orctom.laputa.server.test.model.SKU;
 @Path("/product")
 public class Product {
 
-  @Path("/hello")
+//  @Path("/hello")
   public String hello() {
     return "hello";
   }

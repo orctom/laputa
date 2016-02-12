@@ -174,9 +174,12 @@ public class MappingConfig {
     if (uri.contains("{")) {
       addToWildCardMappings(clazz, method, uri, httpMethodKey);
     } else {
-      staticMappings.put(uri + "/" + httpMethodKey, new RequestMapping(uri, clazz, method));
+      RequestMapping mapping = staticMappings.put(uri + "/" + httpMethodKey, new RequestMapping(uri, clazz, method));
+      if (null != mapping) {
+        throw new IllegalArgumentException("Conflicts found in configured @Path:\n" + uri + ", " + httpMethodKey +
+            "\n\t\t" + mapping.getHandlerMethod().toString() + "\n\t\t" + method.toString());
+      }
     }
-
   }
 
   private String normalize(String uri) {
