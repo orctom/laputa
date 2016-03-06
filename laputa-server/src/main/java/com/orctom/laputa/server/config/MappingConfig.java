@@ -72,7 +72,7 @@ public class MappingConfig {
    */
   private RequestMapping getHandlerForWildcardUri(String uri, HTTPMethod httpMethod) {
     String[] paths = uri.split("/");
-    if (2 < paths.length) {
+    if (paths.length < 2) {
       return null;
     }
 
@@ -80,6 +80,10 @@ public class MappingConfig {
 
     for (int i = 1; i < paths.length; i++) {
       String path = paths[i];
+      if (Strings.isNullOrEmpty(path)) {
+        continue;
+      }
+
       boolean isEndPath = i == paths.length - 1;
 
       // 1) and 2)
@@ -126,7 +130,7 @@ public class MappingConfig {
     }
 
     LOGGER.info("dynamic mappings:");
-    LOGGER.info(wildcardMappings.toString());
+    LOGGER.info(wildcardMappings.getChildrenMappings());
   }
 
   protected void configureMappings(Class<?> clazz) {
@@ -199,6 +203,10 @@ public class MappingConfig {
     Map<String, PathTrie> children = wildcardMappings.getChildren();
 
     for (String path : paths) {
+      if (Strings.isNullOrEmpty(path)) {
+        continue;
+      }
+
       boolean containsParam = path.contains("{");
       String pathKey = containsParam ? KEY_PATH_PARAM : path;
       PathTrie child = children.get(pathKey);

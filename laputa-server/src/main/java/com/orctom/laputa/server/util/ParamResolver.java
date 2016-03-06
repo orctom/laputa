@@ -4,6 +4,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.orctom.laputa.server.annotation.DefaultValue;
+import com.orctom.laputa.server.annotation.Param;
 import com.orctom.laputa.util.ClassUtils;
 
 import java.lang.annotation.Annotation;
@@ -17,8 +18,8 @@ import java.util.stream.Stream;
 
 public class ParamResolver {
 
-  private static final Pattern TOKEN_START = Pattern.compile("[^{]");
-  private static final Pattern TOKEN_END = Pattern.compile("[^}]");
+  private static final Pattern TOKEN_START = Pattern.compile("[\\{]");
+  private static final Pattern TOKEN_END = Pattern.compile("[\\}]");
 
   public static Map<String, String> extractParams(
       Method method, String pattern, String path, String queryStr) {
@@ -39,9 +40,13 @@ public class ParamResolver {
 
     Map<String, String> params = new HashMap<>();
     for (Parameter parameter : methodParameters) {
+      Param param = parameter.getAnnotation(Param.class);
+      if (null == param) {
+        throw new IllegalArgumentException("Missing @Param annotation at " + method.toString());
+      }
       DefaultValue defaultValue = parameter.getAnnotation(DefaultValue.class);
-      if (null != defaultValue && ClassUtils.isPrimitiveOrWrapper(parameter.getType())) {
-        params.put(parameter.getName(), defaultValue.value());
+      if (null != defaultValue && ClassUtils.isSimpleValueType(parameter.getType())) {
+        params.put(param.value(), defaultValue.value());
       }
     }
 
@@ -59,7 +64,7 @@ public class ParamResolver {
   }
 
   public static Map<String, String> extractPathParams(String pattern, String path) {
-    if (!TOKEN_START.matcher(pattern).matches()) {
+    if (!pattern.contains("{")) {
       return Collections.emptyMap();
     }
 

@@ -2,7 +2,6 @@ package com.orctom.laputa.server.test;
 
 import com.orctom.laputa.server.annotation.Export;
 import com.orctom.laputa.server.annotation.Path;
-import com.orctom.laputa.server.annotation.PathParam;
 
 @Export
 @Path("/store")

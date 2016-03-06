@@ -1,11 +1,16 @@
 package com.orctom.laputa.server.test;
 
 import java.lang.reflect.Method;
+import java.util.regex.Pattern;
 
 public class DummyTests {
   public static void main(String[] args) throws Exception {
-    DummyTests tests = new DummyTests();
-    tests.testInvoke();
+//    DummyTests tests = new DummyTests();
+//    tests.testInvoke();
+    String url = "/product/hello/{name}";
+    Pattern pattern = Pattern.compile("[\\{]");
+    System.out.println(pattern.matcher(url).matches());
+    System.out.println(url.matches("[\\w]"));
   }
 
   public void testCast() {

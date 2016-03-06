@@ -24,8 +24,7 @@ public class ResponseTranslators {
     ENCODERS.put(type, encoder);
   }
 
-  public static ResponseTranslator getTranslator(DefaultHttpRequest request) {
-    String uri = request.getUri();
+  public static ResponseTranslator getTranslator(String uri, String accept) {
     if (uri.endsWith(".json")) {
       return getResponseTypeEncoder(MediaType.APPLICATION_JSON);
     }
@@ -36,7 +35,6 @@ public class ResponseTranslators {
       return getResponseTypeEncoder(MediaType.TEXT_HTML);
     }
 
-    String accept = request.headers().get(HttpHeaders.Names.ACCEPT);
     List<String> accepts = Accepts.sortAsList(accept);
 
     for (String type : accepts) {

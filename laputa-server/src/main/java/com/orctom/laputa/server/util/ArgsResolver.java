@@ -1,7 +1,9 @@
 package com.orctom.laputa.server.util;
 
+import com.orctom.laputa.server.annotation.Param;
 import com.orctom.laputa.util.ClassUtils;
 
+import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
@@ -36,9 +38,11 @@ public abstract class ArgsResolver {
                                                  Map<Parameter, Integer> complexParameters) {
     for (int i = 0; i < methodParameters.length; i++) {
       Parameter parameter = methodParameters[i];
+      String paramName= parameter.getAnnotation(Param.class).value();
       Class<?> type = parameter.getType();
+      System.out.println(parameter.toString());
       if (ClassUtils.isSimpleValueType((type))) {
-        args[i] = resolveSimpleValueType(paramValues, parameter.getName(), type);
+        args[i] = resolveSimpleValueType(paramValues, paramName, type);
       } else {
         complexParameters.put(parameter, i);
       }
@@ -52,7 +56,8 @@ public abstract class ArgsResolver {
     Map<String, String> nestedParamValues = getNestedParamValues(paramValues);
     boolean hasNestedParamValues = !nestedParamValues.isEmpty();
     for (Map.Entry<Parameter, Integer> entry : complexParameters.entrySet()) {
-      String paramName = entry.getKey().getName();
+      Parameter parameter = entry.getKey();
+      String paramName= parameter.getAnnotation(Param.class).value();
       Class<?> type = entry.getKey().getType();
       int index = entry.getValue();
       Object arg = createNewInstance(type);
@@ -89,7 +94,7 @@ public abstract class ArgsResolver {
       Map<String, String> paramValues, String paramName, Class<?> type) {
     String value = paramValues.remove(paramName);
     if (null == value) {
-      throw new IllegalArgumentException("Failed to populate param: " + paramName);
+      throw new IllegalArgumentException("Missing param: " + paramName);
     }
     if (String.class.isAssignableFrom(type)) {
       return value;

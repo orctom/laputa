@@ -12,6 +12,7 @@ import com.orctom.laputa.server.translator.ResponseTranslator;
 import com.orctom.laputa.server.translator.ResponseTranslators;
 import com.orctom.laputa.server.util.ArgsResolver;
 import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,7 +54,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
     RequestMapping mapping = MappingConfig.getInstance().getMapping(uri, getHttpMethod(method));
 
-    ResponseTranslator translator = ResponseTranslators.getTranslator(req);
+    String accept = req.headers().get(HttpHeaders.Names.ACCEPT);
+    ResponseTranslator translator = ResponseTranslators.getTranslator(uri, accept);
     try {
       Object data = processRequest(uri, queryStr, mapping);
       byte[] content = translator.translate(data);

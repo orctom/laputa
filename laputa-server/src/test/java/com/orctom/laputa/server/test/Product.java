@@ -1,9 +1,6 @@
 package com.orctom.laputa.server.test;
 
-import com.orctom.laputa.server.annotation.DefaultValue;
-import com.orctom.laputa.server.annotation.Export;
-import com.orctom.laputa.server.annotation.Path;
-import com.orctom.laputa.server.annotation.PathParam;
+import com.orctom.laputa.server.annotation.*;
 import com.orctom.laputa.server.test.model.SKU;
 
 @Export
@@ -16,7 +13,8 @@ public class Product {
   }
 
   @Path("/hello")
-  public String hello2(String hello, @DefaultValue("12345") String id) {
+  public String hello2(@Param("hello") String hello,
+                       @Param("id") @DefaultValue("12345") String id) {
     return "hello: " + hello + ", id=" + id;
   }
 
@@ -26,22 +24,23 @@ public class Product {
   }
 
   @Path("/hello/{name}")
-  public String hello(@PathParam("name") String name) {
+  public String hello(@Param("name") String name) {
     return "hello " + name;
   }
 
   @Path("/hello/{name}/a")
-  public String helloA(@PathParam("name") String name) {
+  public String helloA(@Param("name") String name) {
     return "hello " + name;
   }
 
   @Path("/hello/{name}/b")
-  public String helloB(@PathParam("name") String name) {
+  public String helloB(@Param("name") String name) {
     return "hello " + name;
   }
 
   @Path("/hello/{name}/attribute/{attribute}")
-  public String helloAttribute(@PathParam("name") String name, String attribute) {
-    return "hello " + name;
+  public String helloAttribute(@Param("name") String name,
+                               @Param("attribute") String attribute) {
+    return "hello: " + name + ", attribute: " + attribute;
   }
 }
