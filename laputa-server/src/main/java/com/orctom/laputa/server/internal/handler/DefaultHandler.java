@@ -8,6 +8,11 @@ import com.orctom.laputa.server.annotation.Path;
  */
 public class DefaultHandler {
 
+  @Path("/favicon.ico")
+  public String _favicon() {
+    return null;
+  }
+
   @Path("/404")
   public String _404() {
     return "The requested resource does not exist.";

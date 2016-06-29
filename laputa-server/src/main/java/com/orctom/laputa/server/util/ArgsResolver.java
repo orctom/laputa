@@ -26,34 +26,43 @@ public abstract class ArgsResolver {
     Object[] args = new Object[methodParameters.length];
 
     Map<Parameter, Integer> complexParameters = new HashMap<>();
-    resolveSimpleValueTypeArgs(paramValues, methodParameters, args, complexParameters);
-    resolveComplexValueTypeArgs(paramValues, methodParameters, args, complexParameters);
+    int resolved = resolveSimpleValueTypeArgs(paramValues, methodParameters, args, complexParameters);
+
+    if (methodParameters.length != resolved) {
+      boolean allowOmitRootPath = 0 == resolved;
+      resolveComplexValueTypeArgs(paramValues, methodParameters, args, complexParameters, allowOmitRootPath);
+    }
 
     return args;
   }
 
-  private static void resolveSimpleValueTypeArgs(Map<String, String> paramValues,
+  private static int resolveSimpleValueTypeArgs(Map<String, String> paramValues,
                                                  Parameter[] methodParameters,
                                                  Object[] args,
                                                  Map<Parameter, Integer> complexParameters) {
+    int count = 0;
     for (int i = 0; i < methodParameters.length; i++) {
       Parameter parameter = methodParameters[i];
       String paramName= parameter.getAnnotation(Param.class).value();
       Class<?> type = parameter.getType();
-      System.out.println(parameter.toString());
+
       if (ClassUtils.isSimpleValueType((type))) {
         args[i] = resolveSimpleValueType(paramValues, paramName, type);
+        count ++;
       } else {
         complexParameters.put(parameter, i);
       }
     }
+
+    return count;
   }
 
   private static void resolveComplexValueTypeArgs(Map<String, String> paramValues,
                                                   Parameter[] methodParameters,
                                                   Object[] args,
-                                                  Map<Parameter, Integer> complexParameters) {
-    Map<String, String> nestedParamValues = getNestedParamValues(paramValues);
+                                                  Map<Parameter, Integer> complexParameters,
+                                                  boolean allowOmitRootPath) {
+    Map<String, String> nestedParamValues = getNestedParamValues(paramValues, allowOmitRootPath);
     boolean hasNestedParamValues = !nestedParamValues.isEmpty();
     for (Map.Entry<Parameter, Integer> entry : complexParameters.entrySet()) {
       Parameter parameter = entry.getKey();
@@ -76,10 +85,15 @@ public abstract class ArgsResolver {
     }
   }
 
-  private static Map<String, String> getNestedParamValues(Map<String, String> paramValues) {
-    return paramValues.entrySet().stream()
-        .filter(entry -> entry.getKey().contains("."))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  private static Map<String, String> getNestedParamValues(
+      Map<String, String> paramValues, boolean allowOmitRootPath) {
+    if (allowOmitRootPath) {
+      return paramValues;
+    } else {
+      return paramValues.entrySet().stream()
+          .filter(entry -> entry.getKey().contains("."))
+          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
   }
 
   private static Object createNewInstance(Class<?> type) {

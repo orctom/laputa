@@ -23,6 +23,11 @@ public class Product {
     return new SKU("315515", "folder", 123456, 100000);
   }
 
+  @Path("/sku/new")
+  public SKU addSKU(@Param("sku") SKU sku) {
+    return sku;
+  }
+
   @Path("/hello/{name}")
   public String hello(@Param("name") String name) {
     return "hello " + name;

@@ -18,6 +18,9 @@ public class LaputaServerInitializer extends ChannelInitializer<SocketChannel> {
   @Override
   public void initChannel(SocketChannel ch) {
     ChannelPipeline p = ch.pipeline();
+    p.forEach(entry -> {
+      System.out.println(entry.getKey() + " ===> " + entry.getValue());
+    });
     if (sslContext != null) {
       p.addLast(sslContext.newHandler(ch.alloc()));
     }

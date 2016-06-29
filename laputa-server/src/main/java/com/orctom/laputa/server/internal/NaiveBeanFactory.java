@@ -1,6 +1,7 @@
 package com.orctom.laputa.server.internal;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class NaiveBeanFactory implements BeanFactory {
@@ -19,5 +20,10 @@ public class NaiveBeanFactory implements BeanFactory {
       }
     }
     return (T) instance;
+  }
+
+  @Override
+  public <T> List<T> getInstances(Class<T> type) {
+    return null;
   }
 }

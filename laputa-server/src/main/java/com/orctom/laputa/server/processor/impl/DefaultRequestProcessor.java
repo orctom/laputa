@@ -1,5 +1,6 @@
 package com.orctom.laputa.server.processor.impl;
 
+import com.orctom.laputa.server.PreProcessor;
 import com.orctom.laputa.server.config.ServiceConfig;
 import com.orctom.laputa.server.util.ParamResolver;
 import com.orctom.laputa.server.model.HTTPMethod;
@@ -20,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,6 +40,9 @@ public class DefaultRequestProcessor implements RequestProcessor {
   public Response handleRequest(DefaultHttpRequest req) {
     HttpMethod method = req.getMethod();
     String uri = req.getUri();
+
+    // pro-processor
+    preprocess(req);
 
     // remove hash
     uri = removeHashFromUri(uri);
@@ -63,6 +68,13 @@ public class DefaultRequestProcessor implements RequestProcessor {
     } catch (Throwable e) {
       LOGGER.error(e.getMessage(), e);
       return new Response(translator.getMediaType(), ERROR_CONTENT);
+    }
+  }
+
+  private void preprocess(DefaultHttpRequest req) {
+    List<PreProcessor> preProcessors =  beanFactory.getInstances(PreProcessor.class);
+    for (PreProcessor processor : preProcessors) {
+      processor.process(req);
     }
   }
 
