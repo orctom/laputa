@@ -73,6 +73,9 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private void preprocess(DefaultHttpRequest req) {
     List<PreProcessor> preProcessors =  beanFactory.getInstances(PreProcessor.class);
+    if (null == preProcessors) {
+      return;
+    }
     for (PreProcessor processor : preProcessors) {
       processor.process(req);
     }
