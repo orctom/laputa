@@ -16,7 +16,9 @@ public class ResponseTranslators {
   private static final Map<String, ResponseTranslator> ENCODERS = new HashMap<>();
 
   static {
+    add(JsonResponseTranslator.TYPE.getExtension(), new JsonResponseTranslator());
     add(JsonResponseTranslator.TYPE.getValue(), new JsonResponseTranslator());
+    add(XmlResponseTranslator.TYPE.getExtension(), new XmlResponseTranslator());
     add(XmlResponseTranslator.TYPE.getValue(), new XmlResponseTranslator());
   }
 
@@ -25,18 +27,22 @@ public class ResponseTranslators {
   }
 
   public static ResponseTranslator getTranslator(String uri, String accept) {
-    if (uri.endsWith(".json")) {
+    String extension = uri.substring(uri.lastIndexOf('.'));
+    ResponseTranslator translator = ENCODERS.get(extension);
+
+    if (null != translator) {
+      return translator;
+    }
+
+    if (null == accept || 0 == accept.trim().length()) {
       return getResponseTypeEncoder(MediaType.APPLICATION_JSON);
-    }
-    if (uri.endsWith(".xml")) {
-      return getResponseTypeEncoder(MediaType.APPLICATION_XML);
-    }
-    if (uri.endsWith(".html")) {
-      return getResponseTypeEncoder(MediaType.TEXT_HTML);
     }
 
     List<String> accepts = Accepts.sortAsList(accept);
 
+    if (null == accepts) {
+      return getResponseTypeEncoder(MediaType.APPLICATION_JSON);
+    }
     for (String type : accepts) {
       ResponseTranslator encoder = ENCODERS.get(type);
       if (null != encoder) {

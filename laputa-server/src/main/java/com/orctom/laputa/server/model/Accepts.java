@@ -12,6 +12,10 @@ public class Accepts {
   private static Map<String, List<String>> cache = new HashMap<>();
 
   public static List<String> sortAsList(String accept) {
+    if (null == accept) {
+      return null;
+    }
+
     List<String> sorted = cache.get(accept);
     if (null != sorted) {
       return sorted;

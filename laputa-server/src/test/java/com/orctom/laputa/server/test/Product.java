@@ -23,6 +23,7 @@ public class Product {
     return new SKU("315515", "folder", 123456, 100000);
   }
 
+  // http://localhost:9000/product/sku/new?sku=sku&desc=desc&category=cate&stock=100
   @Path("/sku/new")
   public SKU addSKU(@Param("sku") SKU sku) {
     return sku;

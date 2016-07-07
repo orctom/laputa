@@ -2,8 +2,10 @@ package com.orctom.laputa.server.util;
 
 import com.orctom.laputa.server.annotation.Param;
 import com.orctom.laputa.util.ClassUtils;
+import org.apache.commons.beanutils.PropertyUtils;
 
 import java.lang.reflect.Executable;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
@@ -43,10 +45,10 @@ public abstract class ArgsResolver {
     int count = 0;
     for (int i = 0; i < methodParameters.length; i++) {
       Parameter parameter = methodParameters[i];
-      String paramName= parameter.getAnnotation(Param.class).value();
       Class<?> type = parameter.getType();
 
       if (ClassUtils.isSimpleValueType((type))) {
+        String paramName= parameter.getAnnotation(Param.class).value();
         args[i] = resolveSimpleValueType(paramValues, paramName, type);
         count ++;
       } else {
@@ -70,11 +72,17 @@ public abstract class ArgsResolver {
       Class<?> type = entry.getKey().getType();
       int index = entry.getValue();
       Object arg = createNewInstance(type);
+      args[index] = arg;
       if (hasNestedParamValues) {
         for (Map.Entry<String, String> paramValue : nestedParamValues.entrySet()) {
           String name = paramValue.getKey();
           String value = paramValue.getValue();
           //TODO set nested property
+          try {
+            PropertyUtils.setProperty(arg, name, value);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
         }
       } else {
         for (Map.Entry<String, String> paramValue : paramValues.entrySet()) {

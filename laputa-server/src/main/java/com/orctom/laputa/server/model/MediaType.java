@@ -7,14 +7,20 @@ package com.orctom.laputa.server.model;
  */
 public enum MediaType {
 
-  TEXT_HTML("text/html"),
-  APPLICATION_JSON("application/json"),
-  APPLICATION_XML("application/xml");
+  TEXT_HTML(".html", "text/html"),
+  APPLICATION_JSON(".json", "application/json"),
+  APPLICATION_XML(".xml", "application/xml");
 
+  private String extension;
   private String value;
 
-  private MediaType(String value) {
+  private MediaType(String extension, String value) {
+    this.extension = extension;
     this.value = value;
+  }
+
+  public String getExtension() {
+    return extension;
   }
 
   public String getValue() {
