@@ -1,10 +1,9 @@
 package com.orctom.laputa.util;
 
-import com.orctom.laputa.util.exception.ClassLoadingException;
+import com.orctom.laputa.exception.ClassLoadingException;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.net.URL;

@@ -5,7 +5,7 @@ import com.orctom.laputa.server.config.ServiceConfig;
 import com.orctom.laputa.server.config.MappingConfig;
 import com.orctom.laputa.server.internal.BeanFactory;
 import com.orctom.laputa.server.internal.Bootstrapper;
-import com.orctom.laputa.util.exception.ClassLoadingException;
+import com.orctom.laputa.exception.ClassLoadingException;
 
 import java.lang.annotation.Annotation;
 

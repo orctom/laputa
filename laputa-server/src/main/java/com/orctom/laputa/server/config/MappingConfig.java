@@ -7,7 +7,7 @@ import com.orctom.laputa.server.model.HTTPMethod;
 import com.orctom.laputa.server.model.PathTrie;
 import com.orctom.laputa.server.model.RequestMapping;
 import com.orctom.laputa.util.ClassUtils;
-import com.orctom.laputa.util.exception.ClassLoadingException;
+import com.orctom.laputa.exception.ClassLoadingException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

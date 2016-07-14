@@ -1,4 +1,4 @@
-package com.orctom.laputa.util.exception;
+package com.orctom.laputa.exception;
 
 /**
  * Created by hao-chen2 on 1/5/2015.
