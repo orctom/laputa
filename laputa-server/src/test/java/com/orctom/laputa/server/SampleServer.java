@@ -6,7 +6,7 @@ public class SampleServer {
 
   public static void main(String[] args) {
     try {
-      new LaputaService(9000, false)
+      new LaputaService(9000, true)
           .scanPackage("com.orctom.laputa.server.test")
           .forAnnotation(Export.class)
           .startup();

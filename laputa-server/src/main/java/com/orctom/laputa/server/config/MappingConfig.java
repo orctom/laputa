@@ -8,8 +8,8 @@ import com.orctom.laputa.server.model.PathTrie;
 import com.orctom.laputa.server.model.RequestMapping;
 import com.orctom.laputa.util.ClassUtils;
 import com.orctom.laputa.exception.ClassLoadingException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  */
 public class MappingConfig {
 
-  private static final Logger LOGGER = LogManager.getLogger();
+  private static final Logger LOGGER = LoggerFactory.getLogger(MappingConfig.class);
 
   private Map<String, RequestMapping> staticMappings = new HashMap<>();
   private PathTrie wildcardMappings = new PathTrie();

@@ -1,22 +1,22 @@
 package com.orctom.laputa.server.processor.impl;
 
 import com.orctom.laputa.server.PreProcessor;
-import com.orctom.laputa.server.config.ServiceConfig;
-import com.orctom.laputa.server.util.ParamResolver;
-import com.orctom.laputa.server.model.HTTPMethod;
 import com.orctom.laputa.server.config.MappingConfig;
-import com.orctom.laputa.server.model.RequestMapping;
+import com.orctom.laputa.server.config.ServiceConfig;
 import com.orctom.laputa.server.internal.BeanFactory;
+import com.orctom.laputa.server.model.HTTPMethod;
+import com.orctom.laputa.server.model.RequestMapping;
 import com.orctom.laputa.server.model.Response;
 import com.orctom.laputa.server.processor.RequestProcessor;
 import com.orctom.laputa.server.translator.ResponseTranslator;
 import com.orctom.laputa.server.translator.ResponseTranslators;
 import com.orctom.laputa.server.util.ArgsResolver;
+import com.orctom.laputa.server.util.ParamResolver;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -30,7 +30,7 @@ import java.util.Map;
  */
 public class DefaultRequestProcessor implements RequestProcessor {
 
-  private static final Logger LOGGER = LogManager.getLogger();
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRequestProcessor.class);
 
   private static final BeanFactory beanFactory = ServiceConfig.getInstance().getBeanFactory();
 
@@ -54,8 +54,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
       queryStr = uri.substring(questionMarkIndex + 1);
       uri = uri.substring(0, questionMarkIndex);
     }
-    System.out.println("uri      = " + uri);
-    System.out.println("queryStr = " + queryStr);
+    LOGGER.trace("uri      = " + uri);
+    LOGGER.trace("queryStr = " + queryStr);
 
     RequestMapping mapping = MappingConfig.getInstance().getMapping(uri, getHttpMethod(method));
 
