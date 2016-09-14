@@ -4,8 +4,6 @@ import com.orctom.laputa.server.annotation.Param;
 import com.orctom.laputa.util.ClassUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 
-import java.lang.reflect.Executable;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
@@ -39,18 +37,18 @@ public abstract class ArgsResolver {
   }
 
   private static int resolveSimpleValueTypeArgs(Map<String, String> paramValues,
-                                                 Parameter[] methodParameters,
-                                                 Object[] args,
-                                                 Map<Parameter, Integer> complexParameters) {
+                                                Parameter[] methodParameters,
+                                                Object[] args,
+                                                Map<Parameter, Integer> complexParameters) {
     int count = 0;
     for (int i = 0; i < methodParameters.length; i++) {
       Parameter parameter = methodParameters[i];
       Class<?> type = parameter.getType();
 
       if (ClassUtils.isSimpleValueType((type))) {
-        String paramName= parameter.getAnnotation(Param.class).value();
+        String paramName = parameter.getAnnotation(Param.class).value();
         args[i] = resolveSimpleValueType(paramValues, paramName, type);
-        count ++;
+        count++;
       } else {
         complexParameters.put(parameter, i);
       }
@@ -68,7 +66,7 @@ public abstract class ArgsResolver {
     boolean hasNestedParamValues = !nestedParamValues.isEmpty();
     for (Map.Entry<Parameter, Integer> entry : complexParameters.entrySet()) {
       Parameter parameter = entry.getKey();
-      String paramName= parameter.getAnnotation(Param.class).value();
+      String paramName = parameter.getAnnotation(Param.class).value();
       Class<?> type = entry.getKey().getType();
       int index = entry.getValue();
       Object arg = createNewInstance(type);

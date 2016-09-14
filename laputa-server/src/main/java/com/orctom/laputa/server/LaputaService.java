@@ -1,11 +1,11 @@
 package com.orctom.laputa.server;
 
 import com.google.common.base.Preconditions;
-import com.orctom.laputa.server.config.ServiceConfig;
+import com.orctom.laputa.exception.ClassLoadingException;
 import com.orctom.laputa.server.config.MappingConfig;
+import com.orctom.laputa.server.config.ServiceConfig;
 import com.orctom.laputa.server.internal.BeanFactory;
 import com.orctom.laputa.server.internal.Bootstrapper;
-import com.orctom.laputa.exception.ClassLoadingException;
 
 import java.lang.annotation.Annotation;
 
@@ -15,21 +15,19 @@ import java.lang.annotation.Annotation;
  */
 public class LaputaService {
 
+  private static LaputaService INSTANCE = new LaputaService();
+
   private String[] basePackages;
   private Class<? extends Annotation> annotation;
 
   private Bootstrapper bootstrapper;
 
-  public LaputaService() {
+  private LaputaService() {
     bootstrapper = new Bootstrapper();
   }
 
-  public LaputaService(int port) {
-    bootstrapper = new Bootstrapper(port);
-  }
-
-  public LaputaService(int port, boolean useSSL) {
-    bootstrapper = new Bootstrapper(port, useSSL);
+  public static LaputaService getInstance() {
+    return INSTANCE;
   }
 
   public LaputaService scanPackage(String... basePackages) {

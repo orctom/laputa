@@ -1,11 +1,11 @@
 package com.orctom.laputa.server.translator;
 
-import com.orctom.laputa.server.model.MediaType;
 import com.orctom.laputa.server.model.Accepts;
-import io.netty.handler.codec.http.DefaultHttpRequest;
-import io.netty.handler.codec.http.HttpHeaders;
+import com.orctom.laputa.server.model.MediaType;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * ResponseTranslator registry

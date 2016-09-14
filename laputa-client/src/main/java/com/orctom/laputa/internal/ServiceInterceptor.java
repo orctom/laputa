@@ -9,9 +9,9 @@ import java.lang.reflect.Method;
  */
 public class ServiceInterceptor implements InvocationHandler {
 
-	@Override
-	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		System.out.println("InvocationHandler " + method.toString());
-		return null;
-	}
+  @Override
+  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    System.out.println("InvocationHandler " + method.toString());
+    return null;
+  }
 }

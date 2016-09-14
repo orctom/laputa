@@ -1,13 +1,16 @@
 package com.orctom.laputa.server.test;
 
-import com.orctom.laputa.server.annotation.*;
+import com.orctom.laputa.server.annotation.DefaultValue;
+import com.orctom.laputa.server.annotation.Export;
+import com.orctom.laputa.server.annotation.Param;
+import com.orctom.laputa.server.annotation.Path;
 import com.orctom.laputa.server.test.model.SKU;
 
 @Export
 @Path("/product")
 public class Product {
 
-//  @Path("/hello")
+  //  @Path("/hello")
   public String hello() {
     return "hello";
   }
