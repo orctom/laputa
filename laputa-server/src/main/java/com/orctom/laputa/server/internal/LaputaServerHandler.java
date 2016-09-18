@@ -7,12 +7,9 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.DefaultHttpRequest;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.*;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.*;
+import static io.netty.handler.codec.http.HttpHeaderNames.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -31,11 +28,11 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     if (msg instanceof DefaultHttpRequest) {
       DefaultHttpRequest req = (DefaultHttpRequest) msg;
 
-      if (HttpHeaders.is100ContinueExpected(req)) {
+      if (HttpUtil.is100ContinueExpected(req)) {
         ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
       }
 
-      boolean keepAlive = HttpHeaders.isKeepAlive(req);
+      boolean keepAlive = HttpUtil.isKeepAlive(req);
 
       Response response = requestProcessor.handleRequest(req);
 
@@ -47,7 +44,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
       if (!keepAlive) {
         ctx.write(res).addListener(ChannelFutureListener.CLOSE);
       } else {
-        res.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+        res.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         ctx.write(res);
       }
     }

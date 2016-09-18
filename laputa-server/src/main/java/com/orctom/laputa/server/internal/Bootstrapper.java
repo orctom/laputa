@@ -1,5 +1,7 @@
 package com.orctom.laputa.server.internal;
 
+import com.orctom.laputa.exception.IllegalArgException;
+import com.orctom.laputa.server.config.ServiceConfig;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.netty.bootstrap.ServerBootstrap;
@@ -17,37 +19,37 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
+import java.io.File;
 import java.security.cert.CertificateException;
 
 /**
  * boot netty service
  * Created by hao on 1/6/16.
  */
-public class Bootstrapper {
+public class Bootstrapper extends Thread {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Bootstrapper.class);
 
-  private boolean useSSL = false;
-  private int port = 7000;
+  private int port;
+  private boolean useSSL;
 
   private SslContext sslContext;
 
   private EventLoopGroup bossGroup;
   private EventLoopGroup workerGroup;
 
-  public Bootstrapper() {
-    Config config = ConfigFactory.load();
-    int httpPort = config.getInt("server.http.port");
-
+  public Bootstrapper(int port, boolean useSSL) {
+    this.port = port;
+    this.useSSL = useSSL;
   }
 
-  public void bootstrapService() throws CertificateException, SSLException, InterruptedException {
+  @Override
+  public void run() {
     bossGroup = new NioEventLoopGroup(1);
     workerGroup = new NioEventLoopGroup();
 
-    setupSSLContext();
-
     try {
+      setupSSLContext();
       ServerBootstrap b = new ServerBootstrap();
       b.option(ChannelOption.SO_BACKLOG, 1024);
       b.group(bossGroup, workerGroup)
@@ -60,6 +62,8 @@ public class Bootstrapper {
       LOGGER.warn("Service started " + (useSSL ? "https" : "http") + "://127.0.0.1:" + port + '/');
 
       ch.closeFuture().sync();
+    } catch (Exception e) {
+      LOGGER.error(e.getMessage(), e);
     } finally {
       shutdown();
     }
@@ -67,13 +71,24 @@ public class Bootstrapper {
 
   private void setupSSLContext() throws CertificateException, SSLException {
     if (useSSL) {
-      SelfSignedCertificate ssc = new SelfSignedCertificate();
-      sslContext = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
+      ServiceConfig serviceConfig = ServiceConfig.getInstance();
+      File certificate = new File(serviceConfig.getConfig().getString("server.https.certificate"));
+      assertFileExist(certificate, "Failed to find certificate.");
+
+      File privateKey = new File(serviceConfig.getConfig().getString("server.https.privateKey"));
+      assertFileExist(privateKey, "Failed to find private key.");
+      sslContext = SslContextBuilder.forServer(certificate, privateKey).build();
+    }
+  }
+
+  private void assertFileExist(File file, String message) {
+    if (!file.exists()) {
+      throw new IllegalArgumentException(message + " Path: " + file.getAbsolutePath());
     }
   }
 
   private void shutdown() {
-    System.out.println("stopping................................");
+    System.out.println("Shutting down...");
     bossGroup.shutdownGracefully();
     workerGroup.shutdownGracefully();
   }

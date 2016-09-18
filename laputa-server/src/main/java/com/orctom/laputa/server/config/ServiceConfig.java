@@ -2,6 +2,11 @@ package com.orctom.laputa.server.config;
 
 import com.orctom.laputa.server.internal.BeanFactory;
 import com.orctom.laputa.server.internal.NaiveBeanFactory;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Config items
@@ -9,16 +14,30 @@ import com.orctom.laputa.server.internal.NaiveBeanFactory;
  */
 public class ServiceConfig {
 
-  private boolean debugEnabled = false;
+  private Boolean debugEnabled;
+  private Config config;
   private BeanFactory beanFactory = new NaiveBeanFactory();
 
   private static final ServiceConfig INSTANCE = new ServiceConfig();
 
   private ServiceConfig() {
+    initConfig();
+  }
+
+  private void initConfig() {
+    config = ConfigFactory.load();
+  }
+
+  public static Path getAppRootDir() {
+    return Paths.get("").toAbsolutePath();
   }
 
   public static ServiceConfig getInstance() {
     return INSTANCE;
+  }
+
+  public Config getConfig() {
+    return config;
   }
 
   public BeanFactory getBeanFactory() {
@@ -30,10 +49,13 @@ public class ServiceConfig {
   }
 
   public boolean isDebugEnabled() {
+    if (null == debugEnabled) {
+      try {
+        debugEnabled = config.getBoolean("debug.enabled");
+      } catch (Exception e) {
+        debugEnabled = false;
+      }
+    }
     return debugEnabled;
-  }
-
-  public void setDebugEnabled(boolean debugEnabled) {
-    this.debugEnabled = debugEnabled;
   }
 }

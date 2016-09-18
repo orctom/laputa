@@ -75,6 +75,11 @@
     </dependency>
 
     <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy</artifactId>
+      <version>1.4.24</version>
+    </dependency>
+    <dependency>
       <groupId>commons-beanutils</groupId>
       <artifactId>commons-beanutils</artifactId>
       <version>1.9.2</version>
@@ -84,21 +89,6 @@
       <artifactId>javax.ws.rs-api</artifactId>
       <version>2.0.1</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.esotericsoftware</groupId>
-      <artifactId>reflectasm</artifactId>
-      <version>1.11.0</version>
-    </dependency>
-    <dependency>
-      <groupId>cglib</groupId>
-      <artifactId>cglib</artifactId>
-      <version>3.2.0</version>
-    </dependency>
-    <dependency>
-      <groupId>net.bytebuddy</groupId>
-      <artifactId>byte-buddy</artifactId>
-      <version>0.7.8</version>
     </dependency>
     <dependency>
       <groupId>com.google.inject</groupId>
@@ -116,6 +106,12 @@
       <artifactId>barchart-udt-core</artifactId>
       <version>2.3.0</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>4.2.6.RELEASE</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>

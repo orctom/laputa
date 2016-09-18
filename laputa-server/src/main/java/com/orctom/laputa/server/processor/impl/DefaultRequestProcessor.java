@@ -13,6 +13,7 @@ import com.orctom.laputa.server.translator.ResponseTranslators;
 import com.orctom.laputa.server.util.ArgsResolver;
 import com.orctom.laputa.server.util.ParamResolver;
 import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -38,8 +40,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   @Override
   public Response handleRequest(DefaultHttpRequest req) {
-    HttpMethod method = req.getMethod();
-    String uri = req.getUri();
+    HttpMethod method = req.method();
+    String uri = req.uri();
 
     // pro-processor
     preprocess(req);
@@ -59,7 +61,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
     RequestMapping mapping = MappingConfig.getInstance().getMapping(uri, getHttpMethod(method));
 
-    String accept = req.headers().get(HttpHeaders.Names.ACCEPT);
+    String accept = req.headers().get(HttpHeaderNames.ACCEPT);
     ResponseTranslator translator = ResponseTranslators.getTranslator(uri, accept);
     try {
       Object data = processRequest(uri, queryStr, mapping);
@@ -72,7 +74,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
   }
 
   private void preprocess(DefaultHttpRequest req) {
-    List<PreProcessor> preProcessors = beanFactory.getInstances(PreProcessor.class);
+    Collection<PreProcessor> preProcessors = beanFactory.getInstances(PreProcessor.class);
     if (null == preProcessors) {
       return;
     }
