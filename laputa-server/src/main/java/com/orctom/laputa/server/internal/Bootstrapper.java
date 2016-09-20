@@ -1,9 +1,7 @@
 package com.orctom.laputa.server.internal;
 
-import com.orctom.laputa.exception.IllegalArgException;
+import com.orctom.laputa.exception.IllegalConfigException;
 import com.orctom.laputa.server.config.ServiceConfig;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
@@ -14,7 +12,6 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +59,8 @@ public class Bootstrapper extends Thread {
       LOGGER.warn("Service started " + (useSSL ? "https" : "http") + "://127.0.0.1:" + port + '/');
 
       ch.closeFuture().sync();
+    } catch (IllegalConfigException e) {
+      LOGGER.error(e.getMessage());
     } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
     } finally {
@@ -71,13 +70,20 @@ public class Bootstrapper extends Thread {
 
   private void setupSSLContext() throws CertificateException, SSLException {
     if (useSSL) {
-      ServiceConfig serviceConfig = ServiceConfig.getInstance();
-      File certificate = new File(serviceConfig.getConfig().getString("server.https.certificate"));
+      File certificate = new File(getConfigAsString("server.https.certificate"));
       assertFileExist(certificate, "Failed to find certificate.");
 
-      File privateKey = new File(serviceConfig.getConfig().getString("server.https.privateKey"));
+      File privateKey = new File(getConfigAsString("server.https.privateKey"));
       assertFileExist(privateKey, "Failed to find private key.");
       sslContext = SslContextBuilder.forServer(certificate, privateKey).build();
+    }
+  }
+
+  private String getConfigAsString(String key) {
+    try {
+      return ServiceConfig.getInstance().getConfig().getString(key);
+    } catch (Exception e) {
+      throw new IllegalConfigException(e.getMessage());
     }
   }
 
@@ -88,7 +94,7 @@ public class Bootstrapper extends Thread {
   }
 
   private void shutdown() {
-    System.out.println("Shutting down...");
+    LOGGER.warn("shutting down {}...", useSSL ? "https" : "http");
     bossGroup.shutdownGracefully();
     workerGroup.shutdownGracefully();
   }

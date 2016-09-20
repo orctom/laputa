@@ -1,11 +1,13 @@
 package com.orctom.laputa.server.internal.handler;
 
 import com.orctom.laputa.server.annotation.Path;
+import org.springframework.stereotype.Controller;
 
 /**
  * Default handler
  * Created by hao on 11/17/15.
  */
+@Controller
 public class DefaultHandler {
 
   @Path("/favicon.ico")

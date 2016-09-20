@@ -1,5 +1,6 @@
 package com.orctom.laputa.server.translator;
 
+import com.orctom.laputa.server.config.ServiceConfig;
 import com.orctom.laputa.server.model.Accepts;
 import com.orctom.laputa.server.model.MediaType;
 
@@ -27,7 +28,7 @@ public class ResponseTranslators {
   }
 
   public static ResponseTranslator getTranslator(String uri, String accept) {
-    String extension = uri.substring(uri.lastIndexOf('.'));
+    String extension = getExtension(uri);
     ResponseTranslator translator = ENCODERS.get(extension);
 
     if (null != translator) {
@@ -51,6 +52,21 @@ public class ResponseTranslators {
     }
 
     return getResponseTypeEncoder(MediaType.APPLICATION_JSON);
+  }
+
+  private static String getExtension(String uri) {
+    int lastDotIndex = uri.lastIndexOf('.');
+    String extension = null;
+    if (lastDotIndex > 1) {
+      extension = uri.substring(lastDotIndex);
+    } else {
+      try {
+        extension = ServiceConfig.getInstance().getConfig().getString("default.extension");
+      } catch (Exception e) {
+        extension = JsonResponseTranslator.TYPE.getExtension();
+      }
+    }
+    return extension;
   }
 
   private static ResponseTranslator getResponseTypeEncoder(MediaType mediaType) {

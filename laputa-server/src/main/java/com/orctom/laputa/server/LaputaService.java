@@ -81,7 +81,7 @@ public class LaputaService {
       int port = config.getInt("server.https.port");
       new Bootstrapper(port, true).start(); // start https in separate thread
     } catch (Exception e) {
-      LOGGER.error(e.getMessage(), e);
+      LOGGER.error("Failed to start https service, due to: {}",e.getMessage());
     }
   }
 
@@ -91,7 +91,7 @@ public class LaputaService {
       int port = config.getInt("server.http.port");
       new Bootstrapper(port, false).run(); // not start http in separate thread
     } catch (Exception e) {
-      LOGGER.error(e.getMessage(), e);
+      LOGGER.error("Failed to start http service, due to: {}",e.getMessage());
     }
   }
 
