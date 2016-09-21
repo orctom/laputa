@@ -2,6 +2,7 @@ package com.orctom.laputa.server.internal;
 
 import com.orctom.laputa.exception.IllegalConfigException;
 import com.orctom.laputa.server.config.ServiceConfig;
+import com.orctom.laputa.util.HostUtils;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
@@ -56,7 +57,8 @@ public class Bootstrapper extends Thread {
 
       Channel ch = b.bind(port).sync().channel();
 
-      LOGGER.warn("Service started " + (useSSL ? "https" : "http") + "://127.0.0.1:" + port + '/');
+      String ip = HostUtils.getIP();
+      LOGGER.warn("Service started {}{}:{}", (useSSL ? "https://" : "http://"), ip, port);
 
       ch.closeFuture().sync();
     } catch (IllegalConfigException e) {

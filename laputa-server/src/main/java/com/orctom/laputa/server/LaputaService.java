@@ -7,16 +7,12 @@ import com.orctom.laputa.server.config.ServiceConfig;
 import com.orctom.laputa.server.internal.BeanFactory;
 import com.orctom.laputa.server.internal.Bootstrapper;
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.ListableBeanFactory;
 
-import javax.net.ssl.SSLException;
 import java.lang.annotation.Annotation;
-import java.security.cert.CertificateException;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Serving http
@@ -53,16 +49,16 @@ public class LaputaService {
     return this;
   }
 
-  public LaputaService withBeanFactory(final ApplicationContext applicationContext) {
+  public LaputaService withBeanFactory(final ListableBeanFactory beanFactory) {
     ServiceConfig.getInstance().setBeanFactory(new BeanFactory() {
       @Override
       public <T> T getInstance(Class<T> type) {
-        return applicationContext.getBean(type);
+        return beanFactory.getBean(type);
       }
 
       @Override
       public <T> Collection<T> getInstances(Class<T> type) {
-        return applicationContext.getBeansOfType(type).values();
+        return beanFactory.getBeansOfType(type).values();
       }
     });
     return this;
@@ -81,7 +77,7 @@ public class LaputaService {
       int port = config.getInt("server.https.port");
       new Bootstrapper(port, true).start(); // start https in separate thread
     } catch (Exception e) {
-      LOGGER.error("Failed to start https service, due to: {}",e.getMessage());
+      LOGGER.error("Failed to start https service, due to: {}", e.getMessage());
     }
   }
 
@@ -91,7 +87,7 @@ public class LaputaService {
       int port = config.getInt("server.http.port");
       new Bootstrapper(port, false).run(); // not start http in separate thread
     } catch (Exception e) {
-      LOGGER.error("Failed to start http service, due to: {}",e.getMessage());
+      LOGGER.error("Failed to start http service, due to: {}", e.getMessage());
     }
   }
 

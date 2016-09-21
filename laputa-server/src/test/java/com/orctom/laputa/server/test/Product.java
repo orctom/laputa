@@ -1,13 +1,11 @@
 package com.orctom.laputa.server.test;
 
 import com.orctom.laputa.server.annotation.DefaultValue;
-import com.orctom.laputa.server.annotation.Export;
 import com.orctom.laputa.server.annotation.Param;
 import com.orctom.laputa.server.annotation.Path;
 import com.orctom.laputa.server.test.model.SKU;
 import org.springframework.stereotype.Controller;
 
-@Export
 @Path("/product")
 @Controller
 public class Product {

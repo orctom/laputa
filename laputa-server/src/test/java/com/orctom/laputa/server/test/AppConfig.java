@@ -8,7 +8,6 @@ import javax.activation.DataSource;
 
 @Configuration
 @ComponentScan({
-    "com.orctom.laputa.server.internal.handler",
     "com.orctom.laputa.server.test"
 })
 public class AppConfig {
