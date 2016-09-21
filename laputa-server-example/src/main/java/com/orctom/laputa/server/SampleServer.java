@@ -1,6 +1,5 @@
 package com.orctom.laputa.server;
 
-import com.orctom.laputa.server.test.AppConfig;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Controller;
@@ -11,7 +10,7 @@ public class SampleServer {
     ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
     try {
       LaputaService.getInstance()
-          .scanPackage("com.orctom.laputa.server.test")
+          .scanPackage("com.orctom.laputa.server.example.controller")
           .forAnnotation(Controller.class)
           .withBeanFactory(context)
           .startup();

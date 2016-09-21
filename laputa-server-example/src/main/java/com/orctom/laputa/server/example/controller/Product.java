@@ -1,13 +1,13 @@
-package com.orctom.laputa.server.test;
+package com.orctom.laputa.server.example.controller;
 
 import com.orctom.laputa.server.annotation.DefaultValue;
 import com.orctom.laputa.server.annotation.Param;
 import com.orctom.laputa.server.annotation.Path;
-import com.orctom.laputa.server.test.model.SKU;
+import com.orctom.laputa.server.example.model.SKU;
 import org.springframework.stereotype.Controller;
 
-@Path("/product")
 @Controller
+@Path("/product")
 public class Product {
 
   //  @Path("/hello")

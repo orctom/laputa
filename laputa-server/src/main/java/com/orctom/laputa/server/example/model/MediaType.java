@@ -1,4 +1,4 @@
-package com.orctom.laputa.server.model;
+package com.orctom.laputa.server.example.model;
 
 
 /**
@@ -14,7 +14,7 @@ public enum MediaType {
   private String extension;
   private String value;
 
-  private MediaType(String extension, String value) {
+  MediaType(String extension, String value) {
     this.extension = extension;
     this.value = value;
   }

@@ -1,4 +1,4 @@
-package com.orctom.laputa.server.test.model;
+package com.orctom.laputa.server.example.model;
 
 /**
  * dummy sku

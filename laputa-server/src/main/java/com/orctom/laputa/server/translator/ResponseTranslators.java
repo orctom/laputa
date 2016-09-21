@@ -1,8 +1,8 @@
 package com.orctom.laputa.server.translator;
 
 import com.orctom.laputa.server.config.ServiceConfig;
-import com.orctom.laputa.server.model.Accepts;
-import com.orctom.laputa.server.model.MediaType;
+import com.orctom.laputa.server.example.model.Accepts;
+import com.orctom.laputa.server.example.model.MediaType;
 
 import java.util.HashMap;
 import java.util.List;
@@ -56,7 +56,7 @@ public class ResponseTranslators {
 
   private static String getExtension(String uri) {
     int lastDotIndex = uri.lastIndexOf('.');
-    String extension = null;
+    String extension;
     if (lastDotIndex > 1) {
       extension = uri.substring(lastDotIndex);
     } else {

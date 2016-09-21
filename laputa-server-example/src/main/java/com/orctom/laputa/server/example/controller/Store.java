@@ -1,4 +1,4 @@
-package com.orctom.laputa.server.test;
+package com.orctom.laputa.server.example.controller;
 
 import com.orctom.laputa.server.annotation.Path;
 import org.springframework.stereotype.Controller;

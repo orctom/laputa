@@ -1,4 +1,4 @@
-package com.orctom.laputa.server.model;
+package com.orctom.laputa.server.example.model;
 
 import java.lang.reflect.Method;
 

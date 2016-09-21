@@ -1,4 +1,4 @@
-package com.orctom.laputa.server.test;
+package com.orctom.laputa.server;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -8,7 +8,7 @@ import javax.activation.DataSource;
 
 @Configuration
 @ComponentScan({
-    "com.orctom.laputa.server.test"
+    "com.orctom.laputa.server.example"
 })
 public class AppConfig {
 

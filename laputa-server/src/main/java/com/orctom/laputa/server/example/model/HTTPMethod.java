@@ -1,4 +1,4 @@
-package com.orctom.laputa.server.model;
+package com.orctom.laputa.server.example.model;
 
 public enum HTTPMethod {
 
@@ -11,7 +11,7 @@ public enum HTTPMethod {
 
   private String key;
 
-  private HTTPMethod(String key) {
+  HTTPMethod(String key) {
     this.key = key;
   }
 
