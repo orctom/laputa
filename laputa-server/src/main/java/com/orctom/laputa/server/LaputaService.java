@@ -1,7 +1,7 @@
 package com.orctom.laputa.server;
 
 import com.google.common.base.Preconditions;
-import com.orctom.laputa.exception.ClassLoadingException;
+import com.orctom.exception.ClassLoadingException;
 import com.orctom.laputa.server.config.MappingConfig;
 import com.orctom.laputa.server.config.ServiceConfig;
 import com.orctom.laputa.server.internal.BeanFactory;

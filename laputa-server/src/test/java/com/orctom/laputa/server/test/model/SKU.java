@@ -6,12 +6,11 @@ package com.orctom.laputa.server.test.model;
  */
 public class SKU {
 
+  public static final SKU EMPTY = new SKU();
   private String sku;
   private String desc;
   private int category;
   private int stock;
-
-  public static final SKU EMPTY = new SKU();
 
   public SKU() {
   }

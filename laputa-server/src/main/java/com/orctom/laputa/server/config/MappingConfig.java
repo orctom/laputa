@@ -1,13 +1,13 @@
 package com.orctom.laputa.server.config;
 
 import com.google.common.base.Strings;
-import com.orctom.laputa.exception.ClassLoadingException;
+import com.orctom.exception.ClassLoadingException;
 import com.orctom.laputa.server.annotation.*;
 import com.orctom.laputa.server.internal.handler.DefaultHandler;
 import com.orctom.laputa.server.model.HTTPMethod;
 import com.orctom.laputa.server.model.PathTrie;
 import com.orctom.laputa.server.model.RequestMapping;
-import com.orctom.laputa.util.ClassUtils;
+import com.orctom.utils.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,15 +23,12 @@ import java.util.regex.Pattern;
 public class MappingConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MappingConfig.class);
-
-  private Map<String, RequestMapping> staticMappings = new HashMap<>();
-  private PathTrie wildcardMappings = new PathTrie();
-
   private static final Pattern PATTERN_DOUBLE_SLASHES = Pattern.compile("//");
   private static final Pattern PATTERN_TAIL_SLASH = Pattern.compile("/$");
   private static final String KEY_PATH_PARAM = "{*}";
-
   private static final MappingConfig INSTANCE = new MappingConfig();
+  private Map<String, RequestMapping> staticMappings = new HashMap<>();
+  private PathTrie wildcardMappings = new PathTrie();
 
   private MappingConfig() {
   }

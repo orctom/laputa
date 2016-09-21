@@ -2,16 +2,15 @@ package com.orctom.laputa.service;
 
 public class DummyModel {
 
+  private String name;
+  private String desc;
+
   public DummyModel() {
   }
-
   public DummyModel(String name, String desc) {
     this.name = name;
     this.desc = desc;
   }
-
-  private String name;
-  private String desc;
 
   public String getName() {
     return name;

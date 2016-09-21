@@ -14,18 +14,13 @@ import java.nio.file.Paths;
  */
 public class ServiceConfig {
 
+  private static final ServiceConfig INSTANCE = new ServiceConfig();
   private Boolean debugEnabled;
   private Config config;
   private BeanFactory beanFactory = new NaiveBeanFactory();
 
-  private static final ServiceConfig INSTANCE = new ServiceConfig();
-
   private ServiceConfig() {
     initConfig();
-  }
-
-  private void initConfig() {
-    config = ConfigFactory.load();
   }
 
   public static Path getAppRootDir() {
@@ -34,6 +29,10 @@ public class ServiceConfig {
 
   public static ServiceConfig getInstance() {
     return INSTANCE;
+  }
+
+  private void initConfig() {
+    config = ConfigFactory.load();
   }
 
   public Config getConfig() {

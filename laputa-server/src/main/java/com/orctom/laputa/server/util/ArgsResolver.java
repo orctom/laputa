@@ -1,7 +1,7 @@
 package com.orctom.laputa.server.util;
 
 import com.orctom.laputa.server.annotation.Param;
-import com.orctom.laputa.util.ClassUtils;
+import com.orctom.utils.ClassUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import java.lang.reflect.Method;
