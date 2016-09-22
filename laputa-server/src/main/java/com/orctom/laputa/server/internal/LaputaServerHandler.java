@@ -1,6 +1,6 @@
 package com.orctom.laputa.server.internal;
 
-import com.orctom.laputa.server.example.model.Response;
+import com.orctom.laputa.server.model.Response;
 import com.orctom.laputa.server.processor.RequestProcessor;
 import com.orctom.laputa.server.processor.impl.DefaultRequestProcessor;
 import io.netty.buffer.Unpooled;

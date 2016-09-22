@@ -1,4 +1,4 @@
-package com.orctom.laputa.server.example.model;
+package com.orctom.laputa.server.model;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;

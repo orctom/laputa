@@ -21,6 +21,7 @@ public class ServiceConfig {
 
   private ServiceConfig() {
     initConfig();
+    initDebugFlag();
   }
 
   public static Path getAppRootDir() {
@@ -35,6 +36,15 @@ public class ServiceConfig {
     config = ConfigFactory.load();
   }
 
+  private void initDebugFlag() {
+    try {
+      debugEnabled = config.getBoolean("debug.enabled");
+    } catch (Exception e) {
+      debugEnabled = false;
+    }
+  }
+
+
   public Config getConfig() {
     return config;
   }
@@ -48,13 +58,6 @@ public class ServiceConfig {
   }
 
   public boolean isDebugEnabled() {
-    if (null == debugEnabled) {
-      try {
-        debugEnabled = config.getBoolean("debug.enabled");
-      } catch (Exception e) {
-        debugEnabled = false;
-      }
-    }
     return debugEnabled;
   }
 }
