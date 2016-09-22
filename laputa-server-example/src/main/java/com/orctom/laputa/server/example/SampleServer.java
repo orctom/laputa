@@ -1,5 +1,7 @@
-package com.orctom.laputa.server;
+package com.orctom.laputa.server.example;
 
+import com.orctom.laputa.server.LaputaService;
+import com.orctom.laputa.server.example.AppConfig;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Controller;

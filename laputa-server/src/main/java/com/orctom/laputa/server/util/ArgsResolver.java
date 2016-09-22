@@ -1,11 +1,13 @@
 package com.orctom.laputa.server.util;
 
+import com.google.common.base.Splitter;
 import com.orctom.laputa.server.annotation.Param;
 import com.orctom.utils.ClassUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
@@ -33,12 +35,12 @@ public abstract class ArgsResolver {
     int resolvedSimple = resolveSimpleTypeArgs(paramValues, methodParameters, args, complexParameters);
 
     if (methodParameters.length != resolvedSimple) { // complex types exist
-      int resolvedComplex = resolveComplexTypeArgs(paramValues, methodParameters, args, complexParameters);
+      int resolvedComplex = resolveComplexTypeArgs(paramValues, args, complexParameters, false);
 
       boolean isOmitRootPathAllowed = (0 == resolvedSimple) && (0 == resolvedComplex);
       if (isOmitRootPathAllowed) {
         Map<String, String> nestedParamValues = getNestedParamValues(paramValues);
-        resolveComplexTypeArgs(nestedParamValues, methodParameters, args, complexParameters);
+        resolveComplexTypeArgs(nestedParamValues, args, complexParameters, true);
       }
     }
 
@@ -67,16 +69,16 @@ public abstract class ArgsResolver {
   }
 
   private static int resolveComplexTypeArgs(Map<String, String> paramValues,
-                                            Parameter[] methodParameters,
                                             Object[] args,
-                                            Map<Parameter, Integer> complexParameters) {
+                                            Map<Parameter, Integer> complexParameters,
+                                            boolean isOmitRootPathAllowed) {
     int count = 0;
     for (Map.Entry<Parameter, Integer> entry : complexParameters.entrySet()) {
       Parameter parameter = entry.getKey();
       String paramName = parameter.getAnnotation(Param.class).value();
       Class<?> type = entry.getKey().getType();
       int index = entry.getValue();
-      Object arg = generateAndPopulateArg(paramValues, type, paramName);
+      Object arg = generateAndPopulateArg(paramValues, type, paramName, isOmitRootPathAllowed);
 
       if (null != arg) {
         args[index] = arg;
@@ -89,23 +91,28 @@ public abstract class ArgsResolver {
 
   private static Object generateAndPopulateArg(Map<String, String> paramValues,
                                                Class<?> type,
-                                               String paramName) {
+                                               String paramName,
+                                               boolean isOmitRootPathAllowed) {
+    Object instance = createNewInstance(type);
     try {
-      Object arg = createNewInstance(type);
       boolean populated = false;
       for (Map.Entry<String, String> paramValue : paramValues.entrySet()) {
-        String name = paramValue.getKey();
+        String property = paramValue.getKey();
+        if (!isOmitRootPathAllowed && !property.startsWith(paramName)) {
+          continue;
+        }
+
+        initializeNestedBean(instance, type, property);
         String value = paramValue.getValue();
-        //TODO set nested property
         try {
-          PropertyUtils.setProperty(arg, name, value);
+          PropertyUtils.setProperty(instance, property, value);
           populated = true;
         } catch (Exception e) {
           LOGGER.warn(e.getMessage(), e);
         }
       }
 
-      return populated ? arg : null;
+      return populated ? instance : null;
     } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
       return null;
@@ -144,6 +151,24 @@ public abstract class ArgsResolver {
       return Long.valueOf(value);
     } else {
       throw new IllegalArgumentException("Unsupported param type" + type + " " + paramName);
+    }
+  }
+
+  private static void initializeNestedBean(Object instance, Class<?> type, String property) {
+    int index = property.indexOf(".");
+    if (index < 0) {
+      return;
+    }
+
+    String prop = property.substring(0, index);
+    String next = property.substring(index + 1);
+    try {
+      Class<?> nestedType = type.getDeclaredField(prop).getType();
+      Object nested = createNewInstance(nestedType);
+      PropertyUtils.setProperty(instance, prop, nested);
+      initializeNestedBean(nested, nestedType, next);
+    } catch (Exception e) {
+      LOGGER.error(e.getMessage(), e);
     }
   }
 }

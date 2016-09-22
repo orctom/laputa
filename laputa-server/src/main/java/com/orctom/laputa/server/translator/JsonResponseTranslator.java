@@ -1,7 +1,7 @@
 package com.orctom.laputa.server.translator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.orctom.laputa.server.model.MediaType;
+import com.orctom.laputa.server.example.model.MediaType;
 
 import java.io.IOException;
 

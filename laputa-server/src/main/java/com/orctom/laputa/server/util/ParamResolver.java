@@ -92,15 +92,4 @@ public class ParamResolver {
     }
     return params;
   }
-
-  public static void validate(String pattern) {
-    Splitter.on("/").omitEmptyStrings().split(pattern).forEach(item -> {
-      if (TOKEN_START.matcher(item).replaceAll("").length() > 1) {
-        throw new IllegalArgumentException("Unsupported URL pattern: " + pattern);
-      }
-      if (TOKEN_END.matcher(item).replaceAll("").length() > 1) {
-        throw new IllegalArgumentException("Unsupported URL pattern: " + pattern);
-      }
-    });
-  }
 }
