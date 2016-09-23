@@ -10,6 +10,7 @@ import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.context.ApplicationContext;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
@@ -49,7 +50,7 @@ public class LaputaService {
     return this;
   }
 
-  public LaputaService withBeanFactory(final ListableBeanFactory beanFactory) {
+  public LaputaService withBeanFactory(final ApplicationContext beanFactory) {
     ServiceConfig.getInstance().setBeanFactory(new BeanFactory() {
       @Override
       public <T> T getInstance(Class<T> type) {

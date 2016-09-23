@@ -33,7 +33,8 @@ public class ServiceConfig {
   }
 
   private void initConfig() {
-    config = ConfigFactory.load();
+    final Config reference = ConfigFactory.load("reference");
+    config = ConfigFactory.load().withFallback(reference);
   }
 
   private void initDebugFlag() {

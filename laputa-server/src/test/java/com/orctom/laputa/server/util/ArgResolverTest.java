@@ -25,6 +25,19 @@ public class ArgResolverTest {
 
   @Test
   public void testSimpleTypes() throws Exception {
+    Method method = Dummy.class.getDeclaredMethod("simple", String.class, String.class, String.class);
+    Map<String, String> paramValues = new HashMap<>();
+    paramValues.put("a", "aaa");
+    paramValues.put("b", "bbb");
+    paramValues.put("c", "ccc");
+
+    Object[] expected = new Object[]{"aaa", "bbb", "ccc"};
+    Object[] actual = ArgsResolver.resolveArgs(method, paramValues);
+    assertArrayEquals(expected, actual);
+  }
+
+  @Test
+  public void testComplexTypes() throws Exception {
     Method method = Dummy.class.getDeclaredMethod("complex", Category.class);
     Map<String, String> paramValues = new HashMap<>();
     paramValues.put("id", "10000");
@@ -36,14 +49,13 @@ public class ArgResolverTest {
   }
 
   @Test
-  public void testComplexTypes() throws Exception {
-    Method method = Dummy.class.getDeclaredMethod("simple", String.class, String.class, String.class);
+  public void testComplexTypes2() throws Exception {
+    Method method = Dummy.class.getDeclaredMethod("complex", Category.class);
     Map<String, String> paramValues = new HashMap<>();
-    paramValues.put("a", "aaa");
-    paramValues.put("b", "bbb");
-    paramValues.put("c", "ccc");
+    paramValues.put("category.id", "10000");
+    paramValues.put("category.name", "the name");
 
-    Object[] expected = new Object[]{"aaa", "bbb", "ccc"};
+    Object[] expected = new Object[]{new Category(10000L, "the name")};
     Object[] actual = ArgsResolver.resolveArgs(method, paramValues);
     assertArrayEquals(expected, actual);
   }
@@ -63,7 +75,7 @@ public class ArgResolverTest {
   }
 
   @Test
-  public void mixed() throws Exception {
+  public void testMixed() throws Exception {
     Method method = Dummy.class.getDeclaredMethod("mixed", String.class, String.class, Category.class);
     Map<String, String> paramValues = new HashMap<>();
     paramValues.put("a", "aaa");
@@ -72,6 +84,20 @@ public class ArgResolverTest {
     paramValues.put("category.name", "category name");
 
     Object[] expected = new Object[]{"aaa", "bbb", new Category(1000L, "category name")};
+    Object[] actual = ArgsResolver.resolveArgs(method, paramValues);
+    assertArrayEquals(expected, actual);
+  }
+
+
+  @Test
+  public void testDate() throws Exception {
+    Method method = Dummy.class.getDeclaredMethod("complex", Category.class);
+    Map<String, String> paramValues = new HashMap<>();
+    paramValues.put("id", "10000");
+    paramValues.put("name", "the name");
+    paramValues.put("date", "2016-09-09");
+
+    Object[] expected = new Object[]{new Category(10000L, "the name")};
     Object[] actual = ArgsResolver.resolveArgs(method, paramValues);
     assertArrayEquals(expected, actual);
   }

@@ -1,6 +1,6 @@
 package com.orctom.laputa.server.processor;
 
-import com.orctom.laputa.server.example.model.Response;
+import com.orctom.laputa.server.model.Response;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 
 /**

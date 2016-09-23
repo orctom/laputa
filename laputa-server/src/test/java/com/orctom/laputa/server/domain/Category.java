@@ -1,17 +1,25 @@
 package com.orctom.laputa.server.domain;
 
+import java.util.Date;
 import java.util.Objects;
 
 public class Category {
 
   private Long id;
   private String name;
+  private Date date;
 
   public Category() {}
 
   public Category(Long id, String name) {
     this.id = id;
     this.name = name;
+  }
+
+  public Category(Long id, String name, Date date) {
+    this.id = id;
+    this.name = name;
+    this.date = date;
   }
 
   public Long getId() {
@@ -28,6 +36,14 @@ public class Category {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public Date getDate() {
+    return date;
+  }
+
+  public void setDate(Date date) {
+    this.date = date;
   }
 
   @Override
@@ -49,6 +65,7 @@ public class Category {
     return "Category{" +
         "id=" + id +
         ", name='" + name + '\'' +
+        ", date=" + date +
         '}';
   }
 }
