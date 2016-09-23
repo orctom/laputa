@@ -6,10 +6,12 @@ import com.orctom.laputa.server.config.MappingConfig;
 import com.orctom.laputa.server.config.ServiceConfig;
 import com.orctom.laputa.server.internal.BeanFactory;
 import com.orctom.laputa.server.internal.Bootstrapper;
+import com.orctom.laputa.server.internal.handler.DefaultHandler;
 import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.ApplicationContext;
 
 import java.lang.annotation.Annotation;
@@ -51,6 +53,8 @@ public class LaputaService {
   }
 
   public LaputaService withBeanFactory(final ApplicationContext beanFactory) {
+    registerBean(beanFactory, DefaultHandler.class, "defaultHandler");
+
     ServiceConfig.getInstance().setBeanFactory(new BeanFactory() {
       @Override
       public <T> T getInstance(Class<T> type) {
@@ -63,6 +67,16 @@ public class LaputaService {
       }
     });
     return this;
+  }
+
+  private void registerBean(final ApplicationContext factory, Class<?> beanClass, String name) {
+    BeanDefinitionRegistry registry = ((BeanDefinitionRegistry) factory);
+
+    GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+    beanDefinition.setBeanClass(beanClass);
+    beanDefinition.setLazyInit(false);
+    beanDefinition.setAbstract(false);
+    registry.registerBeanDefinition(name, beanDefinition);
   }
 
   public void startup() throws Exception {
