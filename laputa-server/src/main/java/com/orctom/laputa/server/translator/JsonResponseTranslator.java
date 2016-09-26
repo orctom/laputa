@@ -1,6 +1,6 @@
 package com.orctom.laputa.server.translator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.orctom.laputa.server.model.MediaType;
 
 import java.io.IOException;
@@ -13,7 +13,7 @@ public class JsonResponseTranslator implements ResponseTranslator {
 
   public static final MediaType TYPE = MediaType.APPLICATION_JSON;
 
-  private static ObjectMapper mapper = new ObjectMapper();
+  private static Gson gson = new Gson();
 
   @Override
   public String getMediaType() {
@@ -22,6 +22,6 @@ public class JsonResponseTranslator implements ResponseTranslator {
 
   @Override
   public byte[] translate(Object data) throws IOException {
-    return mapper.writeValueAsBytes(data);
+    return toBytes(gson.toJson(data));
   }
 }

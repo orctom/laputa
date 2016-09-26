@@ -1,8 +1,7 @@
 package com.orctom.laputa.server.translator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.orctom.laputa.server.model.MediaType;
+import com.thoughtworks.xstream.XStream;
 
 import java.io.IOException;
 
@@ -14,7 +13,7 @@ public class XmlResponseTranslator implements ResponseTranslator {
 
   public static final MediaType TYPE = MediaType.APPLICATION_XML;
 
-  private static ObjectMapper mapper = new XmlMapper();
+  private static XStream xstream = new XStream();
 
   @Override
   public String getMediaType() {
@@ -23,6 +22,6 @@ public class XmlResponseTranslator implements ResponseTranslator {
 
   @Override
   public byte[] translate(Object data) throws IOException {
-    return mapper.writeValueAsBytes(data);
+    return toBytes(xstream.toXML(data));
   }
 }

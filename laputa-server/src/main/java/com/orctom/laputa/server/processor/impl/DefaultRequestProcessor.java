@@ -1,5 +1,6 @@
 package com.orctom.laputa.server.processor.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.orctom.laputa.server.PreProcessor;
 import com.orctom.laputa.server.config.MappingConfig;
 import com.orctom.laputa.server.config.ServiceConfig;
@@ -36,13 +37,21 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private static final byte[] ERROR_CONTENT = {'5', '0', '0'};
 
+  private static final Map<HttpMethod, HTTPMethod> HTTP_METHODS = ImmutableMap.of(
+      HttpMethod.DELETE, HTTPMethod.DELETE,
+      HttpMethod.HEAD, HTTPMethod.HEAD,
+      HttpMethod.OPTIONS, HTTPMethod.OPTIONS,
+      HttpMethod.POST, HTTPMethod.POST,
+      HttpMethod.PUT, HTTPMethod.PUT
+  );
+
   @Override
   public Response handleRequest(DefaultHttpRequest req) {
     HttpMethod method = req.method();
     String uri = req.uri();
 
     // pro-processor
-    preprocess(req);
+    preProcess(req);
 
     // remove hash
     uri = removeHashFromUri(uri);
@@ -71,7 +80,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
     }
   }
 
-  private void preprocess(DefaultHttpRequest req) {
+  private void preProcess(DefaultHttpRequest req) {
     Collection<PreProcessor> preProcessors = beanFactory.getInstances(PreProcessor.class);
     if (null == preProcessors) {
       return;
@@ -91,21 +100,11 @@ public class DefaultRequestProcessor implements RequestProcessor {
   }
 
   private HTTPMethod getHttpMethod(HttpMethod method) {
-    if (HttpMethod.DELETE == method) {
-      return HTTPMethod.DELETE;
+    HTTPMethod httpMethod = HTTP_METHODS.get(method);
+    if (null != httpMethod) {
+      return httpMethod;
     }
-    if (HttpMethod.HEAD == method) {
-      return HTTPMethod.HEAD;
-    }
-    if (HttpMethod.OPTIONS == method) {
-      return HTTPMethod.OPTIONS;
-    }
-    if (HttpMethod.POST == method) {
-      return HTTPMethod.POST;
-    }
-    if (HttpMethod.PUT == method) {
-      return HTTPMethod.PUT;
-    }
+
     return HTTPMethod.GET;
   }
 
@@ -121,7 +120,11 @@ public class DefaultRequestProcessor implements RequestProcessor {
     }
 
     Map<String, String> params = ParamResolver.extractParams(
-        handlerMethod, mapping.getUriPattern(), uri, queryString);
+        handlerMethod,
+        mapping.getUriPattern(),
+        uri,
+        queryString
+    );
 
     Object[] args = ArgsResolver.resolveArgs(handlerMethod, params);
     return handlerMethod.invoke(target, args);

@@ -37,7 +37,10 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
       Response response = requestProcessor.handleRequest(req);
 
       FullHttpResponse res = new DefaultFullHttpResponse(
-          HTTP_1_1, OK, Unpooled.wrappedBuffer(response.getContent()));
+          HTTP_1_1,
+          OK,
+          Unpooled.wrappedBuffer(response.getContent())
+      );
       res.headers().set(CONTENT_TYPE, response.getMediaType());
       res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
 

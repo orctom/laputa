@@ -1,6 +1,9 @@
 package com.orctom.laputa.server.translator;
 
+import com.orctom.laputa.server.config.ServiceConfig;
+
 import java.io.IOException;
+import java.nio.charset.Charset;
 
 /**
  * Encode response data:
@@ -13,4 +16,12 @@ public interface ResponseTranslator {
 
   byte[] translate(Object data) throws IOException;
 
+  default byte[] toBytes(String string) {
+    Charset charset = ServiceConfig.getInstance().getCharset();
+    if (null != charset) {
+      return string.getBytes(charset);
+    } else {
+      return string.getBytes();
+    }
+  }
 }
