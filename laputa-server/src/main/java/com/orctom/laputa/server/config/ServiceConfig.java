@@ -22,8 +22,9 @@ public class ServiceConfig {
   private static final Logger LOGGER = LoggerFactory.getLogger(ServiceConfig.class);
 
   private static final ServiceConfig INSTANCE = new ServiceConfig();
-  private Boolean debugEnabled;
+  private boolean debugEnabled;
   private Charset charset;
+  private String staticFilesDir;
   private Config config;
   private BeanFactory beanFactory = new NaiveBeanFactory();
 
@@ -31,6 +32,7 @@ public class ServiceConfig {
     initConfig();
     initDebugFlag();
     initCharset();
+    initStaticFilesDir();
   }
 
   public static Path getAppRootDir() {
@@ -65,6 +67,14 @@ public class ServiceConfig {
     }
   }
 
+  private void initStaticFilesDir() {
+    try {
+      staticFilesDir = config.getString("static.files.dir");
+    } catch (ConfigException e) {
+      LOGGER.info("`static.files.dir` is not configured, using system temporal.");
+    }
+  }
+
   public Config getConfig() {
     return config;
   }
@@ -87,5 +97,9 @@ public class ServiceConfig {
 
   public void setCharset(Charset charset) {
     this.charset = charset;
+  }
+
+  public String getStaticFilesDir() {
+    return staticFilesDir;
   }
 }

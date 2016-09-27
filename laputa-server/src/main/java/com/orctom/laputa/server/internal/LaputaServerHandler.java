@@ -1,5 +1,6 @@
 package com.orctom.laputa.server.internal;
 
+import com.orctom.laputa.server.config.ServiceConfig;
 import com.orctom.laputa.server.model.Response;
 import com.orctom.laputa.server.processor.RequestProcessor;
 import com.orctom.laputa.server.processor.impl.DefaultRequestProcessor;
@@ -8,6 +9,8 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.multipart.DiskAttribute;
+import io.netty.handler.codec.http.multipart.DiskFileUpload;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
@@ -17,6 +20,15 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
   private RequestProcessor requestProcessor = new DefaultRequestProcessor();
+
+  static {
+    String staticFilesDir = ServiceConfig.getInstance().getStaticFilesDir();
+
+    DiskFileUpload.deleteOnExitTemporaryFile = true;
+    DiskFileUpload.baseDirectory = staticFilesDir;
+    DiskAttribute.deleteOnExitTemporaryFile = true;
+    DiskAttribute.baseDirectory = staticFilesDir;
+  }
 
   @Override
   public void channelReadComplete(ChannelHandlerContext ctx) {
