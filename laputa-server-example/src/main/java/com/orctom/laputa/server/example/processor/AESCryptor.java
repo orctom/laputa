@@ -3,7 +3,7 @@ package com.orctom.laputa.server.example.processor;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.orctom.laputa.server.PreProcessor;
+import com.orctom.laputa.server.processor.PreProcessor;
 import com.orctom.laputa.server.example.util.AES;
 import com.orctom.laputa.server.model.RequestWrapper;
 import org.springframework.stereotype.Component;

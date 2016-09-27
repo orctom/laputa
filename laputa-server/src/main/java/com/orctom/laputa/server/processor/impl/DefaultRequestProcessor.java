@@ -1,7 +1,7 @@
 package com.orctom.laputa.server.processor.impl;
 
 import com.google.common.collect.ImmutableMap;
-import com.orctom.laputa.server.PreProcessor;
+import com.orctom.laputa.server.processor.PreProcessor;
 import com.orctom.laputa.server.config.MappingConfig;
 import com.orctom.laputa.server.config.ServiceConfig;
 import com.orctom.laputa.server.internal.BeanFactory;
