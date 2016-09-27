@@ -48,13 +48,14 @@ public class DefaultRequestProcessor implements RequestProcessor {
   @Override
   public Response handleRequest(DefaultHttpRequest req) {
     HttpMethod method = req.method();
-    String uri = req.uri();
+    String url = req.uri();
+    LOGGER.debug("url      = {}", url);
 
     // pro-processor
     preProcess(req);
 
     // remove hash
-    uri = removeHashFromUri(uri);
+    String uri = removeHashFromUri(url);
 
     // get query string
     int questionMarkIndex = uri.indexOf("?");
@@ -63,8 +64,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
       queryStr = uri.substring(questionMarkIndex + 1);
       uri = uri.substring(0, questionMarkIndex);
     }
-    LOGGER.trace("uri      = " + uri);
-    LOGGER.trace("queryStr = " + queryStr);
+    LOGGER.trace("uri      = {}", uri);
+    LOGGER.trace("queryStr = {}", queryStr);
 
     RequestMapping mapping = MappingConfig.getInstance().getMapping(uri, getHttpMethod(method));
 
