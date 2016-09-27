@@ -49,8 +49,7 @@ public abstract class ArgsResolver {
     ConvertUtils.register(converter, Date.class);
   }
 
-  public static Object[] resolveArgs(Method method, Map<String, String> paramValues) {
-    Parameter[] methodParameters = method.getParameters();
+  public static Object[] resolveArgs(Parameter[] methodParameters, Map<String, String> paramValues) {
     if (0 == methodParameters.length) {
       return null;
     }

@@ -56,7 +56,7 @@ public class ServiceConfig {
 
   private void initCharset() {
     try {
-      String charsetName = ServiceConfig.getInstance().getConfig().getString("charset");
+      String charsetName = config.getString("charset");
       charset = Charset.forName(charsetName);
     } catch (ConfigException e) {
       LOGGER.info("`charset` is not configured, using system default.");

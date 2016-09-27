@@ -1,7 +1,7 @@
 package com.orctom.laputa.server.util;
 
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.orctom.exception.IllegalArgException;
 import com.orctom.laputa.server.annotation.DefaultValue;
 import com.orctom.laputa.server.annotation.Param;
 import com.orctom.utils.ClassUtils;
@@ -12,13 +12,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ParamResolver {
-
-  private static final Pattern TOKEN_START = Pattern.compile("[\\{]");
-  private static final Pattern TOKEN_END = Pattern.compile("[\\}]");
 
   public static Map<String, String> extractParams(
       Method method, String pattern, String path, String queryStr) {
@@ -41,7 +37,7 @@ public class ParamResolver {
     for (Parameter parameter : methodParameters) {
       Param param = parameter.getAnnotation(Param.class);
       if (null == param) {
-        throw new IllegalArgumentException("Missing @Param annotation at " + method.toString());
+        throw new IllegalArgException("Missing @Param annotation at " + method.toString());
       }
       DefaultValue defaultValue = parameter.getAnnotation(DefaultValue.class);
       if (null != defaultValue && ClassUtils.isSimpleValueType(parameter.getType())) {

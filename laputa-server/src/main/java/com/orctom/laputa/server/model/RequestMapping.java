@@ -1,17 +1,21 @@
 package com.orctom.laputa.server.model;
 
+import org.springframework.cglib.reflect.FastClass;
+import org.springframework.cglib.reflect.FastMethod;
+
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 
 public class RequestMapping {
 
   private String uriPattern;
   private Class<?> handlerClass;
-  private Method handlerMethod;
+  private FastMethod handlerMethod;
 
   public RequestMapping(String uriPattern, Class<?> handlerClass, Method handlerMethod) {
     this.uriPattern = uriPattern;
     this.handlerClass = handlerClass;
-    this.handlerMethod = handlerMethod;
+    this.handlerMethod = FastClass.create(handlerClass).getMethod(handlerMethod);
   }
 
   public String getUriPattern() {
@@ -22,7 +26,11 @@ public class RequestMapping {
     return handlerClass;
   }
 
-  public Method getHandlerMethod() {
+  public Parameter[] getParameters() {
+    return handlerMethod.getJavaMethod().getParameters();
+  }
+
+  public FastMethod getHandlerMethod() {
     return handlerMethod;
   }
 

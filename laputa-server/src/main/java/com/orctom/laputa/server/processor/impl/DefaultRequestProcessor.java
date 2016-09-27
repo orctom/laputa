@@ -18,9 +18,9 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cglib.reflect.FastMethod;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Collection;
 import java.util.Map;
@@ -111,22 +111,22 @@ public class DefaultRequestProcessor implements RequestProcessor {
   public Object processRequest(String uri, String queryString, RequestMapping mapping)
       throws InvocationTargetException, IllegalAccessException {
     Class<?> handlerClass = mapping.getHandlerClass();
-    Method handlerMethod = mapping.getHandlerMethod();
+    FastMethod handlerMethod = mapping.getHandlerMethod();
     Object target = beanFactory.getInstance(handlerClass);
 
-    Parameter[] methodParameters = handlerMethod.getParameters();
+    Parameter[] methodParameters = mapping.getParameters();
     if (0 == methodParameters.length) {
-      return handlerMethod.invoke(target);
+      return handlerMethod.invoke(target, null);
     }
 
     Map<String, String> params = ParamResolver.extractParams(
-        handlerMethod,
+        handlerMethod.getJavaMethod(),
         mapping.getUriPattern(),
         uri,
         queryString
     );
 
-    Object[] args = ArgsResolver.resolveArgs(handlerMethod, params);
+    Object[] args = ArgsResolver.resolveArgs(methodParameters, params);
     return handlerMethod.invoke(target, args);
   }
 }
