@@ -1,6 +1,6 @@
 package com.orctom.laputa.server;
 
-import io.netty.handler.codec.http.DefaultHttpRequest;
+import com.orctom.laputa.server.model.RequestWrapper;
 
 /**
  * Filter / processor before the request be actually aprocessed
@@ -8,5 +8,5 @@ import io.netty.handler.codec.http.DefaultHttpRequest;
  */
 public interface PreProcessor {
 
-  void process(DefaultHttpRequest req);
+  void process(RequestWrapper requestWrapper);
 }

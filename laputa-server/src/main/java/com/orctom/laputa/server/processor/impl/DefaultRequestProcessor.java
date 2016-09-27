@@ -7,6 +7,7 @@ import com.orctom.laputa.server.config.ServiceConfig;
 import com.orctom.laputa.server.internal.BeanFactory;
 import com.orctom.laputa.server.model.HTTPMethod;
 import com.orctom.laputa.server.model.RequestMapping;
+import com.orctom.laputa.server.model.RequestWrapper;
 import com.orctom.laputa.server.model.Response;
 import com.orctom.laputa.server.processor.RequestProcessor;
 import com.orctom.laputa.server.translator.ResponseTranslator;
@@ -16,13 +17,16 @@ import com.orctom.laputa.server.util.ParamResolver;
 import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cglib.reflect.FastMethod;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
+import java.nio.charset.Charset;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,32 +51,19 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   @Override
   public Response handleRequest(DefaultHttpRequest req) {
-    HttpMethod method = req.method();
-    String url = req.uri();
-    LOGGER.debug("url      = {}", url);
+    RequestWrapper requestWrapper = getRequestWrapper(req);
 
     // pro-processor
-    preProcess(req);
+    preProcess(requestWrapper);
 
-    // remove hash
-    String uri = removeHashFromUri(url);
-
-    // get query string
-    int questionMarkIndex = uri.indexOf("?");
-    String queryStr = null;
-    if (questionMarkIndex > 0) {
-      queryStr = uri.substring(questionMarkIndex + 1);
-      uri = uri.substring(0, questionMarkIndex);
-    }
-    LOGGER.trace("uri      = {}", uri);
-    LOGGER.trace("queryStr = {}", queryStr);
-
-    RequestMapping mapping = MappingConfig.getInstance().getMapping(uri, getHttpMethod(method));
+    RequestMapping mapping = MappingConfig.getInstance().getMapping(
+        requestWrapper.getPath(),
+        getHttpMethod(requestWrapper.getHttpMethod()));
 
     String accept = req.headers().get(HttpHeaderNames.ACCEPT);
-    ResponseTranslator translator = ResponseTranslators.getTranslator(uri, accept);
+    ResponseTranslator translator = ResponseTranslators.getTranslator(requestWrapper.getPath(), accept);
     try {
-      Object data = processRequest(uri, queryStr, mapping);
+      Object data = processRequest(requestWrapper, mapping);
       byte[] content = translator.translate(data);
       return new Response(translator.getMediaType(), content);
     } catch (Throwable e) {
@@ -81,22 +72,38 @@ public class DefaultRequestProcessor implements RequestProcessor {
     }
   }
 
-  private void preProcess(DefaultHttpRequest req) {
+  private RequestWrapper getRequestWrapper(DefaultHttpRequest req) {
+    HttpMethod method = req.method();
+    String uri = req.uri();
+    LOGGER.debug("uri = {}", uri);
+
+    QueryStringDecoder queryStringDecoder = getQueryStringDecoder(uri);
+    String path = queryStringDecoder.path();
+    Map<String, List<String>> queryParameters = queryStringDecoder.parameters();
+    return new RequestWrapper(method, path, queryParameters);
+  }
+
+  private void preProcess(RequestWrapper requestWrapper) {
     Collection<PreProcessor> preProcessors = beanFactory.getInstances(PreProcessor.class);
-    if (null == preProcessors) {
+    if (null == preProcessors || preProcessors.isEmpty()) {
       return;
     }
+
     for (PreProcessor processor : preProcessors) {
-      processor.process(req);
+      processor.process(requestWrapper);
+    }
+
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("pre-processed, {}", requestWrapper.toString());
     }
   }
 
-  private String removeHashFromUri(String uri) {
-    int hashIndex = uri.indexOf("#");
-    if (hashIndex > 0) {
-      return uri.substring(0, hashIndex);
+  private QueryStringDecoder getQueryStringDecoder(String uri) {
+    Charset charset = ServiceConfig.getInstance().getCharset();
+    if (null != charset) {
+      return new QueryStringDecoder(uri, charset);
     } else {
-      return uri;
+      return new QueryStringDecoder(uri);
     }
   }
 
@@ -109,7 +116,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
     return HTTPMethod.GET;
   }
 
-  public Object processRequest(String uri, String queryString, RequestMapping mapping)
+  public Object processRequest(RequestWrapper requestWrapper, RequestMapping mapping)
       throws InvocationTargetException, IllegalAccessException {
     Class<?> handlerClass = mapping.getHandlerClass();
     FastMethod handlerMethod = mapping.getHandlerMethod();
@@ -123,8 +130,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
     Map<String, String> params = ParamResolver.extractParams(
         handlerMethod.getJavaMethod(),
         mapping.getUriPattern(),
-        uri,
-        queryString
+        requestWrapper
     );
 
     Object[] args = ArgsResolver.resolveArgs(methodParameters, params);
