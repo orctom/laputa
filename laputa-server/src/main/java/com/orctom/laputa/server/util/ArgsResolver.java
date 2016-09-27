@@ -29,7 +29,6 @@ public abstract class ArgsResolver {
   private static final String DATE_PATTERN = "date.pattern";
   private static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd,yyyyMMdd,yyyy-MM-dd HH:mm:ss";
   private static final String DOT = ".";
-  private static final String EMPTY = "EMPTY";
 
   static {
     Config config = ServiceConfig.getInstance().getConfig();
@@ -110,7 +109,7 @@ public abstract class ArgsResolver {
   }
 
   private static Object generateAndPopulateArg(Map<String, String> paramValues, Class<?> type) {
-    Object bean = createNewInstance(type);
+    Object bean = BeanUtil.createNewInstance(type);
     try {
       BeanUtils.populate(bean, paramValues);
       return bean;
@@ -124,17 +123,6 @@ public abstract class ArgsResolver {
     return paramValues.entrySet().stream()
         .filter(entry -> entry.getKey().contains(DOT))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  }
-
-  private static Object createNewInstance(Class<?> type) {
-    try {
-      Object instance = type.newInstance();
-      initializeProperties(instance, type);
-      return instance;
-    } catch (Exception e) {
-      String msg = type + ", due to: " + e.getMessage();
-      throw new IllegalArgumentException(msg, e);
-    }
   }
 
   private static Object resolveSimpleTypeValue(
@@ -155,28 +143,6 @@ public abstract class ArgsResolver {
       return Long.valueOf(value);
     } else {
       throw new IllegalArgumentException("Unsupported param type" + type + " " + paramName);
-    }
-  }
-
-  private static void initializeProperties(Object bean, Class<?> type) {
-    Set<Field> fields = new HashSet<>();
-    fields.addAll(Arrays.asList(type.getFields()));
-    fields.addAll(Arrays.asList(type.getDeclaredFields()));
-    for (Field field : fields) {
-      if (EMPTY.equals(field.getName())) {
-        continue;
-      }
-
-      Class<?> propertyType = field.getType();
-      if (ClassUtils.isSimpleValueType(propertyType)) {
-        continue;
-      }
-      Object property = createNewInstance(propertyType);
-      try {
-        PropertyUtils.setProperty(bean, field.getName(), property);
-      } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-        LOGGER.warn(e.getMessage(), e);
-      }
     }
   }
 
