@@ -4,6 +4,7 @@ import com.orctom.laputa.server.annotation.DefaultValue;
 import com.orctom.laputa.server.annotation.Param;
 import com.orctom.laputa.server.annotation.Path;
 import com.orctom.laputa.server.example.model.SKU;
+import com.orctom.laputa.server.model.MultipartFile;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -30,6 +31,11 @@ public class Product {
   @Path("/sku/new")
   public SKU addSKU(@Param("sku") SKU sku) {
     return sku;
+  }
+
+  @Path("/upload")
+  public String upload(@Param("file") MultipartFile uploadedFile) {
+    return "uploaded: " + uploadedFile.toString();
   }
 
   @Path("/hello/{name}")

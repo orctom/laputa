@@ -55,6 +55,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
       HttpMethod.POST, HTTPMethod.POST,
       HttpMethod.PUT, HTTPMethod.PUT
   );
+  public static final String FILENAME = "::filename";
+  public static final String CONTENT_TYPE = "::content_type";
 
   @Override
   public Response handleRequest(DefaultHttpRequest req) {
@@ -137,8 +139,10 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private void addToParameters(Map<String, List<String>> parameters, FileUpload fileUpload) {
     try {
-      File uploadFile = fileUpload.getFile();
-      parameters.put(fileUpload.getFilename(), Lists.newArrayList(uploadFile.getAbsolutePath()));
+      File uploadedFile = fileUpload.getFile();
+      parameters.put(fileUpload.getName(), Lists.newArrayList(uploadedFile.getAbsolutePath()));
+      parameters.put(fileUpload.getName() + FILENAME, Lists.newArrayList(fileUpload.getFilename()));
+      parameters.put(fileUpload.getName() + CONTENT_TYPE, Lists.newArrayList(fileUpload.getContentType()));
     } catch (IOException e) {
       throw new FileUploadException("Failed to upload file: " + e.getMessage(), e);
     }
