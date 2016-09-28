@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
@@ -34,6 +33,7 @@ public class ServiceConfig {
   private boolean debugEnabled;
   private Charset charset;
   private String staticFilesDir;
+  private Integer requestRateLimit;
 
   private BeanFactory beanFactory = new NaiveBeanFactory();
 
@@ -43,6 +43,7 @@ public class ServiceConfig {
     initDatePattern();
     initCharset();
     initStaticFilesDir();
+    initRateLimiter();
   }
 
   public static ServiceConfig getInstance() {
@@ -101,6 +102,14 @@ public class ServiceConfig {
     }
   }
 
+  private void initRateLimiter() {
+    try {
+      requestRateLimit = config.getInt("server.requests.rate.limit");
+    } catch (ConfigException e) {
+      LOGGER.info("`server.requests.rate.limit` is not configured, request rate limiter is turned off.");
+    }
+  }
+
   public Config getConfig() {
     return config;
   }
@@ -127,5 +136,9 @@ public class ServiceConfig {
 
   public String getStaticFilesDir() {
     return staticFilesDir;
+  }
+
+  public Integer getRequestRateLimit() {
+    return requestRateLimit;
   }
 }

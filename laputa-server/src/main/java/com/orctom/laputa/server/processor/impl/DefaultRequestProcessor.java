@@ -3,6 +3,7 @@ package com.orctom.laputa.server.processor.impl;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.RateLimiter;
 import com.orctom.laputa.server.exception.FileUploadException;
 import com.orctom.laputa.server.exception.RequestProcessingException;
 import com.orctom.laputa.server.processor.PostProcessor;
@@ -32,6 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * request processor
@@ -43,7 +45,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private static final BeanFactory beanFactory = ServiceConfig.getInstance().getBeanFactory();
 
-  private static final byte[] ERROR_CONTENT = {'5', '0', '0'};
+  private static final byte[] ERROR_CONTENT = "500".getBytes();
+  private static final byte[] ERROR_BUSY = "500, too busy".getBytes();
 
   private static final String FILE = ".file";
   private static final String FILENAME = ".originalFilename";
@@ -57,30 +60,46 @@ public class DefaultRequestProcessor implements RequestProcessor {
       HttpMethod.PUT, HTTPMethod.PUT
   );
 
+  private static RateLimiter rateLimiter;
+
+  public DefaultRequestProcessor() {
+    Integer maxRequestsPerSecond = ServiceConfig.getInstance().getRequestRateLimit();
+    if (null == maxRequestsPerSecond) {
+      return;
+    }
+
+    rateLimiter = RateLimiter.create(maxRequestsPerSecond);
+  }
+
   @Override
   public Response handleRequest(HttpRequest req) {
     RequestWrapper requestWrapper = getRequestWrapper(req);
 
-    // pre-processors
-    preProcess(requestWrapper);
-
-    RequestMapping mapping = MappingConfig.getInstance().getMapping(
-        requestWrapper.getPath(),
-        getHttpMethod(requestWrapper.getHttpMethod()));
-
     String accept = req.headers().get(HttpHeaderNames.ACCEPT);
     ResponseTranslator translator = ResponseTranslators.getTranslator(requestWrapper.getPath(), accept);
-    try {
-      Object data = processRequest(requestWrapper, mapping);
 
-      // post-processors
-      postProcess(data);
-      
-      byte[] content = translator.translate(data);
-      return new Response(translator.getMediaType(), content);
-    } catch (Throwable e) {
-      LOGGER.error(e.getMessage(), e);
-      return new Response(translator.getMediaType(), ERROR_CONTENT);
+    if (null != rateLimiter && !rateLimiter.tryAcquire(200, TimeUnit.MILLISECONDS)) {
+      return new Response(translator.getMediaType(), ERROR_BUSY);
+    } else {
+      // pre-processors
+      preProcess(requestWrapper);
+
+      RequestMapping mapping = MappingConfig.getInstance().getMapping(
+          requestWrapper.getPath(),
+          getHttpMethod(requestWrapper.getHttpMethod()));
+
+      try {
+        Object data = processRequest(requestWrapper, mapping);
+
+        // post-processors
+        postProcess(data);
+
+        byte[] content = translator.translate(data);
+        return new Response(translator.getMediaType(), content);
+      } catch (Throwable e) {
+        LOGGER.error(e.getMessage(), e);
+        return new Response(translator.getMediaType(), ERROR_CONTENT);
+      }
     }
   }
 
