@@ -37,8 +37,8 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) {
-    if (msg instanceof DefaultHttpRequest) {
-      DefaultHttpRequest req = (DefaultHttpRequest) msg;
+    if (msg instanceof HttpRequest) {
+      HttpRequest req = (HttpRequest) msg;
 
       if (HttpUtil.is100ContinueExpected(req)) {
         ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));

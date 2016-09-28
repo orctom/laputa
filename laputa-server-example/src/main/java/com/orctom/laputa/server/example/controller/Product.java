@@ -1,15 +1,20 @@
 package com.orctom.laputa.server.example.controller;
 
 import com.orctom.laputa.server.annotation.DefaultValue;
+import com.orctom.laputa.server.annotation.POST;
 import com.orctom.laputa.server.annotation.Param;
 import com.orctom.laputa.server.annotation.Path;
 import com.orctom.laputa.server.example.model.SKU;
 import com.orctom.laputa.server.model.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 
 @Controller
 @Path("/product")
 public class Product {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(Product.class);
 
   //  @Path("/hello")
   public String hello() {
@@ -33,8 +38,11 @@ public class Product {
     return sku;
   }
 
+  // curl -F "file=@sent.txt" http://localhost:7000/product/upload | less
+  @POST
   @Path("/upload")
   public String upload(@Param("file") MultipartFile uploadedFile) {
+    LOGGER.debug(uploadedFile.toString());
     return "uploaded: " + uploadedFile.toString();
   }
 

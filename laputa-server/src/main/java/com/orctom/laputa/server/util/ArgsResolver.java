@@ -1,22 +1,14 @@
 package com.orctom.laputa.server.util;
 
-import com.google.common.base.Splitter;
 import com.orctom.laputa.server.annotation.Param;
-import com.orctom.laputa.server.config.ServiceConfig;
 import com.orctom.utils.ClassUtils;
-import com.typesafe.config.Config;
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.beanutils.converters.DateConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -26,27 +18,7 @@ import java.util.stream.Collectors;
 public abstract class ArgsResolver {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ArgsResolver.class);
-  private static final String DATE_PATTERN = "date.pattern";
-  private static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd,yyyyMMdd,yyyy-MM-dd HH:mm:ss";
   private static final String DOT = ".";
-
-  static {
-    Config config = ServiceConfig.getInstance().getConfig();
-    String pattern;
-    try {
-      pattern = config.getString(DATE_PATTERN);
-    } catch (Exception e) {
-      LOGGER.warn("Missing config for `date.pattern`, using default: {}", DEFAULT_DATE_PATTERN);
-      pattern = DEFAULT_DATE_PATTERN;
-    }
-
-    List<String> splits = Splitter.on(",").omitEmptyStrings().trimResults().splitToList(pattern);
-    String[] patterns = splits.toArray(new String[splits.size()]);
-
-    DateConverter converter = new DateConverter();
-    converter.setPatterns(patterns);
-    ConvertUtils.register(converter, Date.class);
-  }
 
   public static Object[] resolveArgs(Parameter[] methodParameters, Map<String, String> paramValues) {
     if (0 == methodParameters.length) {

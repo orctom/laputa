@@ -1,10 +1,13 @@
 package com.orctom.laputa.server.config;
 
+import com.google.common.base.Splitter;
 import com.orctom.laputa.server.internal.BeanFactory;
 import com.orctom.laputa.server.internal.NaiveBeanFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.converters.DateConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +15,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Config items
@@ -22,21 +27,22 @@ public class ServiceConfig {
   private static final Logger LOGGER = LoggerFactory.getLogger(ServiceConfig.class);
 
   private static final ServiceConfig INSTANCE = new ServiceConfig();
+
+  private static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd,yyyyMMdd,yyyy-MM-dd HH:mm:ss";
+
+  private Config config;
   private boolean debugEnabled;
   private Charset charset;
   private String staticFilesDir;
-  private Config config;
+
   private BeanFactory beanFactory = new NaiveBeanFactory();
 
   private ServiceConfig() {
     initConfig();
     initDebugFlag();
+    initDatePattern();
     initCharset();
     initStaticFilesDir();
-  }
-
-  public static Path getAppRootDir() {
-    return Paths.get("").toAbsolutePath();
   }
 
   public static ServiceConfig getInstance() {
@@ -44,8 +50,11 @@ public class ServiceConfig {
   }
 
   private void initConfig() {
-    final Config reference = ConfigFactory.load("reference");
-    config = ConfigFactory.load().withFallback(reference);
+    String appRootDir = Paths.get(".").toAbsolutePath().toString();
+
+    config = ConfigFactory.parseString("appRootDir=\"" + appRootDir + "\"")
+        .withFallback(ConfigFactory.load())
+        .withFallback(ConfigFactory.load("reference"));
   }
 
   private void initDebugFlag() {
@@ -56,12 +65,29 @@ public class ServiceConfig {
     }
   }
 
+  private void initDatePattern() {
+    String pattern;
+    try {
+      pattern = config.getString("date.pattern");
+    } catch (Exception e) {
+      LOGGER.warn("`date.pattern` is not configured, using default: {}", DEFAULT_DATE_PATTERN);
+      pattern = DEFAULT_DATE_PATTERN;
+    }
+
+    List<String> splits = Splitter.on(",").omitEmptyStrings().trimResults().splitToList(pattern);
+    String[] patterns = splits.toArray(new String[splits.size()]);
+
+    DateConverter converter = new DateConverter();
+    converter.setPatterns(patterns);
+    ConvertUtils.register(converter, Date.class);
+  }
+
   private void initCharset() {
     try {
       String charsetName = config.getString("charset");
       charset = Charset.forName(charsetName);
     } catch (ConfigException e) {
-      LOGGER.info("`charset` is not configured, using system default.");
+      LOGGER.warn("`charset` is not configured, using system default.");
     } catch (UnsupportedCharsetException e) {
       LOGGER.error("Unsupported charset: {}, using system default.", e.getCharsetName());
     }
@@ -71,7 +97,7 @@ public class ServiceConfig {
     try {
       staticFilesDir = config.getString("static.files.dir");
     } catch (ConfigException e) {
-      LOGGER.info("`static.files.dir` is not configured, using system temporal.");
+      LOGGER.warn("`static.files.dir` is not configured, using system temporal.");
     }
   }
 

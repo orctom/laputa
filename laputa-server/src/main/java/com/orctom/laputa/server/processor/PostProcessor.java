@@ -6,4 +6,7 @@ package com.orctom.laputa.server.processor;
  */
 public interface PostProcessor {
 
+  int getOrder();
+
+  Object process(Object data);
 }

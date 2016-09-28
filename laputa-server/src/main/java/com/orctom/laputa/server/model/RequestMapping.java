@@ -11,11 +11,13 @@ public class RequestMapping {
   private String uriPattern;
   private Class<?> handlerClass;
   private FastMethod handlerMethod;
+  private String httpMethod;
 
-  public RequestMapping(String uriPattern, Class<?> handlerClass, Method handlerMethod) {
+  public RequestMapping(String uriPattern, Class<?> handlerClass, Method handlerMethod, String httpMethod) {
     this.uriPattern = uriPattern;
     this.handlerClass = handlerClass;
     this.handlerMethod = FastClass.create(handlerClass).getMethod(handlerMethod);
+    this.httpMethod = httpMethod;
   }
 
   public String getUriPattern() {
@@ -34,8 +36,12 @@ public class RequestMapping {
     return handlerMethod;
   }
 
+  public String getHttpMethod() {
+    return httpMethod;
+  }
+
   @Override
   public String toString() {
-    return uriPattern + " -> " + handlerClass.getName() + " " + handlerMethod.getName();
+    return uriPattern + " -> " + handlerMethod.getJavaMethod().toGenericString() + " " + httpMethod;
   }
 }

@@ -13,22 +13,32 @@ public class MultipartFile {
   private String contentType;
   private String originalFilename;
 
-  public MultipartFile(String contentType, File file, String originalFilename) {
-    this.contentType = contentType;
+  public File getFile() {
+    return file;
+  }
+
+  public void setFile(File file) {
     this.file = file;
-    this.originalFilename = originalFilename;
+  }
+
+  public void setFile(String file) {
+    this.file = new File(file);
   }
 
   public String getContentType() {
     return contentType;
   }
 
-  public File getFile() {
-    return file;
+  public void setContentType(String contentType) {
+    this.contentType = contentType;
   }
 
   public String getOriginalFilename() {
     return originalFilename;
+  }
+
+  public void setOriginalFilename(String originalFilename) {
+    this.originalFilename = originalFilename;
   }
 
   @Override

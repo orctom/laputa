@@ -15,6 +15,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Holding url mappings...
@@ -150,35 +151,43 @@ public class MappingConfig {
     }
   }
 
-  private HTTPMethod getHttpMethod(Method method) {
-    if (method.isAnnotationPresent(POST.class)) {
-      return HTTPMethod.POST;
+  private List<HTTPMethod> getSupportedHTTPMethods(Method method) {
+    List<HTTPMethod> supportedHTTPMethods = Arrays.stream(method.getAnnotations())
+        .filter(a ->
+            a.annotationType() == POST.class ||
+            a.annotationType() == PUT.class ||
+            a.annotationType() == DELETE.class ||
+            a.annotationType() == HEAD.class ||
+            a.annotationType() == OPTIONS.class ||
+            a.annotationType() == GET.class)
+        .map(a -> HTTPMethod.valueOf(a.annotationType().getSimpleName()))
+        .collect(Collectors.toList());
+    if (supportedHTTPMethods.isEmpty()) {
+      supportedHTTPMethods.add(HTTPMethod.GET);
     }
-    if (method.isAnnotationPresent(PUT.class)) {
-      return HTTPMethod.PUT;
-    }
-    if (method.isAnnotationPresent(DELETE.class)) {
-      return HTTPMethod.DELETE;
-    }
-    if (method.isAnnotationPresent(HEAD.class)) {
-      return HTTPMethod.HEAD;
-    }
-    if (method.isAnnotationPresent(OPTIONS.class)) {
-      return HTTPMethod.OPTIONS;
-    }
-    return HTTPMethod.GET;
+    return supportedHTTPMethods;
   }
 
   private void addToMappings(Class<?> clazz, Method method, String rawPath) {
     String uri = normalize(rawPath);
-    String httpMethodKey = getHttpMethod(method).getKey();
-    if (uri.contains("{")) {
-      addToWildCardMappings(clazz, method, uri, httpMethodKey);
-    } else {
-      RequestMapping mapping = staticMappings.put(uri + "/" + httpMethodKey, new RequestMapping(uri, clazz, method));
-      if (null != mapping) {
-        throw new IllegalArgumentException("Conflicts found in configured @Path:\n" + uri + ", " + httpMethodKey +
-            "\n\t\t" + mapping.getHandlerMethod().toString() + "\n\t\t" + method.toString());
+    List<HTTPMethod> httpMethods = getSupportedHTTPMethods(method);
+    if (null == httpMethods || httpMethods.isEmpty()) {
+      return;
+    }
+
+    for (HTTPMethod httpMethod : httpMethods) {
+      String httpMethodKey = httpMethod.getKey();
+      if (uri.contains("{")) {
+        addToWildCardMappings(clazz, method, uri, httpMethodKey);
+      } else {
+        RequestMapping mapping = staticMappings.put(
+            uri + "/" + httpMethodKey,
+            new RequestMapping(uri, clazz, method, httpMethodKey)
+        );
+        if (null != mapping) {
+          throw new IllegalArgumentException("Conflicts found in configured @Path:\n" + uri + ", " + httpMethodKey +
+              "\n\t\t" + mapping.getHandlerMethod().toString() + "\n\t\t" + method.toString());
+        }
       }
     }
   }
@@ -216,7 +225,7 @@ public class MappingConfig {
       children = child.getChildren();
     }
 
-    PathTrie leaf = new PathTrie(uri, clazz, method);
+    PathTrie leaf = new PathTrie(uri, clazz, method, httpMethodKey);
     children.put(httpMethodKey, leaf);
   }
 

@@ -12,24 +12,24 @@ import java.util.Map;
  * ResponseTranslator registry
  * Created by hao on 11/25/15.
  */
-public class ResponseTranslators {
+public abstract class ResponseTranslators {
 
-  private static final Map<String, ResponseTranslator> ENCODERS = new HashMap<>();
+  private static final Map<String, ResponseTranslator> REGISTRY = new HashMap<>();
 
   static {
-    add(JsonResponseTranslator.TYPE.getExtension(), new JsonResponseTranslator());
-    add(JsonResponseTranslator.TYPE.getValue(), new JsonResponseTranslator());
-    add(XmlResponseTranslator.TYPE.getExtension(), new XmlResponseTranslator());
-    add(XmlResponseTranslator.TYPE.getValue(), new XmlResponseTranslator());
+    registerTranslator(JsonResponseTranslator.TYPE.getExtension(), new JsonResponseTranslator());
+    registerTranslator(JsonResponseTranslator.TYPE.getValue(), new JsonResponseTranslator());
+    registerTranslator(XmlResponseTranslator.TYPE.getExtension(), new XmlResponseTranslator());
+    registerTranslator(XmlResponseTranslator.TYPE.getValue(), new XmlResponseTranslator());
   }
 
-  public static void add(String type, ResponseTranslator encoder) {
-    ENCODERS.put(type, encoder);
+  public static void registerTranslator(String type, ResponseTranslator encoder) {
+    REGISTRY.put(type, encoder);
   }
 
   public static ResponseTranslator getTranslator(String uri, String accept) {
     String extension = getExtension(uri);
-    ResponseTranslator translator = ENCODERS.get(extension);
+    ResponseTranslator translator = REGISTRY.get(extension);
 
     if (null != translator) {
       return translator;
@@ -45,7 +45,7 @@ public class ResponseTranslators {
       return getResponseTypeEncoder(MediaType.APPLICATION_JSON);
     }
     for (String type : accepts) {
-      ResponseTranslator encoder = ENCODERS.get(type);
+      ResponseTranslator encoder = REGISTRY.get(type);
       if (null != encoder) {
         return encoder;
       }
@@ -70,6 +70,6 @@ public class ResponseTranslators {
   }
 
   private static ResponseTranslator getResponseTypeEncoder(MediaType mediaType) {
-    return ENCODERS.get(mediaType.getValue());
+    return REGISTRY.get(mediaType.getValue());
   }
 }

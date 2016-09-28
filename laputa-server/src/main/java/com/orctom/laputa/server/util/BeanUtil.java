@@ -8,6 +8,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -61,7 +62,7 @@ public abstract class BeanUtil {
       }
 
       Class<?> propertyType = field.getType();
-      if (ClassUtils.isSimpleValueType(propertyType)) {
+      if (ClassUtils.isSimpleValueType(propertyType) || propertyType.isAssignableFrom(File.class)) {
         continue;
       }
       Object property = createNewInstance(propertyType);

@@ -19,10 +19,7 @@ import com.orctom.laputa.server.translator.ResponseTranslator;
 import com.orctom.laputa.server.translator.ResponseTranslators;
 import com.orctom.laputa.server.util.ArgsResolver;
 import com.orctom.laputa.server.util.ParamResolver;
-import io.netty.handler.codec.http.DefaultHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 import org.slf4j.Logger;
@@ -48,6 +45,10 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private static final byte[] ERROR_CONTENT = {'5', '0', '0'};
 
+  private static final String FILE = ".file";
+  private static final String FILENAME = ".originalFilename";
+  private static final String CONTENT_TYPE = ".contentType";
+
   private static final Map<HttpMethod, HTTPMethod> HTTP_METHODS = ImmutableMap.of(
       HttpMethod.DELETE, HTTPMethod.DELETE,
       HttpMethod.HEAD, HTTPMethod.HEAD,
@@ -55,14 +56,12 @@ public class DefaultRequestProcessor implements RequestProcessor {
       HttpMethod.POST, HTTPMethod.POST,
       HttpMethod.PUT, HTTPMethod.PUT
   );
-  public static final String FILENAME = "::filename";
-  public static final String CONTENT_TYPE = "::content_type";
 
   @Override
-  public Response handleRequest(DefaultHttpRequest req) {
+  public Response handleRequest(HttpRequest req) {
     RequestWrapper requestWrapper = getRequestWrapper(req);
 
-    // pro-processors
+    // pre-processors
     preProcess(requestWrapper);
 
     RequestMapping mapping = MappingConfig.getInstance().getMapping(
@@ -76,6 +75,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
       // post-processors
       postProcess(data);
+      
       byte[] content = translator.translate(data);
       return new Response(translator.getMediaType(), content);
     } catch (Throwable e) {
@@ -84,7 +84,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
     }
   }
 
-  private RequestWrapper getRequestWrapper(DefaultHttpRequest req) {
+  private RequestWrapper getRequestWrapper(HttpRequest req) {
     HttpMethod method = req.method();
     String uri = req.uri();
     LOGGER.debug("uri = {}", uri);
@@ -92,13 +92,13 @@ public class DefaultRequestProcessor implements RequestProcessor {
     if (HttpMethod.POST.equals(method) ||
         HttpMethod.PUT.equals(method) ||
         HttpMethod.PATCH.equals(method)) {
-      return wrapPostRequest(req, method, uri);
+      return wrapPostRequest(req);
     } else {
       return wrapGetRequest(method, uri);
     }
   }
 
-  private RequestWrapper wrapPostRequest(DefaultHttpRequest req, HttpMethod method, String uri) {
+  private RequestWrapper wrapPostRequest(HttpRequest req) {
     HttpPostRequestDecoder decoder = getHttpPostRequestDecoder(req);
     List<InterfaceHttpData> bodyDatas = decoder.getBodyHttpDatas();
 
@@ -115,7 +115,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
       }
     }
 
-    return null;
+    return new RequestWrapper(req.method(), req.uri(), parameters);
   }
 
   private void addToParameters(Map<String, List<String>> parameters, Attribute attribute) {
@@ -140,7 +140,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
   private void addToParameters(Map<String, List<String>> parameters, FileUpload fileUpload) {
     try {
       File uploadedFile = fileUpload.getFile();
-      parameters.put(fileUpload.getName(), Lists.newArrayList(uploadedFile.getAbsolutePath()));
+      parameters.put(fileUpload.getName() + FILE, Lists.newArrayList(uploadedFile.getAbsolutePath()));
       parameters.put(fileUpload.getName() + FILENAME, Lists.newArrayList(fileUpload.getFilename()));
       parameters.put(fileUpload.getName() + CONTENT_TYPE, Lists.newArrayList(fileUpload.getContentType()));
     } catch (IOException e) {
@@ -170,14 +170,23 @@ public class DefaultRequestProcessor implements RequestProcessor {
     }
   }
 
-  private void postProcess(Object data) {
+  private Object postProcess(Object data) {
     Collection<PostProcessor> postProcessors = beanFactory.getInstances(PostProcessor.class);
     if (null == postProcessors || postProcessors.isEmpty()) {
-      return;
+      return data;
     }
 
-    for (PostProcessor processor : postProcessors) {
+    List<PostProcessor> processors = new ArrayList<>(postProcessors);
+    Object processed = data;
+    if (processors.size() > 1) {
+      Collections.sort(processors, (p1, p2) -> p1.getOrder() - p2.getOrder());
     }
+    for (PostProcessor processor : processors) {
+      LOGGER.debug("processing post-processor: #", processor.getOrder());
+      processed = processor.process(processed);
+    }
+
+    return processed;
   }
 
   private QueryStringDecoder getQueryStringDecoder(String uri) {
@@ -189,7 +198,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
     }
   }
 
-  private HttpPostRequestDecoder getHttpPostRequestDecoder(DefaultHttpRequest req) {
+  private HttpPostRequestDecoder getHttpPostRequestDecoder(HttpRequest req) {
     Charset charset = ServiceConfig.getInstance().getCharset();
     if (null != charset) {
       return new HttpPostRequestDecoder(new DefaultHttpDataFactory(true, charset), req);
