@@ -1,6 +1,6 @@
 package com.orctom.laputa.server.translator;
 
-import com.orctom.laputa.server.config.ServiceConfig;
+import com.orctom.laputa.server.config.Configurator;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -17,7 +17,7 @@ public interface ResponseTranslator {
   byte[] translate(Object data) throws IOException;
 
   default byte[] toBytes(String string) {
-    Charset charset = ServiceConfig.getInstance().getCharset();
+    Charset charset = Configurator.getInstance().getCharset();
     if (null != charset) {
       return string.getBytes(charset);
     } else {

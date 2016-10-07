@@ -9,7 +9,7 @@ import com.orctom.laputa.server.exception.RequestProcessingException;
 import com.orctom.laputa.server.processor.PostProcessor;
 import com.orctom.laputa.server.processor.PreProcessor;
 import com.orctom.laputa.server.config.MappingConfig;
-import com.orctom.laputa.server.config.ServiceConfig;
+import com.orctom.laputa.server.config.Configurator;
 import com.orctom.laputa.server.internal.BeanFactory;
 import com.orctom.laputa.server.model.HTTPMethod;
 import com.orctom.laputa.server.model.RequestMapping;
@@ -43,7 +43,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRequestProcessor.class);
 
-  private static final BeanFactory beanFactory = ServiceConfig.getInstance().getBeanFactory();
+  private static final BeanFactory beanFactory = Configurator.getInstance().getBeanFactory();
 
   private static final byte[] ERROR_CONTENT = "500".getBytes();
   private static final byte[] ERROR_BUSY = "500, too busy".getBytes();
@@ -63,7 +63,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
   private static RateLimiter rateLimiter;
 
   public DefaultRequestProcessor() {
-    Integer maxRequestsPerSecond = ServiceConfig.getInstance().getRequestRateLimit();
+    Integer maxRequestsPerSecond = Configurator.getInstance().getRequestRateLimit();
     if (null == maxRequestsPerSecond) {
       return;
     }
@@ -209,7 +209,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
   }
 
   private QueryStringDecoder getQueryStringDecoder(String uri) {
-    Charset charset = ServiceConfig.getInstance().getCharset();
+    Charset charset = Configurator.getInstance().getCharset();
     if (null != charset) {
       return new QueryStringDecoder(uri, charset);
     } else {
@@ -218,7 +218,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
   }
 
   private HttpPostRequestDecoder getHttpPostRequestDecoder(HttpRequest req) {
-    Charset charset = ServiceConfig.getInstance().getCharset();
+    Charset charset = Configurator.getInstance().getCharset();
     if (null != charset) {
       return new HttpPostRequestDecoder(new DefaultHttpDataFactory(true, charset), req);
     } else {

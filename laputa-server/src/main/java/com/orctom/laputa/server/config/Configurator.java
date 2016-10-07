@@ -21,11 +21,11 @@ import java.util.List;
  * Config items
  * Created by hao on 1/6/16.
  */
-public class ServiceConfig {
+public class Configurator {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ServiceConfig.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Configurator.class);
 
-  private static final ServiceConfig INSTANCE = new ServiceConfig();
+  private static final Configurator INSTANCE = new Configurator();
 
   private static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd,yyyyMMdd,yyyy-MM-dd HH:mm:ss";
 
@@ -37,7 +37,7 @@ public class ServiceConfig {
 
   private BeanFactory beanFactory = new NaiveBeanFactory();
 
-  private ServiceConfig() {
+  private Configurator() {
     initConfig();
     initDebugFlag();
     initDatePattern();
@@ -46,7 +46,7 @@ public class ServiceConfig {
     initRateLimiter();
   }
 
-  public static ServiceConfig getInstance() {
+  public static Configurator getInstance() {
     return INSTANCE;
   }
 

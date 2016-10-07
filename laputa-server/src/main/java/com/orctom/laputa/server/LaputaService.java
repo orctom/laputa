@@ -3,7 +3,7 @@ package com.orctom.laputa.server;
 import com.google.common.base.Preconditions;
 import com.orctom.exception.ClassLoadingException;
 import com.orctom.laputa.server.config.MappingConfig;
-import com.orctom.laputa.server.config.ServiceConfig;
+import com.orctom.laputa.server.config.Configurator;
 import com.orctom.laputa.server.internal.BeanFactory;
 import com.orctom.laputa.server.internal.Bootstrapper;
 import com.orctom.laputa.server.internal.handler.DefaultHandler;
@@ -48,14 +48,14 @@ public class LaputaService {
   }
 
   public LaputaService withBeanFactory(BeanFactory beanFactory) {
-    ServiceConfig.getInstance().setBeanFactory(beanFactory);
+    Configurator.getInstance().setBeanFactory(beanFactory);
     return this;
   }
 
   public LaputaService withBeanFactory(final ApplicationContext beanFactory) {
     registerBean(beanFactory, DefaultHandler.class, "defaultHandler");
 
-    ServiceConfig.getInstance().setBeanFactory(new BeanFactory() {
+    Configurator.getInstance().setBeanFactory(new BeanFactory() {
       @Override
       public <T> T getInstance(Class<T> type) {
         return beanFactory.getBean(type);
@@ -87,7 +87,7 @@ public class LaputaService {
   }
 
   private void bootstrapHttpsService() {
-    Config config = ServiceConfig.getInstance().getConfig();
+    Config config = Configurator.getInstance().getConfig();
     try {
       int port = config.getInt("server.https.port");
       new Bootstrapper(port, true).start(); // start https in separate thread
@@ -97,7 +97,7 @@ public class LaputaService {
   }
 
   private void bootstrapHttpService() {
-    Config config = ServiceConfig.getInstance().getConfig();
+    Config config = Configurator.getInstance().getConfig();
     try {
       int port = config.getInt("server.http.port");
       new Bootstrapper(port, false).run(); // not start http in separate thread

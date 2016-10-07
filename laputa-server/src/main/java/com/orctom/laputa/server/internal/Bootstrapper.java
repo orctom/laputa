@@ -1,7 +1,7 @@
 package com.orctom.laputa.server.internal;
 
 import com.orctom.exception.IllegalConfigException;
-import com.orctom.laputa.server.config.ServiceConfig;
+import com.orctom.laputa.server.config.Configurator;
 import com.orctom.utils.HostUtils;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -83,7 +83,7 @@ public class Bootstrapper extends Thread {
 
   private String getConfigAsString(String key) {
     try {
-      return ServiceConfig.getInstance().getConfig().getString(key);
+      return Configurator.getInstance().getConfig().getString(key);
     } catch (Exception e) {
       throw new IllegalConfigException(e.getMessage());
     }

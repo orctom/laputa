@@ -1,6 +1,6 @@
 package com.orctom.laputa.server.translator;
 
-import com.orctom.laputa.server.config.ServiceConfig;
+import com.orctom.laputa.server.config.Configurator;
 import com.orctom.laputa.server.model.Accepts;
 import com.orctom.laputa.server.model.MediaType;
 
@@ -61,7 +61,7 @@ public abstract class ResponseTranslators {
       extension = uri.substring(lastDotIndex);
     } else {
       try {
-        extension = ServiceConfig.getInstance().getConfig().getString("default.extension");
+        extension = Configurator.getInstance().getConfig().getString("default.extension");
       } catch (Exception e) {
         extension = JsonResponseTranslator.TYPE.getExtension();
       }
