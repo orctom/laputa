@@ -4,23 +4,26 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.RateLimiter;
+import com.orctom.laputa.server.config.Configurator;
+import com.orctom.laputa.server.config.MappingConfig;
 import com.orctom.laputa.server.exception.FileUploadException;
 import com.orctom.laputa.server.exception.RequestProcessingException;
-import com.orctom.laputa.server.processor.PostProcessor;
-import com.orctom.laputa.server.processor.PreProcessor;
-import com.orctom.laputa.server.config.MappingConfig;
-import com.orctom.laputa.server.config.Configurator;
 import com.orctom.laputa.server.internal.BeanFactory;
 import com.orctom.laputa.server.model.HTTPMethod;
 import com.orctom.laputa.server.model.RequestMapping;
 import com.orctom.laputa.server.model.RequestWrapper;
 import com.orctom.laputa.server.model.Response;
+import com.orctom.laputa.server.processor.PostProcessor;
+import com.orctom.laputa.server.processor.PreProcessor;
 import com.orctom.laputa.server.processor.RequestProcessor;
 import com.orctom.laputa.server.translator.ResponseTranslator;
 import com.orctom.laputa.server.translator.ResponseTranslators;
 import com.orctom.laputa.server.util.ArgsResolver;
 import com.orctom.laputa.server.util.ParamResolver;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 import org.slf4j.Logger;
@@ -81,14 +84,14 @@ public class DefaultRequestProcessor implements RequestProcessor {
     if (null != rateLimiter && !rateLimiter.tryAcquire(200, TimeUnit.MILLISECONDS)) {
       return new Response(translator.getMediaType(), ERROR_BUSY);
     } else {
-      // pre-processors
-      preProcess(requestWrapper);
-
-      RequestMapping mapping = MappingConfig.getInstance().getMapping(
-          requestWrapper.getPath(),
-          getHttpMethod(requestWrapper.getHttpMethod()));
-
       try {
+        // pre-processors
+        preProcess(requestWrapper);
+
+        RequestMapping mapping = MappingConfig.getInstance().getMapping(
+            requestWrapper.getPath(),
+            getHttpMethod(requestWrapper.getHttpMethod()));
+
         Object data = processRequest(requestWrapper, mapping);
 
         // post-processors
@@ -201,7 +204,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
       Collections.sort(processors, (p1, p2) -> p1.getOrder() - p2.getOrder());
     }
     for (PostProcessor processor : processors) {
-      LOGGER.debug("processing post-processor: #", processor.getOrder());
+      LOGGER.debug("processing post-processor: #{}", processor.getOrder());
       processed = processor.process(processed);
     }
 
