@@ -3,6 +3,8 @@ package com.orctom.laputa.server.exception;
 import com.orctom.exception.FastException;
 
 import javax.validation.ConstraintViolation;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -11,19 +13,24 @@ import java.util.Set;
  */
 public class ParameterValidationException extends FastException {
 
-  private String message;
+  private List<String> messages = new ArrayList<>();
 
   public ParameterValidationException(Set<ConstraintViolation<Object>> violations) {
-    StringBuilder msg = new StringBuilder();
     for (ConstraintViolation<Object> violation : violations) {
-      msg.append(violation.getMessage()).append(", ");
+      messages.add(violation.getMessage());
     }
-
-    this.message = msg.deleteCharAt(msg.length() - 2).toString();
   }
 
   @Override
   public String getMessage() {
-    return message;
+    StringBuilder msg = new StringBuilder();
+    for (String message : messages) {
+      msg.append(message).append(", ");
+    }
+    return msg.deleteCharAt(msg.length() - 2).toString();
+  }
+
+  public List<String> getMessages() {
+    return messages;
   }
 }

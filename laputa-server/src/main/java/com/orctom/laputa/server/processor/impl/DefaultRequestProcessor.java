@@ -10,10 +10,7 @@ import com.orctom.laputa.server.exception.FileUploadException;
 import com.orctom.laputa.server.exception.ParameterValidationException;
 import com.orctom.laputa.server.exception.RequestProcessingException;
 import com.orctom.laputa.server.internal.BeanFactory;
-import com.orctom.laputa.server.model.HTTPMethod;
-import com.orctom.laputa.server.model.RequestMapping;
-import com.orctom.laputa.server.model.RequestWrapper;
-import com.orctom.laputa.server.model.Response;
+import com.orctom.laputa.server.model.*;
 import com.orctom.laputa.server.processor.PostProcessor;
 import com.orctom.laputa.server.processor.PreProcessor;
 import com.orctom.laputa.server.processor.RequestProcessor;
@@ -34,9 +31,7 @@ import org.springframework.cglib.reflect.FastMethod;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
-import javax.validation.ValidatorFactory;
 import javax.validation.executable.ExecutableValidator;
-import javax.validation.groups.Default;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -55,6 +50,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRequestProcessor.class);
 
   private static final BeanFactory beanFactory = Configurator.getInstance().getBeanFactory();
+
+  private static final Charset UTF8 = Charset.forName("UTF-8");
 
   private static final byte[] ERROR_CONTENT = "500".getBytes();
   private static final byte[] ERROR_BUSY = "500, too busy".getBytes();
@@ -102,13 +99,20 @@ public class DefaultRequestProcessor implements RequestProcessor {
             requestWrapper.getPath(),
             getHttpMethod(requestWrapper.getHttpMethod()));
 
-        Object data = processRequest(requestWrapper, mapping);
+        Object data;
+        try {
+          data = processRequest(requestWrapper, mapping);
+        } catch (ParameterValidationException e) {
+          data = new ValidationError(e.getMessages());
+        }
 
         // post-processors
         postProcess(data);
 
         byte[] content = translator.translate(data);
         return new Response(translator.getMediaType(), content);
+      } catch (ParameterValidationException e) {
+        return new Response(translator.getMediaType(), e.getMessage().getBytes(UTF8));
       } catch (Throwable e) {
         LOGGER.error(e.getMessage(), e);
         return new Response(translator.getMediaType(), ERROR_CONTENT);
