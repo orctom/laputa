@@ -7,6 +7,7 @@ import com.google.common.util.concurrent.RateLimiter;
 import com.orctom.laputa.server.config.Configurator;
 import com.orctom.laputa.server.config.MappingConfig;
 import com.orctom.laputa.server.exception.FileUploadException;
+import com.orctom.laputa.server.exception.ParameterValidationException;
 import com.orctom.laputa.server.exception.RequestProcessingException;
 import com.orctom.laputa.server.internal.BeanFactory;
 import com.orctom.laputa.server.model.HTTPMethod;
@@ -30,9 +31,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cglib.reflect.FastMethod;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import javax.validation.executable.ExecutableValidator;
+import javax.validation.groups.Default;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -64,6 +72,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
   );
 
   private static RateLimiter rateLimiter;
+
+  private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
   public DefaultRequestProcessor() {
     Integer maxRequestsPerSecond = Configurator.getInstance().getRequestRateLimit();
@@ -256,6 +266,19 @@ public class DefaultRequestProcessor implements RequestProcessor {
     );
 
     Object[] args = ArgsResolver.resolveArgs(methodParameters, params);
+
+    validate(target, handlerMethod.getJavaMethod(), args);
+
     return handlerMethod.invoke(target, args);
+  }
+
+  private void validate(Object target, Method method, Object[] args) {
+    ExecutableValidator executableValidator = validator.forExecutables();
+    Set<ConstraintViolation<Object>> violations = executableValidator.validateParameters(target, method, args);
+    if (violations.isEmpty()) {
+      return;
+    }
+
+    throw new ParameterValidationException(violations);
   }
 }
