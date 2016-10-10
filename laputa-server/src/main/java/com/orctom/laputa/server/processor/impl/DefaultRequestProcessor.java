@@ -105,9 +105,9 @@ public class DefaultRequestProcessor implements RequestProcessor {
         }
 
         // post-processors
-        postProcess(data);
+        Object processed = postProcess(data);
 
-        byte[] content = translator.translate(data);
+        byte[] content = translator.translate(processed);
         return new Response(translator.getMediaType(), content);
       } catch (ParameterValidationException e) {
         return new Response(translator.getMediaType(), e.getMessage().getBytes(UTF8));
