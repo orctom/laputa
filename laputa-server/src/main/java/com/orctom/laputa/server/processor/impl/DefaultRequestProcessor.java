@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.RateLimiter;
+import com.orctom.exception.IllegalArgException;
 import com.orctom.laputa.server.LaputaService;
 import com.orctom.laputa.server.config.Configurator;
 import com.orctom.laputa.server.config.MappingConfig;
@@ -274,7 +275,12 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
     validate(target, handlerMethod.getJavaMethod(), args);
 
-    return handlerMethod.invoke(target, args);
+    try {
+      return handlerMethod.invoke(target, args);
+    } catch (InvocationTargetException e) {
+      LOGGER.error("Some parameter is missing while invoking " + handlerMethod.getJavaMethod());
+      throw new ParameterValidationException("Some parameter is missing, please check the API doc.");
+    }
   }
 
   private void validate(Object target, Method method, Object[] args) {
