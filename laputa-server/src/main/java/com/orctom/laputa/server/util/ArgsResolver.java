@@ -60,8 +60,8 @@ public abstract class ArgsResolver {
   }
 
   private static void resolveComplexTypeArgs(Map<String, String> paramValues,
-                                            Object[] args,
-                                            Map<Parameter, Integer> complexParameters) {
+                                             Object[] args,
+                                             Map<Parameter, Integer> complexParameters) {
     for (Map.Entry<Parameter, Integer> entry : complexParameters.entrySet()) {
       Parameter parameter = entry.getKey();
       String paramName = parameter.getAnnotation(Param.class).value();
