@@ -109,34 +109,18 @@ public abstract class ArgsResolver {
       if (String.class.isAssignableFrom(type)) {
         return value;
       } else if (Integer.class.isAssignableFrom(type) || int.class.isAssignableFrom(type)) {
-        try {
-          return Integer.valueOf(value);
-        } catch (NumberFormatException e) {
-          throw new ParameterValidationException("Invalid param value: " + value + ", is not integer");
-        }
+        return Integer.valueOf(value);
       } else if (Double.class.isAssignableFrom(type) || double.class.isAssignableFrom(type)) {
-        try {
-          return Double.valueOf(value);
-        } catch (NumberFormatException e) {
-          throw new ParameterValidationException("Invalid param value: " + value + ", is not double");
-        }
+        return Double.valueOf(value);
       } else if (Float.class.isAssignableFrom(type) || float.class.isAssignableFrom(type)) {
-        try {
-          return Float.valueOf(value);
-        } catch (NumberFormatException e) {
-          throw new ParameterValidationException("Invalid param value: " + value + ", is not float");
-        }
+        return Float.valueOf(value);
       } else if (Long.class.isAssignableFrom(type) || long.class.isAssignableFrom(type)) {
-        try {
-          return Long.valueOf(value);
-        } catch (NumberFormatException e) {
-          throw new ParameterValidationException("Invalid param value: " + value + ", is not long");
-        }
+        return Long.valueOf(value);
       } else {
         throw new IllegalArgumentException("Unsupported param type" + type + " " + paramName);
       }
     } catch (NumberFormatException e) {
-      throw new ParameterValidationException("Invalid digit: " + value);
+      throw new ParameterValidationException("Invalid param value: " + value + ", is not " + type.getSimpleName());
     }
   }
 
