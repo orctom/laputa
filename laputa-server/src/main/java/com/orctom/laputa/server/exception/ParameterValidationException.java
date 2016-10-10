@@ -15,6 +15,10 @@ public class ParameterValidationException extends FastException {
 
   private List<String> messages = new ArrayList<>();
 
+  public ParameterValidationException(String message) {
+    messages.add(message);
+  }
+
   public ParameterValidationException(Set<ConstraintViolation<Object>> violations) {
     for (ConstraintViolation<Object> violation : violations) {
       System.out.println(violation.getRootBean());

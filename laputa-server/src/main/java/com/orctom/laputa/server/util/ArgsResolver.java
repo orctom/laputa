@@ -1,10 +1,12 @@
 package com.orctom.laputa.server.util;
 
 import com.orctom.laputa.server.annotation.Param;
+import com.orctom.laputa.server.exception.ParameterValidationException;
 import com.orctom.utils.ClassUtils;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
@@ -103,18 +105,38 @@ public abstract class ArgsResolver {
     if (null == value) {
       throw new IllegalArgumentException("Missing param: " + paramName);
     }
-    if (String.class.isAssignableFrom(type)) {
-      return value;
-    } else if (Integer.class.isAssignableFrom(type) || int.class.isAssignableFrom(type)) {
-      return Integer.valueOf(value);
-    } else if (Double.class.isAssignableFrom(type) || double.class.isAssignableFrom(type)) {
-      return Double.valueOf(value);
-    } else if (Float.class.isAssignableFrom(type) || float.class.isAssignableFrom(type)) {
-      return Float.valueOf(value);
-    } else if (Long.class.isAssignableFrom(type) || long.class.isAssignableFrom(type)) {
-      return Long.valueOf(value);
-    } else {
-      throw new IllegalArgumentException("Unsupported param type" + type + " " + paramName);
+    try {
+      if (String.class.isAssignableFrom(type)) {
+        return value;
+      } else if (Integer.class.isAssignableFrom(type) || int.class.isAssignableFrom(type)) {
+        try {
+          return Integer.valueOf(value);
+        } catch (NumberFormatException e) {
+          throw new ParameterValidationException("Invalid param value: " + value + ", is not integer");
+        }
+      } else if (Double.class.isAssignableFrom(type) || double.class.isAssignableFrom(type)) {
+        try {
+          return Double.valueOf(value);
+        } catch (NumberFormatException e) {
+          throw new ParameterValidationException("Invalid param value: " + value + ", is not double");
+        }
+      } else if (Float.class.isAssignableFrom(type) || float.class.isAssignableFrom(type)) {
+        try {
+          return Float.valueOf(value);
+        } catch (NumberFormatException e) {
+          throw new ParameterValidationException("Invalid param value: " + value + ", is not float");
+        }
+      } else if (Long.class.isAssignableFrom(type) || long.class.isAssignableFrom(type)) {
+        try {
+          return Long.valueOf(value);
+        } catch (NumberFormatException e) {
+          throw new ParameterValidationException("Invalid param value: " + value + ", is not long");
+        }
+      } else {
+        throw new IllegalArgumentException("Unsupported param type" + type + " " + paramName);
+      }
+    } catch (NumberFormatException e) {
+      throw new ParameterValidationException("Invalid digit: " + value);
     }
   }
 
