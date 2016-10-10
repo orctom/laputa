@@ -1,21 +1,26 @@
 package com.orctom.laputa.server.example;
 
 import com.orctom.laputa.server.LaputaService;
-import com.orctom.laputa.server.example.AppConfig;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.stereotype.Controller;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 
+import javax.activation.DataSource;
+
+@Configuration
+@ComponentScan({
+    "com.orctom.laputa.server.example"
+})
 public class SampleServer {
 
+  @Bean
+  public DataSource getDataSource() {
+    return null;
+  }
+
   public static void main(String[] args) {
-    ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
     try {
-      LaputaService.getInstance()
-          .scanPackage("com.orctom.laputa.server.example.controller")
-          .forAnnotation(Controller.class)
-          .withBeanFactory(context)
-          .startup();
+      LaputaService.getInstance().run(SampleServer.class);
     } catch (Exception e) {
       e.printStackTrace();
     }

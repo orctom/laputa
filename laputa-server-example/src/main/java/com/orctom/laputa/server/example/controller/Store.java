@@ -1,5 +1,7 @@
 package com.orctom.laputa.server.example.controller;
 
+import com.orctom.laputa.server.annotation.GET;
+import com.orctom.laputa.server.annotation.POST;
 import com.orctom.laputa.server.annotation.Path;
 import org.springframework.stereotype.Controller;
 
@@ -17,7 +19,8 @@ public class Store {
     return "hello " + id;
   }
 
-  @Path(("/search"))
+  @POST @GET
+  @Path("/search")
   public String search(String query) {
     return "searching for: " + query;
   }

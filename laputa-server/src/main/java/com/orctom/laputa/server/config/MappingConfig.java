@@ -2,6 +2,7 @@ package com.orctom.laputa.server.config;
 
 import com.google.common.base.Strings;
 import com.orctom.exception.ClassLoadingException;
+import com.orctom.exception.IllegalArgException;
 import com.orctom.laputa.server.annotation.*;
 import com.orctom.laputa.server.internal.handler.DefaultHandler;
 import com.orctom.laputa.server.model.HTTPMethod;
@@ -10,6 +11,8 @@ import com.orctom.laputa.server.model.RequestMapping;
 import com.orctom.utils.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Controller;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -107,31 +110,31 @@ public class MappingConfig {
     return null;
   }
 
-  public void scan(Class<? extends Annotation> annotation, String... basePackages) throws ClassLoadingException {
-    List<Class<?>> services = new ArrayList<>();
-
-    services.add(DefaultHandler.class);
-
-    for (String packageName : basePackages) {
-      services.addAll(ClassUtils.getClassesWithAnnotation(packageName, annotation));
+  public void scan(ApplicationContext applicationContext) {
+    Map<String, Object> controllers = applicationContext.getBeansWithAnnotation(Controller.class);
+    if (null == controllers || controllers.isEmpty()) {
+      throw new IllegalArgException("No @Controllers found in Spring context.");
     }
 
-    services.forEach(this::configureMappings);
+    configureMappings(applicationContext.getBean(DefaultHandler.class), DefaultHandler.class);
+    controllers.values().forEach(bean -> configureMappings(bean, bean.getClass()));
 
     logMappingInfo();
   }
 
   private void logMappingInfo() {
-    LOGGER.info("static mappings:");
-    for (RequestMapping handler : new TreeMap<>(staticMappings).values()) {
-      LOGGER.info(handler.toString());
-    }
+    if (LOGGER.isInfoEnabled()) {
+      LOGGER.info("static mappings:");
+      for (RequestMapping handler : new TreeMap<>(staticMappings).values()) {
+        LOGGER.info(handler.toString());
+      }
 
-    LOGGER.info("dynamic mappings:");
-    LOGGER.info(wildcardMappings.getChildrenMappings());
+      LOGGER.info("dynamic mappings:");
+      LOGGER.info(wildcardMappings.getChildrenMappings());
+    }
   }
 
-  protected void configureMappings(Class<?> clazz) {
+  protected void configureMappings(Object instance, Class<?> clazz) {
     String basePath = "";
     if (clazz.isAnnotationPresent(Path.class)) {
       basePath = clazz.getAnnotation(Path.class).value();
@@ -146,7 +149,7 @@ public class MappingConfig {
               "Empty value of Path annotation on " + clazz.getCanonicalName() + " " + method.getName());
         }
         String uri = basePath + pathValue;
-        addToMappings(clazz, method, uri);
+        addToMappings(instance, clazz, method, uri);
       }
     }
   }
@@ -168,7 +171,7 @@ public class MappingConfig {
     return supportedHTTPMethods;
   }
 
-  private void addToMappings(Class<?> clazz, Method method, String rawPath) {
+  private void addToMappings(Object instance, Class<?> clazz, Method method, String rawPath) {
     String uri = normalize(rawPath);
     List<HTTPMethod> httpMethods = getSupportedHTTPMethods(method);
     if (null == httpMethods || httpMethods.isEmpty()) {
@@ -178,13 +181,13 @@ public class MappingConfig {
     for (HTTPMethod httpMethod : httpMethods) {
       String httpMethodKey = httpMethod.getKey();
       if (uri.contains("{")) {
-        addToWildCardMappings(clazz, method, uri, httpMethodKey);
+        addToWildCardMappings(instance, clazz, method, uri, httpMethodKey);
       } else {
         RequestMapping mapping = staticMappings.put(
             uri + "/" + httpMethodKey,
-            new RequestMapping(uri, clazz, method, httpMethodKey)
+            new RequestMapping(uri, instance, clazz, method, httpMethodKey)
         );
-        if (null != mapping) {
+        if (null != mapping && !(mapping.getTarget() instanceof DefaultHandler)) {
           throw new IllegalArgumentException("Conflicts found in configured @Path:\n" + uri + ", " + httpMethodKey +
               "\n\t\t" + mapping.getHandlerMethod().toString() + "\n\t\t" + method.toString());
         }
@@ -199,7 +202,7 @@ public class MappingConfig {
     return uri;
   }
 
-  private void addToWildCardMappings(Class<?> clazz, Method method, String uri, String httpMethodKey) {
+  private void addToWildCardMappings(Object instance, Class<?> clazz, Method method, String uri, String httpMethodKey) {
     String[] paths = uri.split("/");
 
     if (paths.length < 2) {
@@ -225,7 +228,7 @@ public class MappingConfig {
       children = child.getChildren();
     }
 
-    PathTrie leaf = new PathTrie(uri, clazz, method, httpMethodKey);
+    PathTrie leaf = new PathTrie(uri, instance, clazz, method, httpMethodKey);
     children.put(httpMethodKey, leaf);
   }
 

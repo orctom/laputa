@@ -1,10 +1,9 @@
 package com.orctom.laputa.server;
 
-import com.google.common.base.Preconditions;
 import com.orctom.exception.ClassLoadingException;
-import com.orctom.laputa.server.config.MappingConfig;
+import com.orctom.exception.IllegalArgException;
 import com.orctom.laputa.server.config.Configurator;
-import com.orctom.laputa.server.internal.BeanFactory;
+import com.orctom.laputa.server.config.MappingConfig;
 import com.orctom.laputa.server.internal.Bootstrapper;
 import com.orctom.laputa.server.internal.handler.DefaultHandler;
 import com.typesafe.config.Config;
@@ -13,9 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.ApplicationContext;
-
-import java.lang.annotation.Annotation;
-import java.util.Collection;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * Serving http
@@ -27,8 +25,7 @@ public class LaputaService {
 
   private static LaputaService INSTANCE = new LaputaService();
 
-  private String[] basePackages;
-  private Class<? extends Annotation> annotation;
+  private ApplicationContext applicationContext;
 
   private LaputaService() {
   }
@@ -37,40 +34,12 @@ public class LaputaService {
     return INSTANCE;
   }
 
-  public LaputaService scanPackage(String... basePackages) {
-    this.basePackages = basePackages;
-    return this;
+  public ApplicationContext getApplicationContext() {
+    return applicationContext;
   }
 
-  public LaputaService forAnnotation(Class<? extends Annotation> annotation) {
-    this.annotation = annotation;
-    return this;
-  }
-
-  public LaputaService withBeanFactory(BeanFactory beanFactory) {
-    Configurator.getInstance().setBeanFactory(beanFactory);
-    return this;
-  }
-
-  public LaputaService withBeanFactory(final ApplicationContext beanFactory) {
-    registerBean(beanFactory, DefaultHandler.class, "defaultHandler");
-
-    Configurator.getInstance().setBeanFactory(new BeanFactory() {
-      @Override
-      public <T> T getInstance(Class<T> type) {
-        return beanFactory.getBean(type);
-      }
-
-      @Override
-      public <T> Collection<T> getInstances(Class<T> type) {
-        return beanFactory.getBeansOfType(type).values();
-      }
-    });
-    return this;
-  }
-
-  private void registerBean(final ApplicationContext factory, Class<?> beanClass, String name) {
-    BeanDefinitionRegistry registry = ((BeanDefinitionRegistry) factory);
+  public void registerBean(Class<?> beanClass, String name) {
+    BeanDefinitionRegistry registry = ((BeanDefinitionRegistry) applicationContext);
 
     GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
     beanDefinition.setBeanClass(beanClass);
@@ -79,11 +48,37 @@ public class LaputaService {
     registry.registerBeanDefinition(name, beanDefinition);
   }
 
-  public void startup() throws Exception {
-    validate();
+  public void run(Class<?> configurationClass) throws Exception {
+    validate(configurationClass);
+
+    createApplicationContext(configurationClass);
+
+    startup();
+  }
+
+  private void validate(Class<?> configurationClass) {
+    if (null == configurationClass) {
+      throw new IllegalArgException("Null class to 'run()'!");
+    }
+    if (!configurationClass.isAnnotationPresent(Configuration.class)) {
+      throw new IllegalArgException("@Configuration is expected on class: " + configurationClass);
+    }
+  }
+
+  private void createApplicationContext(Class<?> configurationClass) {
+    applicationContext = new AnnotationConfigApplicationContext(configurationClass);
+    registerBean(DefaultHandler.class, "defaultHandler");
+  }
+
+  private void startup() throws Exception {
     loadMappings();
+    LOGGER.info("Starting service...");
     bootstrapHttpsService();
     bootstrapHttpService();
+  }
+
+  private void loadMappings() throws ClassLoadingException {
+    MappingConfig.getInstance().scan(applicationContext);
   }
 
   private void bootstrapHttpsService() {
@@ -92,7 +87,7 @@ public class LaputaService {
       int port = config.getInt("server.https.port");
       new Bootstrapper(port, true).start(); // start https in separate thread
     } catch (Exception e) {
-      LOGGER.error("Failed to start https service, due to: {}", e.getMessage());
+      LOGGER.warn("Skipped to start https service, due to: {}", e.getMessage());
     }
   }
 
@@ -102,17 +97,7 @@ public class LaputaService {
       int port = config.getInt("server.http.port");
       new Bootstrapper(port, false).run(); // not start http in separate thread
     } catch (Exception e) {
-      LOGGER.error("Failed to start http service, due to: {}", e.getMessage());
+      LOGGER.warn("Skipped to start http service, due to: {}", e.getMessage());
     }
   }
-
-  private void validate() {
-    Preconditions.checkArgument(null != basePackages, "'base packages' not set");
-    Preconditions.checkArgument(null != annotation, "'annotation' to scan not set");
-  }
-
-  private void loadMappings() throws ClassLoadingException {
-    MappingConfig.getInstance().scan(annotation, basePackages);
-  }
-
 }

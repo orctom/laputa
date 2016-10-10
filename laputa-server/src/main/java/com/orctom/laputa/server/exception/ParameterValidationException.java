@@ -17,7 +17,8 @@ public class ParameterValidationException extends FastException {
 
   public ParameterValidationException(Set<ConstraintViolation<Object>> violations) {
     for (ConstraintViolation<Object> violation : violations) {
-      messages.add(violation.getMessage());
+      System.out.println(violation.getRootBean());
+      messages.add(violation.getMessage() + ": " + violation.getInvalidValue());
     }
   }
 

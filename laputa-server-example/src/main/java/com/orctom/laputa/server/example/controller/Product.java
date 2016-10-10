@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 
+import javax.validation.constraints.Size;
+
 @Controller
 @Path("/product")
 public class Product {
@@ -47,7 +49,7 @@ public class Product {
   }
 
   @Path("/hello/{name}")
-  public String hello(@Param("name") String name) {
+  public String hello(@Size(min = 3, max = 5) @Param("name") String name) {
     return "hello " + name;
   }
 

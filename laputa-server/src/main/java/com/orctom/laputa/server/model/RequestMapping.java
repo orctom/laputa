@@ -9,13 +9,17 @@ import java.lang.reflect.Parameter;
 public class RequestMapping {
 
   private String uriPattern;
-  private Class<?> handlerClass;
+  private Object target;
   private FastMethod handlerMethod;
   private String httpMethod;
 
-  public RequestMapping(String uriPattern, Class<?> handlerClass, Method handlerMethod, String httpMethod) {
+  public RequestMapping(String uriPattern,
+                        Object target,
+                        Class<?> handlerClass,
+                        Method handlerMethod,
+                        String httpMethod) {
     this.uriPattern = uriPattern;
-    this.handlerClass = handlerClass;
+    this.target = target;
     this.handlerMethod = FastClass.create(handlerClass).getMethod(handlerMethod);
     this.httpMethod = httpMethod;
   }
@@ -24,8 +28,8 @@ public class RequestMapping {
     return uriPattern;
   }
 
-  public Class<?> getHandlerClass() {
-    return handlerClass;
+  public Object getTarget() {
+    return target;
   }
 
   public Parameter[] getParameters() {

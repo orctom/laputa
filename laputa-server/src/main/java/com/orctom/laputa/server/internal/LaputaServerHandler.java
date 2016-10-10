@@ -62,6 +62,8 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
         res.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         ctx.write(res);
       }
+    } else {
+      ctx.writeAndFlush(HttpResponseStatus.NO_CONTENT);
     }
   }
 

@@ -4,12 +4,12 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.RateLimiter;
+import com.orctom.laputa.server.LaputaService;
 import com.orctom.laputa.server.config.Configurator;
 import com.orctom.laputa.server.config.MappingConfig;
 import com.orctom.laputa.server.exception.FileUploadException;
 import com.orctom.laputa.server.exception.ParameterValidationException;
 import com.orctom.laputa.server.exception.RequestProcessingException;
-import com.orctom.laputa.server.internal.BeanFactory;
 import com.orctom.laputa.server.model.*;
 import com.orctom.laputa.server.processor.PostProcessor;
 import com.orctom.laputa.server.processor.PreProcessor;
@@ -48,8 +48,6 @@ import java.util.concurrent.TimeUnit;
 public class DefaultRequestProcessor implements RequestProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRequestProcessor.class);
-
-  private static final BeanFactory beanFactory = Configurator.getInstance().getBeanFactory();
 
   private static final Charset UTF8 = Charset.forName("UTF-8");
 
@@ -191,9 +189,13 @@ public class DefaultRequestProcessor implements RequestProcessor {
     return new RequestWrapper(method, path, queryParameters);
   }
 
+  private <T> Collection<T> getBeansOfType(Class<T> type) {
+    return LaputaService.getInstance().getApplicationContext().getBeansOfType(type).values();
+  }
+
   private void preProcess(RequestWrapper requestWrapper) {
-    Collection<PreProcessor> preProcessors = beanFactory.getInstances(PreProcessor.class);
-    if (null == preProcessors || preProcessors.isEmpty()) {
+    Collection<PreProcessor> preProcessors = getBeansOfType(PreProcessor.class);
+    if (preProcessors.isEmpty()) {
       return;
     }
 
@@ -207,8 +209,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
   }
 
   private Object postProcess(Object data) {
-    Collection<PostProcessor> postProcessors = beanFactory.getInstances(PostProcessor.class);
-    if (null == postProcessors || postProcessors.isEmpty()) {
+    Collection<PostProcessor> postProcessors = getBeansOfType(PostProcessor.class);
+    if (postProcessors.isEmpty()) {
       return data;
     }
 
@@ -254,9 +256,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   public Object processRequest(RequestWrapper requestWrapper, RequestMapping mapping)
       throws InvocationTargetException, IllegalAccessException {
-    Class<?> handlerClass = mapping.getHandlerClass();
     FastMethod handlerMethod = mapping.getHandlerMethod();
-    Object target = beanFactory.getInstance(handlerClass);
+    Object target = mapping.getTarget();
 
     Parameter[] methodParameters = mapping.getParameters();
     if (0 == methodParameters.length) {

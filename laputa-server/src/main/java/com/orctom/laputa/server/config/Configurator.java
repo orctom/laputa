@@ -1,8 +1,6 @@
 package com.orctom.laputa.server.config;
 
 import com.google.common.base.Splitter;
-import com.orctom.laputa.server.internal.BeanFactory;
-import com.orctom.laputa.server.internal.NaiveBeanFactory;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
@@ -34,8 +32,6 @@ public class Configurator {
   private Charset charset;
   private String staticFilesDir;
   private Integer requestRateLimit;
-
-  private BeanFactory beanFactory = new NaiveBeanFactory();
 
   private Configurator() {
     initConfig();
@@ -112,14 +108,6 @@ public class Configurator {
 
   public Config getConfig() {
     return config;
-  }
-
-  public BeanFactory getBeanFactory() {
-    return beanFactory;
-  }
-
-  public void setBeanFactory(BeanFactory beanFactory) {
-    this.beanFactory = beanFactory;
   }
 
   public boolean isDebugEnabled() {
