@@ -105,13 +105,13 @@ public abstract class ArgsResolver {
       if (String.class.isAssignableFrom(type)) {
         return value;
       } else if (Integer.class.isAssignableFrom(type) || int.class.isAssignableFrom(type)) {
-        return null == value ? 0 : Integer.valueOf(value);
+        return null == value ? null : Integer.valueOf(value);
       } else if (Double.class.isAssignableFrom(type) || double.class.isAssignableFrom(type)) {
-        return null == value ? 0 : Double.valueOf(value);
+        return null == value ? null : Double.valueOf(value);
       } else if (Float.class.isAssignableFrom(type) || float.class.isAssignableFrom(type)) {
-        return null == value ? 0 : Float.valueOf(value);
+        return null == value ? null : Float.valueOf(value);
       } else if (Long.class.isAssignableFrom(type) || long.class.isAssignableFrom(type)) {
-        return null == value ? 0 : Long.valueOf(value);
+        return null == value ? null : Long.valueOf(value);
       } else {
         throw new IllegalArgumentException("Unsupported param type" + type + " " + paramName);
       }
