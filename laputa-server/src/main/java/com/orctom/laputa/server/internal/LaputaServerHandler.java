@@ -11,6 +11,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.DiskAttribute;
 import io.netty.handler.codec.http.multipart.DiskFileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
@@ -18,6 +20,8 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(LaputaServerHandler.class);
 
   private RequestProcessor requestProcessor = new DefaultRequestProcessor();
 
@@ -69,7 +73,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-    cause.printStackTrace();
+    LOGGER.error(cause.getMessage(), cause);
     ctx.close();
   }
 }
