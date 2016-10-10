@@ -1,8 +1,10 @@
 package com.orctom.laputa.server.util;
 
 import com.orctom.laputa.server.annotation.Param;
+import com.orctom.laputa.server.config.Configurator;
 import com.orctom.laputa.server.domain.Category;
 import com.orctom.laputa.server.domain.SKU;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
@@ -11,6 +13,11 @@ import java.util.Map;
 import static org.junit.Assert.*;
 
 public class ArgResolverTest {
+
+  @BeforeClass
+  public static void beforeClass() {
+    Configurator.getInstance();
+  }
 
   static class Dummy {
     public void simple(@Param("a") String a,
@@ -62,16 +69,20 @@ public class ArgResolverTest {
 
   @Test
   public void testEvenMoreComplexTypes() throws Exception {
-    Method method = Dummy.class.getDeclaredMethod("evenMoreComplex", SKU.class);
-    Map<String, String> paramValues = new HashMap<>();
-    paramValues.put("id", "1000");
-    paramValues.put("name", "sku name");
-    paramValues.put("category.id", "1111");
-    paramValues.put("category.name", "category name");
+    try {
+      Method method = Dummy.class.getDeclaredMethod("evenMoreComplex", SKU.class);
+      Map<String, String> paramValues = new HashMap<>();
+      paramValues.put("id", "1000");
+      paramValues.put("name", "sku name");
+      paramValues.put("category.id", "1111");
+      paramValues.put("category.name", "category name");
 
-    Object[] expected = new Object[]{new SKU(1000L, "sku name", new Category(1111L, "category name"))};
-    Object[] actual = ArgsResolver.resolveArgs(method.getParameters(), paramValues);
-    assertArrayEquals(expected, actual);
+      Object[] expected = new Object[]{new SKU(1000L, "sku name", new Category(1111L, "category name"))};
+      Object[] actual = ArgsResolver.resolveArgs(method.getParameters(), paramValues);
+      assertArrayEquals(expected, actual);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   @Test

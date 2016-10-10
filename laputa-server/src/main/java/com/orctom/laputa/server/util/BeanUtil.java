@@ -57,7 +57,7 @@ public abstract class BeanUtil {
     }
 
     for (Field field : fields) {
-      if (EMPTY.equals(field.getName())) {
+      if (EMPTY.equals(field.getName()) || field.isSynthetic()) {
         continue;
       }
 
