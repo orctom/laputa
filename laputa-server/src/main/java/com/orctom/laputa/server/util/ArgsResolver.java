@@ -102,20 +102,17 @@ public abstract class ArgsResolver {
   private static Object resolveSimpleTypeValue(
       Map<String, String> paramValues, String paramName, Class<?> type) {
     String value = paramValues.remove(paramName);
-    if (null == value) {
-      throw new IllegalArgumentException("Missing param: " + paramName);
-    }
     try {
       if (String.class.isAssignableFrom(type)) {
         return value;
       } else if (Integer.class.isAssignableFrom(type) || int.class.isAssignableFrom(type)) {
-        return Integer.valueOf(value);
+        return null == value ? 0 : Integer.valueOf(value);
       } else if (Double.class.isAssignableFrom(type) || double.class.isAssignableFrom(type)) {
-        return Double.valueOf(value);
+        return null == value ? 0 : Double.valueOf(value);
       } else if (Float.class.isAssignableFrom(type) || float.class.isAssignableFrom(type)) {
-        return Float.valueOf(value);
+        return null == value ? 0 : Float.valueOf(value);
       } else if (Long.class.isAssignableFrom(type) || long.class.isAssignableFrom(type)) {
-        return Long.valueOf(value);
+        return null == value ? 0 : Long.valueOf(value);
       } else {
         throw new IllegalArgumentException("Unsupported param type" + type + " " + paramName);
       }
