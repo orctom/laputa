@@ -15,22 +15,28 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
+
 /**
  * Serving http
  * Created by hao on 9/10/15.
  */
-public class LaputaService {
+public class Laputa {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(LaputaService.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Laputa.class);
 
-  private static LaputaService INSTANCE = new LaputaService();
+  private static Laputa INSTANCE = new Laputa();
 
   private ApplicationContext applicationContext;
 
-  private LaputaService() {
+  private Laputa() {
   }
 
-  public static LaputaService getInstance() {
+  public static Laputa getInstance() {
     return INSTANCE;
   }
 
@@ -71,6 +77,7 @@ public class LaputaService {
   }
 
   private void startup() throws Exception {
+    printAsciiArt();
     loadMappings();
     LOGGER.info("Starting service...");
     bootstrapHttpsService();
@@ -98,6 +105,15 @@ public class LaputaService {
       new Bootstrapper(port, false).run(); // not start http in separate thread
     } catch (Exception e) {
       LOGGER.warn("Skipped to start http service, due to: {}", e.getMessage());
+    }
+  }
+
+  private void printAsciiArt() {
+    Path path = Paths.get(this.getClass().getResource("/laputa").getPath());
+    try (Stream<String> stream = Files.lines(path)) {
+      stream.forEach(System.out::println);
+    } catch (IOException e) {
+      e.printStackTrace();
     }
   }
 }

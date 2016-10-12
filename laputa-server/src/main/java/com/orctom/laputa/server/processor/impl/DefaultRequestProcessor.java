@@ -4,8 +4,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.RateLimiter;
-import com.orctom.exception.IllegalArgException;
-import com.orctom.laputa.server.LaputaService;
+import com.orctom.laputa.server.Laputa;
 import com.orctom.laputa.server.config.Configurator;
 import com.orctom.laputa.server.config.MappingConfig;
 import com.orctom.laputa.server.exception.FileUploadException;
@@ -191,7 +190,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
   }
 
   private <T> Collection<T> getBeansOfType(Class<T> type) {
-    return LaputaService.getInstance().getApplicationContext().getBeansOfType(type).values();
+    return Laputa.getInstance().getApplicationContext().getBeansOfType(type).values();
   }
 
   private void preProcess(RequestWrapper requestWrapper) {
