@@ -1,4 +1,4 @@
-package com.orctom.laputa.util;
+package com.orctom.laputa.client.util;
 
 import java.util.Random;
 

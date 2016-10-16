@@ -35,6 +35,7 @@
   </properties>
 
   <modules>
+    <module>laputa-utils</module>
     <module>laputa-client</module>
     <module>laputa-server</module>
     <module>laputa-server-example</module>

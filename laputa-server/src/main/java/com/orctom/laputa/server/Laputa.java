@@ -1,7 +1,7 @@
 package com.orctom.laputa.server;
 
-import com.orctom.exception.ClassLoadingException;
-import com.orctom.exception.IllegalArgException;
+import com.orctom.laputa.exception.ClassLoadingException;
+import com.orctom.laputa.exception.IllegalArgException;
 import com.orctom.laputa.server.config.Configurator;
 import com.orctom.laputa.server.config.MappingConfig;
 import com.orctom.laputa.server.internal.Bootstrapper;

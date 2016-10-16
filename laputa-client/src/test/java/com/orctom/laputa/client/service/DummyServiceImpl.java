@@ -1,6 +1,6 @@
-package com.orctom.laputa.service;
+package com.orctom.laputa.client.service;
 
-import com.orctom.laputa.Laputa;
+import com.orctom.laputa.client.Laputa;
 
 /**
  * Created by hao on 4/28/15.

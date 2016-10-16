@@ -1,4 +1,4 @@
-package com.orctom.laputa.service;
+package com.orctom.laputa.client.service;
 
 public class DummyModel {
 

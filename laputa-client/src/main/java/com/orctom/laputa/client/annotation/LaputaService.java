@@ -1,10 +1,7 @@
-package com.orctom.laputa.annotation;
+package com.orctom.laputa.client.annotation;
 
 import java.lang.annotation.*;
 
-/**
- * Created by hao on 4/28/15.
- */
 @Documented
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)

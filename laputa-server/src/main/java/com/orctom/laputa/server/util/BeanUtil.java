@@ -3,7 +3,7 @@ package com.orctom.laputa.server.util;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.orctom.utils.ClassUtils;
+import com.orctom.laputa.utils.ClassUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

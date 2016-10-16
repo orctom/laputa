@@ -1,10 +1,10 @@
-package com.orctom.laputa;
+package com.orctom.laputa.client;
 
 import com.google.common.reflect.Reflection;
-import com.orctom.laputa.annotation.LaputaService;
-import com.orctom.laputa.internal.ServiceInterceptor;
-import com.orctom.laputa.util.AnnotationUtils;
-import com.orctom.laputa.util.ServiceRegistryUtils;
+import com.orctom.laputa.client.annotation.LaputaService;
+import com.orctom.laputa.client.internal.ServiceInterceptor;
+import com.orctom.laputa.client.util.AnnotationUtils;
+import com.orctom.laputa.client.util.ServiceRegistryUtils;
 
 import java.util.HashMap;
 import java.util.Map;

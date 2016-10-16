@@ -1,4 +1,4 @@
-package com.orctom.laputa.service;
+package com.orctom.laputa.client.service;
 
 /**
  * Created by hao on 4/28/15.

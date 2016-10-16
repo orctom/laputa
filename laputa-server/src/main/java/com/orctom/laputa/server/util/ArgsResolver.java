@@ -2,7 +2,7 @@ package com.orctom.laputa.server.util;
 
 import com.orctom.laputa.server.annotation.Param;
 import com.orctom.laputa.server.exception.ParameterValidationException;
-import com.orctom.utils.ClassUtils;
+import com.orctom.laputa.utils.ClassUtils;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

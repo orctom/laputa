@@ -11,15 +11,11 @@
 
   <artifactId>laputa-server</artifactId>
 
-  <properties>
-    <jackson.version>2.6.3</jackson.version>
-  </properties>
-
   <dependencies>
     <dependency>
-      <groupId>com.orctom</groupId>
-      <artifactId>misc-utils</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
+      <groupId>com.orctom.laputa</groupId>
+      <artifactId>laputa-utils</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>

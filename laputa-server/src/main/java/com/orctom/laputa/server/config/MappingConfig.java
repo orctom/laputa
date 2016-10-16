@@ -1,7 +1,7 @@
 package com.orctom.laputa.server.config;
 
 import com.google.common.base.Strings;
-import com.orctom.exception.IllegalArgException;
+import com.orctom.laputa.exception.IllegalArgException;
 import com.orctom.laputa.server.annotation.*;
 import com.orctom.laputa.server.internal.handler.DefaultHandler;
 import com.orctom.laputa.server.model.HTTPMethod;

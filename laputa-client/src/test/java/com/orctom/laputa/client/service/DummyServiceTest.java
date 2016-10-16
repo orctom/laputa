@@ -1,4 +1,4 @@
-package com.orctom.laputa.service;
+package com.orctom.laputa.client.service;
 
 import org.junit.Test;
 import org.mockito.Mockito;

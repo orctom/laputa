@@ -1,8 +1,8 @@
 package com.orctom.laputa.server.internal;
 
-import com.orctom.exception.IllegalConfigException;
+import com.orctom.laputa.exception.IllegalConfigException;
 import com.orctom.laputa.server.config.Configurator;
-import com.orctom.utils.HostUtils;
+import com.orctom.laputa.utils.HostUtils;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;

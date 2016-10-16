@@ -1,6 +1,6 @@
 package com.orctom.laputa.server.exception;
 
-import com.orctom.exception.FastException;
+import com.orctom.laputa.exception.FastException;
 
 public class FileUploadException extends FastException {
 

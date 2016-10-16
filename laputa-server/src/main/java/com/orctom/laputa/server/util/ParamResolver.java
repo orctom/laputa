@@ -1,10 +1,10 @@
 package com.orctom.laputa.server.util;
 
-import com.orctom.exception.IllegalArgException;
+import com.orctom.laputa.exception.IllegalArgException;
 import com.orctom.laputa.server.annotation.DefaultValue;
 import com.orctom.laputa.server.annotation.Param;
 import com.orctom.laputa.server.model.RequestWrapper;
-import com.orctom.utils.ClassUtils;
+import com.orctom.laputa.utils.ClassUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
