@@ -1,7 +1,9 @@
 package com.orctom.laputa.server.model;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,19 +40,18 @@ public class PathTrie {
     return getChildren().keySet().toString();
   }
 
-
-  public String getChildrenMappings() {
+  public List<RequestMapping> getChildrenMappings() {
     return getChildrenMappings(this);
   }
 
-  private String getChildrenMappings(PathTrie parent) {
-    StringBuilder str = new StringBuilder();
+  private List<RequestMapping> getChildrenMappings(PathTrie parent) {
+    List<RequestMapping> mappings = new ArrayList<>();
     if (null != parent.getHandler()) {
-      str.append("\n").append(parent.getHandler().toString());
+      mappings.add(parent.getHandler());
     }
     for (Map.Entry<String, PathTrie> entry : parent.getChildren().entrySet()) {
-      str.append(getChildrenMappings(entry.getValue()));
+      mappings.addAll(getChildrenMappings(entry.getValue()));
     }
-    return str.toString();
+    return mappings;
   }
 }

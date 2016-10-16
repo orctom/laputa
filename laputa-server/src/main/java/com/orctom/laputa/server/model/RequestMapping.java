@@ -46,6 +46,6 @@ public class RequestMapping {
 
   @Override
   public String toString() {
-    return uriPattern + " -> " + handlerMethod.getJavaMethod().toGenericString() + " " + httpMethod;
+    return uriPattern + " " + httpMethod + " -> " + handlerMethod.getJavaMethod().toGenericString();
   }
 }

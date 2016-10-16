@@ -127,7 +127,9 @@ public class MappingConfig {
       }
 
       LOGGER.info("dynamic mappings:");
-      LOGGER.info(wildcardMappings.getChildrenMappings());
+      for (RequestMapping handler : wildcardMappings.getChildrenMappings()) {
+        LOGGER.info(handler.toString());
+      }
     }
   }
 
