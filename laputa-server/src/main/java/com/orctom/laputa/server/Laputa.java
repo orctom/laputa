@@ -15,11 +15,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.stream.Stream;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 /**
  * Serving http
@@ -109,11 +107,10 @@ public class Laputa {
   }
 
   private void printAsciiArt() {
-    Path path = Paths.get(this.getClass().getResource("/laputa").getPath());
-    try (Stream<String> stream = Files.lines(path)) {
-      stream.forEach(System.out::println);
-    } catch (IOException e) {
-      e.printStackTrace();
+    try (InputStream in = getClass().getResourceAsStream("/laputa");
+         BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+      reader.lines().forEach(System.out::println);
+    } catch (Exception ignored) {
     }
   }
 }
