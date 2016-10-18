@@ -3,6 +3,7 @@ package com.orctom.laputa.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -76,13 +77,21 @@ public abstract class HostUtils {
   }
 
   private static boolean isValidAddress(InetAddress address) {
-    if (address == null || address.isLoopbackAddress())
+    if (address.isLoopbackAddress() || !isAddressReachable(address))
       return false;
     String name = address.getHostAddress();
     return (name != null
         && !ANY_HOST.equals(name)
         && !LOCALHOST.equals(name)
         && PATTERN_IP.matcher(name).matches());
+  }
+
+  private static boolean isAddressReachable(InetAddress address) {
+    try {
+      return address.isReachable(200);
+    } catch (IOException e) {
+      return false;
+    }
   }
 
   public static InetAddress getLocalAddress() {
