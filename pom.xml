@@ -37,8 +37,8 @@
   <modules>
     <module>laputa-utils</module>
     <module>laputa-client</module>
-    <module>laputa-server</module>
-    <module>laputa-server-example</module>
+    <module>laputa-service</module>
+    <module>laputa-service-example</module>
   </modules>
 
   <profiles>
