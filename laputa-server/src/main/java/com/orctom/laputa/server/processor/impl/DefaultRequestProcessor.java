@@ -80,14 +80,14 @@ public class DefaultRequestProcessor implements RequestProcessor {
   }
 
   @Override
-  public Response handleRequest(HttpRequest req) {
+  public ResponseWrapper handleRequest(HttpRequest req) {
     RequestWrapper requestWrapper = getRequestWrapper(req);
 
     String accept = req.headers().get(HttpHeaderNames.ACCEPT);
     ResponseTranslator translator = ResponseTranslators.getTranslator(requestWrapper.getPath(), accept);
 
     if (null != rateLimiter && !rateLimiter.tryAcquire(200, TimeUnit.MILLISECONDS)) {
-      return new Response(translator.getMediaType(), ERROR_BUSY);
+      return new ResponseWrapper(translator.getMediaType(), ERROR_BUSY);
     } else {
       try {
         // pre-processors
@@ -108,12 +108,12 @@ public class DefaultRequestProcessor implements RequestProcessor {
         Object processed = postProcess(data);
 
         byte[] content = translator.translate(processed);
-        return new Response(translator.getMediaType(), content);
+        return new ResponseWrapper(translator.getMediaType(), content);
       } catch (ParameterValidationException e) {
-        return new Response(translator.getMediaType(), e.getMessage().getBytes(UTF8));
+        return new ResponseWrapper(translator.getMediaType(), e.getMessage().getBytes(UTF8));
       } catch (Throwable e) {
         LOGGER.error(e.getMessage(), e);
-        return new Response(translator.getMediaType(), ERROR_CONTENT);
+        return new ResponseWrapper(translator.getMediaType(), ERROR_CONTENT);
       }
     }
   }

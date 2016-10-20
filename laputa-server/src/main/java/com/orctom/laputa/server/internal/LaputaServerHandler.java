@@ -1,7 +1,7 @@
 package com.orctom.laputa.server.internal;
 
 import com.orctom.laputa.server.config.Configurator;
-import com.orctom.laputa.server.model.Response;
+import com.orctom.laputa.server.model.ResponseWrapper;
 import com.orctom.laputa.server.processor.RequestProcessor;
 import com.orctom.laputa.server.processor.impl.DefaultRequestProcessor;
 import io.netty.buffer.Unpooled;
@@ -50,14 +50,14 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
       boolean keepAlive = HttpUtil.isKeepAlive(req);
 
-      Response response = requestProcessor.handleRequest(req);
+      ResponseWrapper responseWrapper = requestProcessor.handleRequest(req);
 
       FullHttpResponse res = new DefaultFullHttpResponse(
           HTTP_1_1,
           OK,
-          Unpooled.wrappedBuffer(response.getContent())
+          Unpooled.wrappedBuffer(responseWrapper.getContent())
       );
-      res.headers().set(CONTENT_TYPE, response.getMediaType());
+      res.headers().set(CONTENT_TYPE, responseWrapper.getMediaType());
       res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
 
       if (!keepAlive) {

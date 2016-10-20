@@ -1,6 +1,6 @@
 package com.orctom.laputa.server.processor;
 
-import com.orctom.laputa.server.model.Response;
+import com.orctom.laputa.server.model.ResponseWrapper;
 import io.netty.handler.codec.http.HttpRequest;
 
 /**
@@ -9,6 +9,6 @@ import io.netty.handler.codec.http.HttpRequest;
  */
 public interface RequestProcessor {
 
-  Response handleRequest(HttpRequest req);
+  ResponseWrapper handleRequest(HttpRequest req);
 
 }
