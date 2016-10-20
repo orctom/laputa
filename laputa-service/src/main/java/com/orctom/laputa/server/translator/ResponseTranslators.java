@@ -17,10 +17,17 @@ public abstract class ResponseTranslators {
   private static final Map<String, ResponseTranslator> REGISTRY = new HashMap<>();
 
   static {
-    registerTranslator(JsonResponseTranslator.TYPE.getExtension(), new JsonResponseTranslator());
-    registerTranslator(JsonResponseTranslator.TYPE.getValue(), new JsonResponseTranslator());
-    registerTranslator(XmlResponseTranslator.TYPE.getExtension(), new XmlResponseTranslator());
-    registerTranslator(XmlResponseTranslator.TYPE.getValue(), new XmlResponseTranslator());
+    JsonResponseTranslator jsonResponseTranslator = new JsonResponseTranslator();
+    registerTranslator(JsonResponseTranslator.TYPE.getExtension(), jsonResponseTranslator);
+    registerTranslator(JsonResponseTranslator.TYPE.getValue(), jsonResponseTranslator);
+
+    XmlResponseTranslator xmlResponseTranslator = new XmlResponseTranslator();
+    registerTranslator(XmlResponseTranslator.TYPE.getExtension(), xmlResponseTranslator);
+    registerTranslator(XmlResponseTranslator.TYPE.getValue(), xmlResponseTranslator);
+
+    ProtoBufResponseTranslator protoBufResponseTranslator = new ProtoBufResponseTranslator();
+    registerTranslator(ProtoBufResponseTranslator.TYPE.getExtension(), protoBufResponseTranslator);
+    registerTranslator(ProtoBufResponseTranslator.TYPE.getValue(), protoBufResponseTranslator);
   }
 
   public static void registerTranslator(String type, ResponseTranslator encoder) {

@@ -9,7 +9,8 @@ public enum MediaType {
 
   TEXT_HTML(".html", "text/html"),
   APPLICATION_JSON(".json", "application/json"),
-  APPLICATION_XML(".xml", "application/xml");
+  APPLICATION_XML(".xml", "application/xml"),
+  PROTO_BUF(".protobuf", "application/protobuf");
 
   private String extension;
   private String value;

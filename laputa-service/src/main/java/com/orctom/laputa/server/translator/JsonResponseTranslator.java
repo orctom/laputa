@@ -1,6 +1,6 @@
 package com.orctom.laputa.server.translator;
 
-import com.google.gson.Gson;
+import com.alibaba.fastjson.JSON;
 import com.orctom.laputa.server.model.MediaType;
 
 import java.io.IOException;
@@ -13,8 +13,6 @@ public class JsonResponseTranslator implements ResponseTranslator {
 
   public static final MediaType TYPE = MediaType.APPLICATION_JSON;
 
-  private static Gson gson = new Gson();
-
   @Override
   public String getMediaType() {
     return TYPE.getValue();
@@ -22,6 +20,6 @@ public class JsonResponseTranslator implements ResponseTranslator {
 
   @Override
   public byte[] translate(Object data) throws IOException {
-    return toBytes(gson.toJson(data));
+    return toBytes(JSON.toJSONString(data));
   }
 }
