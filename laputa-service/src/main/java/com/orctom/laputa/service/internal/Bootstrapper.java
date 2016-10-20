@@ -72,7 +72,7 @@ public class Bootstrapper extends Thread {
 
   private void setupSSLContext() throws CertificateException, SSLException {
     if (useSSL) {
-      File certificate = new File(getConfigAsString("service.https.certificate"));
+      File certificate = new File(getConfigAsString("server.https.certificate"));
       assertFileExist(certificate, "Failed to find certificate.");
 
       File privateKey = new File(getConfigAsString("server.https.privateKey"));
