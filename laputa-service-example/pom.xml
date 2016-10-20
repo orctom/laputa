@@ -9,12 +9,12 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>laputa-server-example</artifactId>
+  <artifactId>laputa-service-example</artifactId>
 
   <dependencies>
     <dependency>
       <groupId>com.orctom.laputa</groupId>
-      <artifactId>laputa-server</artifactId>
+      <artifactId>laputa-service</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

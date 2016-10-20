@@ -1,6 +1,6 @@
 package com.orctom.laputa.server.example;
 
-import com.orctom.laputa.server.Laputa;
+import com.orctom.laputa.server.LaputaService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +20,7 @@ public class SampleServer {
 
   public static void main(String[] args) {
     try {
-      Laputa.getInstance().run(SampleServer.class);
+      LaputaService.getInstance().run(SampleServer.class);
     } catch (Exception e) {
       e.printStackTrace();
     }

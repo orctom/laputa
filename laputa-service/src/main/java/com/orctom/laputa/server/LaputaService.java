@@ -23,18 +23,18 @@ import java.io.InputStreamReader;
  * Serving http
  * Created by hao on 9/10/15.
  */
-public class Laputa {
+public class LaputaService {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(Laputa.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(LaputaService.class);
 
-  private static Laputa INSTANCE = new Laputa();
+  private static LaputaService INSTANCE = new LaputaService();
 
   private ApplicationContext applicationContext;
 
-  private Laputa() {
+  private LaputaService() {
   }
 
-  public static Laputa getInstance() {
+  public static LaputaService getInstance() {
     return INSTANCE;
   }
 
