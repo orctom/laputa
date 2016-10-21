@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class ValidationError extends Response {
 
-  public ValidationError(List messages) {
-    super(messages);
+  public ValidationError(List<String> messages) {
+    super(400, messages);
   }
 }

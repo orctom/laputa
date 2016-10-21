@@ -2,22 +2,12 @@ package com.orctom.laputa.service.model;
 
 import java.util.List;
 
-public class Response<T> {
+public class Response {
 
   private int code = 200;
-  private T data;
   private List<String> messages;
 
   public Response() {
-  }
-
-  public Response(T data) {
-    this.data = data;
-  }
-
-  public Response(List<String> messages) {
-    this.code = 400;
-    this.messages = messages;
   }
 
   public Response(int code, List<String> messages) {
@@ -29,11 +19,23 @@ public class Response<T> {
     return code;
   }
 
-  public T getData() {
-    return data;
+  public void setCode(int code) {
+    this.code = code;
   }
 
   public List<String> getMessages() {
     return messages;
+  }
+
+  public void setMessages(List<String> messages) {
+    this.messages = messages;
+  }
+
+  @Override
+  public String toString() {
+    return "Response{" +
+        "code=" + code +
+        ", messages=" + messages +
+        '}';
   }
 }
