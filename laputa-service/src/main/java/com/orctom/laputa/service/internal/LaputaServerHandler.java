@@ -4,6 +4,8 @@ import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.processor.RequestProcessor;
 import com.orctom.laputa.service.processor.impl.DefaultRequestProcessor;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufHolder;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -41,33 +43,48 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) {
-    if (msg instanceof HttpRequest) {
-      HttpRequest req = (HttpRequest) msg;
+    ByteBuf byteBuf = null;
+    if (msg instanceof  ByteBufHolder) {
+      byteBuf = ((ByteBufHolder) msg).content();
+    }
 
-      if (HttpUtil.is100ContinueExpected(req)) {
-        ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
-      }
+    try {
+      if (msg instanceof HttpRequest) {
+        HttpRequest req = (HttpRequest) msg;
 
-      boolean keepAlive = HttpUtil.isKeepAlive(req);
+        if (HttpUtil.is100ContinueExpected(req)) {
+          ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
+        }
 
-      ResponseWrapper responseWrapper = requestProcessor.handleRequest(req);
+        boolean keepAlive = HttpUtil.isKeepAlive(req);
 
-      FullHttpResponse res = new DefaultFullHttpResponse(
-          HTTP_1_1,
-          OK,
-          Unpooled.wrappedBuffer(responseWrapper.getContent())
-      );
-      res.headers().set(CONTENT_TYPE, responseWrapper.getMediaType());
-      res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
+        ResponseWrapper responseWrapper = requestProcessor.handleRequest(req);
 
-      if (!keepAlive) {
-        ctx.write(res).addListener(ChannelFutureListener.CLOSE);
+        FullHttpResponse res = new DefaultFullHttpResponse(
+            HTTP_1_1,
+            OK,
+            Unpooled.wrappedBuffer(responseWrapper.getContent())
+        );
+        res.headers().set(CONTENT_TYPE, responseWrapper.getMediaType());
+        res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
+
+        if (!keepAlive) {
+          ctx.write(res).addListener(ChannelFutureListener.CLOSE);
+        } else {
+          res.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+          ctx.write(res);
+        }
       } else {
-        res.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-        ctx.write(res);
+        ctx.writeAndFlush(HttpResponseStatus.NO_CONTENT);
       }
-    } else {
-      ctx.writeAndFlush(HttpResponseStatus.NO_CONTENT);
+    } catch (Exception e) {
+      ctx.writeAndFlush(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+      ctx.close();
+      LOGGER.error(e.getMessage(), e);
+    } finally {
+      if (null != byteBuf) {
+        byteBuf.release();
+      }
     }
   }
 
