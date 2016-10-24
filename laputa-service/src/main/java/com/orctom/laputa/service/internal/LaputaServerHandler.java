@@ -25,7 +25,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LaputaServerHandler.class);
 
-  private RequestProcessor requestProcessor = new DefaultRequestProcessor();
+  private static RequestProcessor requestProcessor = new DefaultRequestProcessor();
 
   static {
     String staticFilesDir = Configurator.getInstance().getStaticFilesDir();

@@ -66,9 +66,9 @@ public class DefaultRequestProcessor implements RequestProcessor {
       HttpMethod.PUT, HTTPMethod.PUT
   );
 
-  private static RateLimiter rateLimiter;
+  private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
-  private Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+  private static RateLimiter rateLimiter;
 
   public DefaultRequestProcessor() {
     Integer maxRequestsPerSecond = Configurator.getInstance().getRequestRateLimit();
@@ -283,7 +283,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
   }
 
   private void validate(Object target, Method method, Object[] args) {
-    ExecutableValidator executableValidator = validator.forExecutables();
+    ExecutableValidator executableValidator = VALIDATOR.forExecutables();
     Set<ConstraintViolation<Object>> violations = executableValidator.validateParameters(target, method, args);
     if (violations.isEmpty()) {
       return;
