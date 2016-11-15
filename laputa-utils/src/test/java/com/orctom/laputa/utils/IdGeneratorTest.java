@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 public class IdGeneratorTest {
 
   @Test
-  public void test() {
+  public void testSingleThread() {
     final Collection<Long> ids = new ArrayList<>();
     final IdGenerator generator = IdGenerator.create();
     Stopwatch sw = Stopwatch.createStarted();
@@ -31,7 +31,7 @@ public class IdGeneratorTest {
   }
 
   @Test
-  public void testGenerator() throws Exception {
+  public void testMultiThreads() throws Exception {
     final Collection<Long> ids = new ConcurrentLinkedQueue<>();
     ExecutorService es = Executors.newFixedThreadPool(20);
     final IdGenerator generator = IdGenerator.create();
