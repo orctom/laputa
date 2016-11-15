@@ -22,7 +22,7 @@
     </rollingPolicy>
   </appender>
 
-  <logger name="com.orctom" level="trace" additivity="false">
+  <logger name="com.orctom" level="warn" additivity="false">
     <appender-ref ref="stdout"/>
   </logger>
 
