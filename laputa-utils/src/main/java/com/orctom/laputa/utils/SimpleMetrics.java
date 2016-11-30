@@ -1,5 +1,6 @@
 package com.orctom.laputa.utils;
 
+import com.orctom.laputa.exception.IllegalArgException;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
@@ -18,11 +19,14 @@ public class SimpleMetrics {
   private final Logger logger;
   private final long period;
   private final TimeUnit unit;
-  private Map<String, SimpleMetricsMeter> meters;
+  private Map<String, MutableCounter> meters;
   private Map<String, Callable<Integer>> gauges = new HashMap<>();
   private ScheduledExecutorService es = Executors.newSingleThreadScheduledExecutor();
 
   private SimpleMetrics(Logger logger, long period, TimeUnit unit) {
+    if (null == logger) {
+      throw new IllegalArgException("logger is null.");
+    }
     this.logger = logger;
     this.period = period;
     this.unit = unit;
@@ -58,19 +62,19 @@ public class SimpleMetrics {
   }
 
   public void mark(String key) {
-    SimpleMetricsMeter meter = meter(key);
+    MutableCounter meter = meter(key);
     meter.increase();
   }
 
-  public SimpleMetricsMeter meter(String key) {
-    SimpleMetricsMeter meter = meters.get(key);
+  public MutableCounter meter(String key) {
+    MutableCounter meter = meters.get(key);
     if (null != meter) {
       return meter;
     }
 
-    meter = new SimpleMetricsMeter(0);
+    meter = new MutableCounter(0);
     synchronized (this) {
-      SimpleMetricsMeter old = meters.put(key, meter);
+      MutableCounter old = meters.put(key, meter);
       if (null != old) {
         meter.increaseBy(old.getValue());
       }
@@ -100,8 +104,8 @@ public class SimpleMetrics {
 
   private void reportMeters() {
     double duration = unit.toSeconds(period);
-    for (Map.Entry<String, SimpleMetricsMeter> entry : meters.entrySet()) {
-      SimpleMetricsMeter value = entry.getValue();
+    for (Map.Entry<String, MutableCounter> entry : meters.entrySet()) {
+      MutableCounter value = entry.getValue();
       int count = value.getAndSet(0);
       logger.info("meter: {}, count: {}, mean: {}/s", entry.getKey(), count, count / duration);
     }

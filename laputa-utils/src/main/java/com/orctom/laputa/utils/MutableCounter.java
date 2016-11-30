@@ -6,11 +6,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Mutable Integer
  * Created by hao on 8/7/16.
  */
-public class SimpleMetricsMeter {
+public class MutableCounter {
 
   private AtomicInteger value;
 
-  public SimpleMetricsMeter(int value) {
+  public MutableCounter(int value) {
     this.value = new AtomicInteger(value);
   }
 
@@ -26,11 +26,11 @@ public class SimpleMetricsMeter {
     this.value.set(value);
   }
 
-  public void increase() {
-    value.incrementAndGet();
+  public int increase() {
+    return value.incrementAndGet();
   }
 
-  public void increaseBy(int delta) {
-    value.addAndGet(delta);
+  public int increaseBy(int delta) {
+    return value.addAndGet(delta);
   }
 }
