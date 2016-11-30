@@ -12,14 +12,14 @@ public class SinpleCounter {
   private Map<String, MutableInt> counters = new HashMap<>();
 
   public int count(String key) {
-    return getConter(key).increase();
+    return getCounter(key).increase();
   }
 
   public int count(String key, int increment) {
-    return getConter(key).increaseBy(increment);
+    return getCounter(key).increaseBy(increment);
   }
 
-  private MutableInt getConter(String key) {
+  private MutableInt getCounter(String key) {
     MutableInt counter = counters.get(key);
     if (null != counter) {
       return counter;
