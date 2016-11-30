@@ -6,11 +6,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Mutable Integer
  * Created by hao on 8/7/16.
  */
-public class MutableCounter {
+public class MutableInt {
 
   private AtomicInteger value;
 
-  public MutableCounter(int value) {
+  public MutableInt(int value) {
     this.value = new AtomicInteger(value);
   }
 

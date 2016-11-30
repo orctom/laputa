@@ -19,7 +19,7 @@ public class SimpleMetrics {
   private final Logger logger;
   private final long period;
   private final TimeUnit unit;
-  private Map<String, MutableCounter> meters;
+  private Map<String, MutableInt> meters;
   private Map<String, Callable<Integer>> gauges = new HashMap<>();
   private ScheduledExecutorService es = Executors.newSingleThreadScheduledExecutor();
 
@@ -62,19 +62,19 @@ public class SimpleMetrics {
   }
 
   public void mark(String key) {
-    MutableCounter meter = meter(key);
+    MutableInt meter = meter(key);
     meter.increase();
   }
 
-  public MutableCounter meter(String key) {
-    MutableCounter meter = meters.get(key);
+  public MutableInt meter(String key) {
+    MutableInt meter = meters.get(key);
     if (null != meter) {
       return meter;
     }
 
-    meter = new MutableCounter(0);
+    meter = new MutableInt(0);
     synchronized (this) {
-      MutableCounter old = meters.put(key, meter);
+      MutableInt old = meters.put(key, meter);
       if (null != old) {
         meter.increaseBy(old.getValue());
       }
@@ -104,8 +104,8 @@ public class SimpleMetrics {
 
   private void reportMeters() {
     double duration = unit.toSeconds(period);
-    for (Map.Entry<String, MutableCounter> entry : meters.entrySet()) {
-      MutableCounter value = entry.getValue();
+    for (Map.Entry<String, MutableInt> entry : meters.entrySet()) {
+      MutableInt value = entry.getValue();
       int count = value.getAndSet(0);
       logger.info("meter: {}, count: {}, mean: {}/s", entry.getKey(), count, count / duration);
     }
