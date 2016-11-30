@@ -7,7 +7,7 @@ import java.util.Map;
  * A simple counter ¯\_(ツ)_/¯
  * Created by chenhao on 11/30/16.
  */
-public class SinpleCounter {
+public class SimpleCounter {
 
   private Map<String, MutableInt> counters = new HashMap<>();
 
