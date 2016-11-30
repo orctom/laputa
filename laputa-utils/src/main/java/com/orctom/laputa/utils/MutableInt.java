@@ -33,4 +33,9 @@ public class MutableInt {
   public int increaseBy(int delta) {
     return value.addAndGet(delta);
   }
+
+  @Override
+  public String toString() {
+    return String.valueOf(value);
+  }
 }
