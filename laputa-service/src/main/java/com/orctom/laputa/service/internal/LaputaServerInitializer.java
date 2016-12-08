@@ -7,18 +7,22 @@ import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.ssl.SslContext;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 
-public class LaputaServerInitializer extends ChannelInitializer<SocketChannel> {
+import java.util.concurrent.TimeUnit;
+
+class LaputaServerInitializer extends ChannelInitializer<SocketChannel> {
 
   private final SslContext sslContext;
 
-  public LaputaServerInitializer(SslContext sslContext) {
+  LaputaServerInitializer(SslContext sslContext) {
     this.sslContext = sslContext;
   }
 
   @Override
   public void initChannel(SocketChannel ch) {
     ChannelPipeline p = ch.pipeline();
+    p.addLast(new ReadTimeoutHandler(60, TimeUnit.SECONDS));
     if (sslContext != null) {
       p.addLast(sslContext.newHandler(ch.alloc()));
     }
