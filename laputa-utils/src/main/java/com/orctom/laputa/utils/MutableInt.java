@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Mutable Integer
  * Created by hao on 8/7/16.
  */
-public class MutableInt {
+public class MutableInt implements Comparable<MutableInt> {
 
   private AtomicInteger value;
 
@@ -32,6 +32,11 @@ public class MutableInt {
 
   public int increaseBy(int delta) {
     return value.addAndGet(delta);
+  }
+
+  @Override
+  public int compareTo(MutableInt o) {
+    return Integer.compare(o.getValue(), this.getValue());
   }
 
   @Override

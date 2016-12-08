@@ -1,7 +1,10 @@
 package com.orctom.laputa.utils;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A simple counter ¯\_(ツ)_/¯
@@ -35,8 +38,10 @@ public class SimpleCounter {
     return counter;
   }
 
-  public Map<String, MutableInt> getCounters() {
-    return counters;
+  public List<Map.Entry<String, MutableInt>> getResult() {
+    List<Map.Entry<String, MutableInt>> result = counters.entrySet().stream().collect(Collectors.toList());
+    Collections.sort(result, (o1, o2) -> o1.getValue().compareTo(o2.getValue()));
+    return result;
   }
 
   public void reset() {
