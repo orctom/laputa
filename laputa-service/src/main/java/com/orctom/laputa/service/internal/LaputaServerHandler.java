@@ -79,12 +79,12 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
       }
     } catch (Exception e) {
       ctx.writeAndFlush(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-      ctx.close();
       LOGGER.error(e.getMessage(), e);
     } finally {
       if (null != byteBuf) {
         byteBuf.release();
       }
+      ctx.close();
     }
   }
 
