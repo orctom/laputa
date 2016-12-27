@@ -3,6 +3,7 @@ package com.orctom.laputa.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.SecureRandom;
 import java.util.Random;
 
 /**
@@ -52,7 +53,7 @@ public class IdGenerator {
   private static long getHostId() {
     Long id = HostUtils.getHostId();
     if (null == id) {
-      return new Random().nextLong() % HOST_ID_MAX;
+      return new SecureRandom().nextLong() % HOST_ID_MAX;
     }
     return id % HOST_ID_MAX;
   }
