@@ -16,9 +16,9 @@ import java.util.concurrent.ExecutionException;
  * Encode data to protobuff format
  * Created by hao on 11/25/15.
  */
-public class ProtoBufResponseTranslator implements ResponseTranslator {
+class ProtoBufResponseTranslator implements ResponseTranslator {
 
-  public static final MediaType TYPE = MediaType.PROTO_BUF;
+  static final MediaType TYPE = MediaType.PROTO_BUF;
 
   private static LoadingCache<Class<?>, Schema<?>> schemaCache = CacheBuilder.newBuilder()
       .softValues()
@@ -35,6 +35,7 @@ public class ProtoBufResponseTranslator implements ResponseTranslator {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public byte[] translate(Object data) throws IOException {
     Schema schema;
     try {

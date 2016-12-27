@@ -9,9 +9,9 @@ import java.io.IOException;
  * Encode data to xml
  * Created by hao on 11/25/15.
  */
-public class XmlResponseTranslator implements ResponseTranslator {
+class XmlResponseTranslator implements ResponseTranslator {
 
-  public static final MediaType TYPE = MediaType.APPLICATION_XML;
+  static final MediaType TYPE = MediaType.APPLICATION_XML;
 
   private static XStream xstream = new XStream();
 
