@@ -9,7 +9,6 @@ import com.orctom.laputa.service.internal.handler.DefaultHandler;
 import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -29,7 +28,7 @@ public class LaputaService {
 
   private static LaputaService INSTANCE = new LaputaService();
 
-  private ApplicationContext applicationContext;
+  private AnnotationConfigApplicationContext applicationContext;
 
   private LaputaService() {
   }
@@ -43,13 +42,11 @@ public class LaputaService {
   }
 
   public void registerBean(Class<?> beanClass, String name) {
-    BeanDefinitionRegistry registry = ((BeanDefinitionRegistry) applicationContext);
-
     GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
     beanDefinition.setBeanClass(beanClass);
     beanDefinition.setLazyInit(false);
     beanDefinition.setAbstract(false);
-    registry.registerBeanDefinition(name, beanDefinition);
+    applicationContext.registerBeanDefinition(name, beanDefinition);
   }
 
   public void run(Class<?> configurationClass) throws Exception {
