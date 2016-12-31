@@ -83,7 +83,18 @@ public abstract class HostUtils {
     return (name != null
         && !ANY_HOST.equals(name)
         && !LOCALHOST.equals(name)
-        && PATTERN_IP.matcher(name).matches());
+        && PATTERN_IP.matcher(name).matches()
+        && isNetworkInterfaceExist(address)
+    );
+  }
+
+  private static boolean isNetworkInterfaceExist(InetAddress address) {
+    try {
+      return null != NetworkInterface.getByInetAddress(address);
+    } catch (SocketException e) {
+      LOGGER.warn(e.getMessage());
+      return false;
+    }
   }
 
   private static boolean isAddressReachable(InetAddress address) {
