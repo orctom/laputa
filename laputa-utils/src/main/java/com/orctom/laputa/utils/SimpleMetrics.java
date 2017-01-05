@@ -86,6 +86,10 @@ public class SimpleMetrics {
     gauges.put(key, callable);
   }
 
+  public void setGaugeIfNotExist(String key, Callable<Integer> callable) {
+    gauges.putIfAbsent(key, callable);
+  }
+
   private void report() {
     reportGauges();
     reportMeters();
