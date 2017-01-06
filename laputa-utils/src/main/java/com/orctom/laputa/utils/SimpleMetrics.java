@@ -1,11 +1,16 @@
 package com.orctom.laputa.utils;
 
 import com.orctom.laputa.exception.IllegalArgException;
+import com.orctom.laputa.model.Metric;
+import com.orctom.laputa.model.MetricCallback;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Simple metrics counter
@@ -18,6 +23,7 @@ public class SimpleMetrics {
   private final TimeUnit unit;
   private Map<String, MutableInt> meters;
   private Map<String, Callable<Integer>> gauges = new HashMap<>();
+  private MetricCallback callback;
 
   private ScheduledExecutorService es = Executors.newSingleThreadScheduledExecutor(r -> {
     Thread t = Executors.defaultThreadFactory().newThread(r);
@@ -93,6 +99,10 @@ public class SimpleMetrics {
     gauges.putIfAbsent(key, callable);
   }
 
+  public void setCallback(MetricCallback callback) {
+    this.callback = callback;
+  }
+
   private void report() {
     reportGauges();
     reportMeters();
@@ -101,8 +111,10 @@ public class SimpleMetrics {
   private void reportGauges() {
     for (Map.Entry<String, Callable<Integer>> entry : gauges.entrySet()) {
       try {
+        String key = entry.getKey();
         int value = entry.getValue().call();
-        logger.info("gauge: {}, value: {}", entry.getKey(), value);
+        logger.info("gauge: {}, value: {}", key, value);
+        sendToCallback(key, value);
       } catch (Exception e) {
         logger.error("failed to collect gauge: {}, due tu {}", entry.getKey(), e.getMessage());
       }
@@ -110,11 +122,26 @@ public class SimpleMetrics {
   }
 
   private void reportMeters() {
-    double duration = unit.toSeconds(period);
+    float duration = unit.toSeconds(period);
     for (Map.Entry<String, MutableInt> entry : meters.entrySet()) {
+      String key = entry.getKey();
       MutableInt value = entry.getValue();
       int count = value.getAndSet(0);
-      logger.info("meter: {}, count: {}, mean: {}/s", entry.getKey(), count, count / duration);
+      float rate = count / duration;
+      logger.info("meter: {}, count: {}, mean: {}/s", entry.getKey(), count, rate);
+      sendToCallback(key, count, rate);
+    }
+  }
+
+  private void sendToCallback(String key, int value) {
+    if (null != callback) {
+      callback.onMetric(new Metric(key, value));
+    }
+  }
+
+  private void sendToCallback(String key, int value, float rate) {
+    if (null != callback) {
+      callback.onMetric(new Metric(key, value, rate));
     }
   }
 }
