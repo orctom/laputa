@@ -5,10 +5,7 @@ import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Simple metrics counter
@@ -21,11 +18,17 @@ public class SimpleMetrics {
   private final TimeUnit unit;
   private Map<String, MutableInt> meters;
   private Map<String, Callable<Integer>> gauges = new HashMap<>();
-  private ScheduledExecutorService es = Executors.newSingleThreadScheduledExecutor();
+
+  private ScheduledExecutorService es = Executors.newSingleThreadScheduledExecutor(r -> {
+    Thread t = Executors.defaultThreadFactory().newThread(r);
+    t.setName("simple-metrics");
+    t.setDaemon(true);
+    return t;
+  });
 
   private SimpleMetrics(Logger logger, long period, TimeUnit unit) {
     if (null == logger) {
-      throw new IllegalArgException("logger is null.");
+      throw new IllegalArgException("org.slf4j.Logger is required.");
     }
     this.logger = logger;
     this.period = period;
