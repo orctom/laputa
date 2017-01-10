@@ -22,7 +22,7 @@ public class SimpleMetrics {
   private final long period;
   private final TimeUnit unit;
   private Map<String, MutableInt> meters;
-  private Map<String, Callable<Integer>> gauges = new HashMap<>();
+  private Map<String, Callable<String>> gauges = new HashMap<>();
   private MetricCallback callback;
 
   private ScheduledExecutorService es = Executors.newSingleThreadScheduledExecutor(r -> {
@@ -91,11 +91,11 @@ public class SimpleMetrics {
     return meter;
   }
 
-  public void gauge(String key, Callable<Integer> callable) {
+  public void gauge(String key, Callable<String> callable) {
     gauges.put(key, callable);
   }
 
-  public void setGaugeIfNotExist(String key, Callable<Integer> callable) {
+  public void setGaugeIfNotExist(String key, Callable<String> callable) {
     gauges.putIfAbsent(key, callable);
   }
 
@@ -109,11 +109,11 @@ public class SimpleMetrics {
   }
 
   private void reportGauges() {
-    for (Map.Entry<String, Callable<Integer>> entry : gauges.entrySet()) {
+    for (Map.Entry<String, Callable<String>> entry : gauges.entrySet()) {
       try {
         String key = entry.getKey();
-        int value = entry.getValue().call();
-        logger.info("gauge: {}, value: {}", key, value);
+        String value = entry.getValue().call();
+        logger.info("gauge: {}, {}", key, value);
         sendToCallback(key, value);
       } catch (Exception e) {
         logger.error("failed to collect gauge: {}, due tu {}", entry.getKey(), e.getMessage());
@@ -133,7 +133,7 @@ public class SimpleMetrics {
     }
   }
 
-  private void sendToCallback(String key, int value) {
+  private void sendToCallback(String key, String value) {
     if (null != callback) {
       callback.onMetric(new Metric(key, value));
     }

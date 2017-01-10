@@ -5,6 +5,7 @@ public class Metric {
   private String key;
   private int value;
   private Float rate;
+  private String gauge;
 
   public Metric() {
   }
@@ -12,18 +13,18 @@ public class Metric {
   public Metric(Metric metric) {
     this.key = metric.getKey();
     this.value = metric.getValue();
-    if (null != metric.getRate()) {
-      this.rate = metric.getRate();
-    }
+    this.rate = metric.getRate();
+    this.gauge = metric.getGauge();
   }
 
-  public Metric(String key, int value) {
+  public Metric(String key, String gauge) {
+    this.key = key;
+    this.gauge = gauge;
+  }
+
+  public Metric(String key, int value, Float rate) {
     this.key = key;
     this.value = value;
-  }
-
-  public Metric(String key, int value, float rate) {
-    this(key, value);
     this.rate = rate;
   }
 
@@ -51,12 +52,27 @@ public class Metric {
     this.rate = rate;
   }
 
+  public String getGauge() {
+    return gauge;
+  }
+
+  public void setGauge(String gauge) {
+    this.gauge = gauge;
+  }
+
   @Override
   public String toString() {
-    return "Metric{" +
-        "key='" + key + '\'' +
-        ", value=" + value +
-        ", rate=" + rate +
-        '}';
+    if (null == gauge) {
+      return "Metric{" +
+          "key='" + key + '\'' +
+          ", value=" + value +
+          ", rate=" + rate +
+          '}';
+    } else {
+      return "Metric{" +
+          "key='" + key + '\'' +
+          ", gauge='" + gauge + '\'' +
+          '}';
+    }
   }
 }
