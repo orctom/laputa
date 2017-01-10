@@ -4,9 +4,17 @@ public class Metric {
 
   private String key;
   private int value;
-  private float rate;
+  private Float rate;
 
   public Metric() {
+  }
+
+  public Metric(Metric metric) {
+    this.key = metric.getKey();
+    this.value = metric.getValue();
+    if (null != metric.getRate()) {
+      this.rate = metric.getRate();
+    }
   }
 
   public Metric(String key, int value) {
@@ -35,11 +43,11 @@ public class Metric {
     this.value = value;
   }
 
-  public float getRate() {
+  public Float getRate() {
     return rate;
   }
 
-  public void setRate(float rate) {
+  public void setRate(Float rate) {
     this.rate = rate;
   }
 
