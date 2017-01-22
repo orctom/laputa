@@ -5,7 +5,7 @@ import com.orctom.laputa.model.Metric;
 import com.orctom.laputa.model.MetricCallback;
 import org.slf4j.Logger;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
@@ -22,7 +22,7 @@ public class SimpleMetrics {
   private final long period;
   private final TimeUnit unit;
   private Map<String, MutableInt> meters;
-  private Map<String, Callable<String>> gauges = new HashMap<>();
+  private Map<String, Callable<String>> gauges = new LinkedHashMap<>();
   private MetricCallback callback;
 
   private ScheduledExecutorService es = Executors.newSingleThreadScheduledExecutor(r -> {
@@ -52,7 +52,7 @@ public class SimpleMetrics {
   }
 
   public void resetMeters() {
-    meters = new HashMap<>();
+    meters = new LinkedHashMap<>();
   }
 
   private void startReporter() {
