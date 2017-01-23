@@ -6,6 +6,7 @@ import org.junit.runner.notification.RunListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.greaterThan;
@@ -19,12 +20,12 @@ public class ClassUtilsTest {
   @Test
   public void testScanDirectory() {
     try {
-      List<Class<?>> classes = ClassUtils.getClassesWithAnnotation(
+      List<Class<?>> classes = new ArrayList<>();
+      ClassUtils.getClassesWithAnnotation(
           "com.orctom.laputa.utils",
-          RunListener.ThreadSafe.class
+          RunListener.ThreadSafe.class,
+          classes::add
       );
-      classes.forEach(clazz -> LOGGER.debug(clazz.getName()));
-      assertThat(classes, notNullValue());
       assertThat(classes.size(), greaterThan(0));
     } catch (ClassLoadingException e) {
       e.printStackTrace();
@@ -34,12 +35,12 @@ public class ClassUtilsTest {
   @Test
   public void testScanJar() {
     try {
-      List<Class<?>> classes = ClassUtils.getClassesWithAnnotation(
+      List<Class<?>> classes = new ArrayList<>();
+      ClassUtils.getClassesWithAnnotation(
           "org.junit.runner.notification",
-          RunListener.ThreadSafe.class
+          RunListener.ThreadSafe.class,
+          classes::add
       );
-      classes.forEach(clazz -> LOGGER.debug(clazz.getName()));
-      assertThat(classes, notNullValue());
       assertThat(classes.size(), greaterThan(0));
     } catch (ClassLoadingException e) {
       e.printStackTrace();
