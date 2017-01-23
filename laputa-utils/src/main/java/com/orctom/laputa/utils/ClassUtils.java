@@ -1,20 +1,26 @@
 package com.orctom.laputa.utils;
 
 import com.orctom.laputa.exception.ClassLoadingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
 /**
  * Class Utils
  * Created by hao-chen2 on 1/5/2015.
  */
 public class ClassUtils {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ClassUtils.class);
 
   private static final Set<Class<?>> primitiveWrapperTypes = new HashSet<>(8);
 
@@ -37,14 +43,10 @@ public class ClassUtils {
    */
   public static List<Class<?>> getClassesWithAnnotation(String packageName, Class<? extends Annotation> annotationClass)
       throws ClassLoadingException {
-    List<Class<?>> classes = getClasses(packageName);
-    List<Class<?>> clazzes = new ArrayList<>();
-    for (Class<?> clazz : classes) {
-      if (clazz.isAnnotationPresent(annotationClass)) {
-        clazzes.add(clazz);
-      }
-    }
-    return clazzes;
+    return getClasses(packageName)
+        .stream()
+        .filter(clazz -> clazz.isAnnotationPresent(annotationClass))
+        .collect(Collectors.toList());
   }
 
   /**
@@ -55,28 +57,54 @@ public class ClassUtils {
    * @return The classes
    * @throws ClassLoadingException
    */
-  public static List<Class<?>> getClasses(String packageName) throws ClassLoadingException {
-    List<Class<?>> classes;
+  public static List<Class<?>> getClasses(String packageName) {
     try {
       ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-      assert classLoader != null;
-      String path = packageName.replace('.', '/');
-      Enumeration<URL> resources = classLoader.getResources(path);
-      List<File> dirs = new ArrayList<>();
+      String packagePath = packageName.replace('.', '/');
+      Enumeration<URL> resources = classLoader.getResources(packagePath);
+      List<Class<?>> classes = new ArrayList<>();
       while (resources.hasMoreElements()) {
         URL resource = resources.nextElement();
-        String fileName = resource.getFile();
-        String fileNameDecoded = URLDecoder.decode(fileName, "UTF-8");
-        dirs.add(new File(fileNameDecoded));
+        String protocol = resource.getProtocol();
+        String path = resource.getPath();
+        if ("jar".equals(protocol)) {
+          int startIndex = path.startsWith("file:") ? "file:".length() : 0;
+          int endIndex = path.endsWith("jar") ? 0 : path.indexOf("!");
+          File jarFilePath = new File(path.substring(startIndex, endIndex));
+          classes.addAll(findClassesInJar(jarFilePath, packagePath));
+        } else if ("file".equals(protocol)) {
+          classes.addAll(findClassesInFile(new File(path), packageName));
+        } else {
+          throw new UnsupportedOperationException("Not supported reading from: " + protocol);
+        }
       }
-      classes = new ArrayList<>();
-      for (File directory : dirs) {
-        classes.addAll(findClasses(directory, packageName));
+
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Found {} classes:", classes.size());
+        classes.forEach(clazz -> LOGGER.trace(clazz.getName()));
       }
+      return classes;
     } catch (IOException e) {
       throw new ClassLoadingException(e);
     }
-    return classes;
+  }
+
+  private static List<Class<?>> findClassesInJar(File jarFilePath, String packagePath) {
+    try {
+      JarFile jarFile = new JarFile(jarFilePath.getAbsoluteFile());
+      return jarFile.stream()
+          .filter(entry -> isClassInPackage(entry, packagePath))
+          .map(entry -> loadClass(entry.getName().replaceAll("/", ".")))
+          .collect(Collectors.toList());
+    } catch (IOException e) {
+      throw new ClassLoadingException(e);
+    }
+  }
+
+  private static boolean isClassInPackage(JarEntry entry, String packagePath) {
+    return !entry.isDirectory() &&
+        entry.getName().endsWith(".class") &&
+        entry.getName().startsWith(packagePath);
   }
 
   /**
@@ -88,28 +116,32 @@ public class ClassUtils {
    * @return The classes
    * @throws ClassLoadingException
    */
-  private static List<Class<?>> findClasses(File directory, String packageName) throws ClassLoadingException {
-    List<Class<?>> classes = new ArrayList<>();
-    if (!directory.exists()) {
-      return classes;
-    }
+  private static List<Class<?>> findClassesInFile(File directory, String packageName) {
     File[] files = directory.listFiles();
-    if (null == files) {
-      return classes;
+    if (null == files || 0 == files.length) {
+      return Collections.emptyList();
     }
+
+    List<Class<?>> classes = new ArrayList<>();
     for (File file : files) {
       if (file.isDirectory()) {
         assert !file.getName().contains(".");
-        classes.addAll(findClasses(file, packageName + "." + file.getName()));
+        classes.addAll(findClassesInFile(file, packageName + "." + file.getName()));
+
       } else if (file.getName().endsWith(".class")) {
-        try {
-          classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
-        } catch (ClassNotFoundException e) {
-          throw new ClassLoadingException(e);
-        }
+        classes.add(loadClass(packageName + '.' + file.getName()));
       }
     }
     return classes;
+  }
+
+  private static Class<?> loadClass(String classFileName) {
+    try {
+      String className = classFileName.substring(0, classFileName.length() - 6);
+      return Class.forName(className);
+    } catch (ClassNotFoundException e) {
+      throw new ClassLoadingException(e);
+    }
   }
 
   public static boolean isSimpleValueType(Class<?> clazz) {

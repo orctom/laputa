@@ -19,10 +19,6 @@ public class SampleServer {
   }
 
   public static void main(String[] args) {
-    try {
       LaputaService.getInstance().run(SampleServer.class);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
   }
 }

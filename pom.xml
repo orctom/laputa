@@ -31,7 +31,8 @@
   <properties>
     <java.version>1.8</java.version>
     <netty.version>4.1.5.Final</netty.version>
-    <powermock.version>1.6.5</powermock.version>
+    <guava.version>19.0</guava.version>
+    <hamcrest.version>1.3</hamcrest.version>
   </properties>
 
   <modules>
@@ -40,6 +41,15 @@
     <module>laputa-service</module>
     <module>laputa-service-example</module>
   </modules>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-library</artifactId>
+      <version>${hamcrest.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
   <profiles>
     <profile>

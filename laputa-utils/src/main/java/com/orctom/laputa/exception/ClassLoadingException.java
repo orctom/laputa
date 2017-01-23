@@ -1,6 +1,6 @@
 package com.orctom.laputa.exception;
 
-public class ClassLoadingException extends Exception {
+public class ClassLoadingException extends RuntimeException {
 
   public ClassLoadingException(String message) {
     super(message);

@@ -1,6 +1,5 @@
 package com.orctom.laputa.service;
 
-import com.orctom.laputa.exception.ClassLoadingException;
 import com.orctom.laputa.exception.IllegalArgException;
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.config.MappingConfig;
@@ -49,11 +48,9 @@ public class LaputaService {
     applicationContext.registerBeanDefinition(name, beanDefinition);
   }
 
-  public void run(Class<?> configurationClass) throws Exception {
+  public void run(Class<?> configurationClass) {
     validate(configurationClass);
-
     createApplicationContext(configurationClass);
-
     startup();
   }
 
@@ -71,7 +68,7 @@ public class LaputaService {
     registerBean(DefaultHandler.class, "defaultHandler");
   }
 
-  private void startup() throws Exception {
+  private void startup() {
     printAsciiArt();
     loadMappings();
     LOGGER.info("Starting service...");
@@ -79,7 +76,7 @@ public class LaputaService {
     bootstrapHttpService();
   }
 
-  private void loadMappings() throws ClassLoadingException {
+  private void loadMappings() {
     MappingConfig.getInstance().scan(applicationContext);
   }
 
