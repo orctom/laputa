@@ -34,6 +34,14 @@ public class MutableInt implements Comparable<MutableInt> {
     return value.addAndGet(delta);
   }
 
+  public int decrease() {
+    return value.decrementAndGet();
+  }
+
+  public int decreaseBy(int delta) {
+    return increaseBy(-delta);
+  }
+
   @Override
   public int compareTo(MutableInt o) {
     return Integer.compare(o.getValue(), this.getValue());

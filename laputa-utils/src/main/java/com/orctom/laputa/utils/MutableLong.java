@@ -34,6 +34,14 @@ public class MutableLong implements Comparable<MutableLong> {
     return value.addAndGet(delta);
   }
 
+  public long decrease() {
+    return value.decrementAndGet();
+  }
+
+  public long decreaseBy(long delta) {
+    return increaseBy(-delta);
+  }
+
   @Override
   public int compareTo(MutableLong o) {
     return Long.compare(o.getValue(), this.getValue());
