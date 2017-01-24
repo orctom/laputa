@@ -10,11 +10,11 @@ public class MutableLong implements Comparable<MutableLong> {
 
   private AtomicLong value;
 
-  public MutableLong(int value) {
+  public MutableLong(long value) {
     this.value = new AtomicLong(value);
   }
 
-  public long getAndSet(int newValue) {
+  public long getAndSet(long newValue) {
     return value.getAndSet(newValue);
   }
 
@@ -30,7 +30,7 @@ public class MutableLong implements Comparable<MutableLong> {
     return value.incrementAndGet();
   }
 
-  public long increaseBy(int delta) {
+  public long increaseBy(long delta) {
     return value.addAndGet(delta);
   }
 
