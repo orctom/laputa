@@ -116,7 +116,8 @@ public class SimpleMetrics {
         logger.info("gauge: {}, {}", key, value);
         sendToCallback(key, value);
       } catch (Exception e) {
-        logger.error("failed to collect gauge: {}, due tu {}", entry.getKey(), e.getMessage());
+        logger.error("failed to collect gauge: {}, due to {}", entry.getKey(), e.getMessage());
+        logger.error(e.getMessage(), e);
       }
     }
   }
