@@ -10,7 +10,8 @@ import org.junit.Test;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertArrayEquals;
 
 public class ArgResolverTest {
 
@@ -22,12 +23,19 @@ public class ArgResolverTest {
   static class Dummy {
     public void simple(@Param("a") String a,
                        @Param("b") String b,
-                       @Param("c") String c) {}
-    public void complex(@Param("category") Category category) {}
-    public void evenMoreComplex(@Param("sku") SKU sku) {}
+                       @Param("c") String c) {
+    }
+
+    public void complex(@Param("category") Category category) {
+    }
+
+    public void evenMoreComplex(@Param("sku") SKU sku) {
+    }
+
     public void mixed(@Param("a") String a,
                       @Param("b") String b,
-                      @Param("category") Category category) {}
+                      @Param("category") Category category) {
+    }
   }
 
   @Test

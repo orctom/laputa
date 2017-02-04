@@ -19,6 +19,6 @@ public class SampleServer {
   }
 
   public static void main(String[] args) {
-      LaputaService.getInstance().run(SampleServer.class);
+    LaputaService.getInstance().run(SampleServer.class);
   }
 }

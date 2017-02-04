@@ -8,7 +8,8 @@ public class SKU {
   private String name;
   private Category category;
 
-  public SKU() {}
+  public SKU() {
+  }
 
   public SKU(Long id, String name, Category category) {
     this.id = id;

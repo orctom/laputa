@@ -9,7 +9,8 @@ public class Category {
   private String name;
   private Date date;
 
-  public Category() {}
+  public Category() {
+  }
 
   public Category(Long id, String name) {
     this.id = id;

@@ -7,6 +7,7 @@ public class DummyModel {
 
   public DummyModel() {
   }
+
   public DummyModel(String name, String desc) {
     this.name = name;
     this.desc = desc;

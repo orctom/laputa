@@ -19,7 +19,8 @@ public class Store {
     return "hello " + id;
   }
 
-  @POST @GET
+  @POST
+  @GET
   @Path("/search")
   public String search(String query) {
     return "searching for: " + query;

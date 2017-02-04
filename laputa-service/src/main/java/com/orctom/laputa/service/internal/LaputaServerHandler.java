@@ -44,7 +44,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) {
     ByteBuf byteBuf = null;
-    if (msg instanceof  ByteBufHolder) {
+    if (msg instanceof ByteBufHolder) {
       byteBuf = ((ByteBufHolder) msg).content();
     }
 

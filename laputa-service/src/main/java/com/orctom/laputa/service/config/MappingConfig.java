@@ -157,11 +157,11 @@ public class MappingConfig {
     List<HTTPMethod> supportedHTTPMethods = Arrays.stream(method.getAnnotations())
         .filter(a ->
             a.annotationType() == POST.class ||
-            a.annotationType() == PUT.class ||
-            a.annotationType() == DELETE.class ||
-            a.annotationType() == HEAD.class ||
-            a.annotationType() == OPTIONS.class ||
-            a.annotationType() == GET.class)
+                a.annotationType() == PUT.class ||
+                a.annotationType() == DELETE.class ||
+                a.annotationType() == HEAD.class ||
+                a.annotationType() == OPTIONS.class ||
+                a.annotationType() == GET.class)
         .map(a -> HTTPMethod.valueOf(a.annotationType().getSimpleName()))
         .collect(Collectors.toList());
     if (supportedHTTPMethods.isEmpty()) {

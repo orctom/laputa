@@ -1,7 +1,6 @@
 package com.orctom.laputa.utils;
 
 import com.google.common.base.Stopwatch;
-import com.sun.prism.paint.Stop;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -9,7 +8,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.*;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class IdGeneratorTest {
 
