@@ -84,13 +84,13 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
       if (null != byteBuf) {
         byteBuf.release();
       }
-      ctx.close();
+//      ctx.close();
     }
   }
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOGGER.error(cause.getMessage(), cause);
-    ctx.close();
+//    ctx.close();
   }
 }
