@@ -1,4 +1,5 @@
 DummyTests.java
+DummyTest.java
 .gradle
 .idea
 *.iml
@@ -15,4 +16,4 @@ target/
 *tmp*
 *temp*
 diagrams
-/laputa-server/src/test/java/io
+/laputa-service-example/src/main/java/io/netty/
