@@ -29,6 +29,6 @@ class LaputaServerInitializer extends ChannelInitializer<SocketChannel> {
     p.addLast(new HttpServerCodec());
     p.addLast(new HttpObjectAggregator(1048576));
     p.addLast(new HttpContentCompressor(1));
-    p.addLast(new LaputaServerHandler());
+    p.addLast(new LaputaServerHandler(null != sslContext));
   }
 }

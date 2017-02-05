@@ -13,6 +13,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.DiskAttribute;
 import io.netty.handler.codec.http.multipart.DiskFileUpload;
+import io.netty.handler.codec.http.websocketx.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,13 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LaputaServerHandler.class);
 
+  private static final String WEBSOCKET_PATH = "/websocket";
+
   private static RequestProcessor requestProcessor = new DefaultRequestProcessor();
+
+  private static boolean isUseSSL = false;
+
+  private WebSocketServerHandshaker handshaker;
 
   static {
     String staticFilesDir = Configurator.getInstance().getStaticFilesDir();
@@ -34,6 +41,10 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     DiskFileUpload.baseDirectory = staticFilesDir;
     DiskAttribute.deleteOnExitTemporaryFile = true;
     DiskAttribute.baseDirectory = staticFilesDir;
+  }
+
+  public LaputaServerHandler(boolean isUseSSL) {
+    LaputaServerHandler.isUseSSL = isUseSSL;
   }
 
   @Override
@@ -49,31 +60,12 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     try {
-      if (msg instanceof HttpRequest) {
-        HttpRequest req = (HttpRequest) msg;
+      if (msg instanceof FullHttpRequest) {
+        handleHttpRequest(ctx, (FullHttpRequest) msg);
 
-        if (HttpUtil.is100ContinueExpected(req)) {
-          ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
-        }
+      } else if (msg instanceof WebSocketFrame) {
+        handleWebSocketFrame(ctx, (WebSocketFrame) msg);
 
-        boolean keepAlive = HttpUtil.isKeepAlive(req);
-
-        ResponseWrapper responseWrapper = requestProcessor.handleRequest(req);
-
-        FullHttpResponse res = new DefaultFullHttpResponse(
-            HTTP_1_1,
-            OK,
-            Unpooled.wrappedBuffer(responseWrapper.getContent())
-        );
-        res.headers().set(CONTENT_TYPE, responseWrapper.getMediaType());
-        res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
-
-        if (!keepAlive) {
-          ctx.write(res).addListener(ChannelFutureListener.CLOSE);
-        } else {
-          res.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-          ctx.write(res);
-        }
       } else {
         ctx.writeAndFlush(HttpResponseStatus.NO_CONTENT);
       }
@@ -86,6 +78,80 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
       }
     }
   }
+
+  private void handleHttpRequest(ChannelHandlerContext ctx, FullHttpRequest req) {
+    if (HttpUtil.is100ContinueExpected(req)) {
+      ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
+    }
+
+    boolean keepAlive = HttpUtil.isKeepAlive(req);
+
+    if ("/websocket".equals(req.uri())) {
+      WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
+          getWebSocketLocation(req),
+          null,
+          true,
+          5 * 1024 * 1024
+      );
+      handshaker = wsFactory.newHandshaker(req);
+      if (handshaker == null) {
+        WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
+      } else {
+        handshaker.handshake(ctx.channel(), req);
+      }
+      return;
+    }
+
+    ResponseWrapper responseWrapper = requestProcessor.handleRequest(req);
+
+    FullHttpResponse res = new DefaultFullHttpResponse(
+        HTTP_1_1,
+        OK,
+        Unpooled.wrappedBuffer(responseWrapper.getContent())
+    );
+    res.headers().set(CONTENT_TYPE, responseWrapper.getMediaType());
+    res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
+
+    if (!keepAlive) {
+      ctx.write(res).addListener(ChannelFutureListener.CLOSE);
+    } else {
+      res.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+      ctx.write(res);
+    }
+  }
+
+  private static String getWebSocketLocation(FullHttpRequest req) {
+    String location =  req.headers().get(HttpHeaderNames.HOST) + WEBSOCKET_PATH;
+    if (isUseSSL) {
+      return "wss://" + location;
+    } else {
+      return "ws://" + location;
+    }
+  }
+
+  private void handleWebSocketFrame(ChannelHandlerContext ctx, WebSocketFrame frame) {
+
+    // Check for closing frame
+    if (frame instanceof CloseWebSocketFrame) {
+      handshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
+      return;
+    }
+    if (frame instanceof PingWebSocketFrame) {
+      ctx.write(new PongWebSocketFrame(frame.content().retain()));
+      return;
+    }
+    if (frame instanceof TextWebSocketFrame) {
+      // Echo the frame
+      ctx.write(frame.retain());
+      return;
+    }
+    if (frame instanceof BinaryWebSocketFrame) {
+      // Echo the frame
+      ctx.write(frame.retain());
+      return;
+    }
+  }
+
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
