@@ -12,29 +12,66 @@ public abstract class RandomUtils {
   private static final int ALPHANUMERIC_LENGTH = ALPHANUMERIC.length();
   private static final int NUMERIC_LENGTH = NUMERIC.length();
 
-  private static final Random random = new Random();
+  private static final Random RANDOM = new Random();
 
   public static String randomAlpha(int length) {
+    if (length <= 0) {
+      throw new IllegalArgumentException("Invalid length: " + length);
+    }
     StringBuilder str = new StringBuilder(length);
     for (int i = 0; i < length; i++) {
-      str.append(ALPHA.charAt(random.nextInt(ALPHA_LENGTH)));
+      str.append(ALPHA.charAt(RANDOM.nextInt(ALPHA_LENGTH)));
     }
     return str.toString();
   }
 
   public static String randomNumeric(int length) {
+    if (length <= 0) {
+      throw new IllegalArgumentException("Invalid length: " + length);
+    }
     StringBuilder str = new StringBuilder(length);
     for (int i = 0; i < length; i++) {
-      str.append(NUMERIC.charAt(random.nextInt(NUMERIC_LENGTH)));
+      str.append(NUMERIC.charAt(RANDOM.nextInt(NUMERIC_LENGTH)));
     }
     return str.toString();
   }
 
   public static String randomAlphaNumeric(int length) {
+    if (length <= 0) {
+      throw new IllegalArgumentException("Invalid length: " + length);
+    }
     StringBuilder str = new StringBuilder(length);
     for (int i = 0; i < length; i++) {
-      str.append(ALPHANUMERIC.charAt(random.nextInt(ALPHANUMERIC_LENGTH)));
+      str.append(ALPHANUMERIC.charAt(RANDOM.nextInt(ALPHANUMERIC_LENGTH)));
     }
     return str.toString();
+  }
+
+  public static long nextLong(final long start, final long end) {
+    if (start < 0) {
+      throw new IllegalArgumentException("Invalid start: " + start);
+    }
+    if (start > end) {
+      throw new IllegalArgumentException("Invalid end: " + end + ", which bigger than start");
+    }
+    if (start == end) {
+      return start;
+    }
+
+    return start + ((end - start) * RANDOM.nextLong());
+  }
+
+  public static double nextDouble(final double start, final double end) {
+    if (start < 0) {
+      throw new IllegalArgumentException("Invalid start: " + start);
+    }
+    if (start > end) {
+      throw new IllegalArgumentException("Invalid end: " + end + ", which bigger than start");
+    }
+    if (start == end) {
+      return start;
+    }
+
+    return start + ((end - start) * RANDOM.nextDouble());
   }
 }
