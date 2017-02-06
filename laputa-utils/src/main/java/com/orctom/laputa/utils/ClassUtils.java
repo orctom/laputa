@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -22,6 +24,7 @@ public class ClassUtils {
   private static final Logger LOGGER = LoggerFactory.getLogger(ClassUtils.class);
 
   private static final Set<Class<?>> primitiveWrapperTypes = new HashSet<>(8);
+  private static final String CHARSET = Charset.defaultCharset().name();
 
   static {
     primitiveWrapperTypes.add(Boolean.class);
@@ -46,7 +49,7 @@ public class ClassUtils {
       while (resources.hasMoreElements()) {
         URL resource = resources.nextElement();
         String protocol = resource.getProtocol();
-        String path = resource.getPath();
+        String path = URLDecoder.decode(resource.getPath(), CHARSET);
         if ("jar".equals(protocol)) {
           int startIndex = path.startsWith("file:") ? "file:".length() : 0;
           int endIndex = path.endsWith("jar") ? 0 : path.indexOf("!");
@@ -93,7 +96,8 @@ public class ClassUtils {
                                         String packageName,
                                         Class<? extends Annotation> annotationClass,
                                         ClassVisitor visitor) {
-    LOGGER.trace("Finding in directory: {}" + directory.getAbsolutePath());
+    LOGGER.trace("Finding in directory: {}", directory.getAbsolutePath());
+
     File[] files = directory.listFiles();
     if (null == files || 0 == files.length) {
       LOGGER.trace("Finding nothing.");
