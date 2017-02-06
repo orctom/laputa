@@ -6,7 +6,7 @@
     </encoder>
   </appender>
 
-  <logger name="com.orctom.laputa" level="trace" additivity="false">
+  <logger name="com.orctom.laputa" level="info" additivity="false">
     <appender-ref ref="stdout"/>
   </logger>
 
