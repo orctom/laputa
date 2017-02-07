@@ -48,17 +48,7 @@ public abstract class RandomUtils {
   }
 
   public static long nextLong(final long start, final long end) {
-    if (start < 0) {
-      throw new IllegalArgumentException("Invalid start: " + start);
-    }
-    if (start > end) {
-      throw new IllegalArgumentException("Invalid end: " + end + ", which bigger than start");
-    }
-    if (start == end) {
-      return start;
-    }
-
-    return start + ((end - start) * RANDOM.nextLong());
+    return (long) nextDouble(start, end);
   }
 
   public static double nextDouble(final double start, final double end) {
