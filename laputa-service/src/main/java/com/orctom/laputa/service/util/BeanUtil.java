@@ -3,6 +3,7 @@ package com.orctom.laputa.service.util;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.orctom.laputa.exception.IllegalArgException;
 import com.orctom.laputa.utils.ClassUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
@@ -11,9 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 public abstract class BeanUtil {
@@ -34,13 +33,25 @@ public abstract class BeanUtil {
       });
 
   public static Object createNewInstance(Class<?> type) {
+    if (type.isInterface()) {
+      if (Set.class.isAssignableFrom(type)) {
+        return new HashSet<>();
+      } else if (List.class.isAssignableFrom(type) || Collection.class.isAssignableFrom(type)) {
+        return new ArrayList<>();
+      } else if (Map.class.isAssignableFrom(type)) {
+        return new HashMap<>();
+      } else {
+        throw new IllegalArgException("Unsupported type: " + type);
+      }
+    }
+
     try {
       Object instance = type.newInstance();
       initializeProperties(instance, type);
       return instance;
     } catch (Exception e) {
       String msg = type + ", due to: " + e.getMessage();
-      throw new IllegalArgumentException(msg, e);
+      throw new IllegalArgException(msg, e);
     }
   }
 

@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 
 import javax.validation.constraints.Size;
+import java.util.Collection;
 
 @Controller
 @Path("/product")
@@ -38,6 +39,16 @@ public class Product {
   @Path("/sku/new")
   public SKU addSKU(@Param("sku") SKU sku) {
     return sku;
+  }
+
+  @Path("/skus")
+  @POST
+  public String addSKUs(@Param("skus") Collection<SKU> skus) {
+    System.out.println(skus);
+    if (null != skus) {
+      skus.forEach(System.out::println);
+    }
+    return "success.";
   }
 
   // curl -F "file=@sent.txt" http://localhost:7000/product/upload | less

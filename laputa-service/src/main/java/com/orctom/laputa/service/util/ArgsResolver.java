@@ -126,7 +126,12 @@ public abstract class ArgsResolver {
         .stream()
         .filter(item -> item.getKey().startsWith(paramName) && item.getKey().length() > paramName.length())
         .collect(Collectors.toMap(
-            item -> item.getKey().substring(item.getKey().indexOf(paramName) + paramName.length() + 1),
+            item -> {
+              String param = paramName + ".";
+              String key = item.getKey();
+              int start = key.indexOf(param);
+              return start > 0 ? key.substring(start + param.length()) : key;
+            },
             Map.Entry::getValue));
   }
 }
