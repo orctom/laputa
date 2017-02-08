@@ -34,9 +34,7 @@ public abstract class BeanUtil {
 
   public static Object createNewInstance(Class<?> type) {
     if (type.isInterface()) {
-      if (Set.class.isAssignableFrom(type)) {
-        return new HashSet<>();
-      } else if (List.class.isAssignableFrom(type) || Collection.class.isAssignableFrom(type)) {
+      if (List.class.isAssignableFrom(type)) {
         return new ArrayList<>();
       } else if (Map.class.isAssignableFrom(type)) {
         return new HashMap<>();
@@ -56,32 +54,41 @@ public abstract class BeanUtil {
   }
 
   public static void initializeProperties(Object bean, Class<?> type) {
-    Set<Field> fields = null;
     try {
-      fields = fieldsCache.get(type);
+      Set<Field> fields = fieldsCache.get(type);
+      if (null == fields || fields.isEmpty()) {
+        return;
+      }
+      fields.forEach(field -> {
+        if (EMPTY.equals(field.getName()) || field.isSynthetic()) {
+          return;
+        }
+
+        Class<?> propertyType = field.getType();
+        if (ClassUtils.isSimpleValueType(propertyType) || propertyType.isAssignableFrom(File.class)) {
+          return;
+        }
+
+        if (isFieldInitialized(bean, field)) {
+          return;
+        }
+        Object property = createNewInstance(propertyType);
+        try {
+          PropertyUtils.setProperty(bean, field.getName(), property);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+          LOGGER.warn(e.getMessage(), e);
+        }
+      });
     } catch (ExecutionException e) {
       LOGGER.error(e.getMessage(), e);
     }
+  }
 
-    if (null == fields || fields.isEmpty()) {
-      return;
-    }
-
-    for (Field field : fields) {
-      if (EMPTY.equals(field.getName()) || field.isSynthetic()) {
-        continue;
-      }
-
-      Class<?> propertyType = field.getType();
-      if (ClassUtils.isSimpleValueType(propertyType) || propertyType.isAssignableFrom(File.class)) {
-        continue;
-      }
-      Object property = createNewInstance(propertyType);
-      try {
-        PropertyUtils.setProperty(bean, field.getName(), property);
-      } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-        LOGGER.warn(e.getMessage(), e);
-      }
+  private static boolean isFieldInitialized(Object bean, Field field) {
+    try {
+      return null != PropertyUtils.getProperty(bean, field.getName());
+    } catch (Exception e) {
+      return false;
     }
   }
 }

@@ -5,13 +5,13 @@ import com.orctom.laputa.service.annotation.POST;
 import com.orctom.laputa.service.annotation.Param;
 import com.orctom.laputa.service.annotation.Path;
 import com.orctom.laputa.service.example.model.SKU;
+import com.orctom.laputa.service.example.model.Products;
 import com.orctom.laputa.service.model.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 
 import javax.validation.constraints.Size;
-import java.util.Collection;
 
 @Controller
 @Path("/product")
@@ -41,13 +41,10 @@ public class Product {
     return sku;
   }
 
-  @Path("/skus")
+  @Path("/products")
   @POST
-  public String addSKUs(@Param("skus") Collection<SKU> skus) {
-    System.out.println(skus);
-    if (null != skus) {
-      skus.forEach(System.out::println);
-    }
+  public String addProducts(@Param("products") Products products) {
+    System.out.println(products);
     return "success.";
   }
 

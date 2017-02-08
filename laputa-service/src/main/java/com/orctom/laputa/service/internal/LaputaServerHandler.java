@@ -14,6 +14,7 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.DiskAttribute;
 import io.netty.handler.codec.http.multipart.DiskFileUpload;
 import io.netty.handler.codec.http.websocketx.*;
+import io.netty.handler.timeout.ReadTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -155,7 +156,9 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-    LOGGER.error(cause.getMessage(), cause);
+    if (!(cause instanceof ReadTimeoutException)) {
+      LOGGER.error(cause.getMessage(), cause);
+    }
     ctx.close();
   }
 }
