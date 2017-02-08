@@ -17,7 +17,7 @@ public class IdGeneratorTest {
     final Collection<Long> ids = new ArrayList<>();
     final IdGenerator generator = IdGenerator.create();
     Stopwatch sw = Stopwatch.createStarted();
-    for (int i = 0; i < 10_000_000; i++) {
+    for (int i = 0; i < 1_000_000; i++) {
       ids.add(generator.generate());
     }
     sw.stop();
