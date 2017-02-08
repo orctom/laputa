@@ -1,9 +1,6 @@
 package com.orctom.laputa.service.example.controller;
 
-import com.orctom.laputa.service.annotation.DefaultValue;
-import com.orctom.laputa.service.annotation.POST;
-import com.orctom.laputa.service.annotation.Param;
-import com.orctom.laputa.service.annotation.Path;
+import com.orctom.laputa.service.annotation.*;
 import com.orctom.laputa.service.example.model.SKU;
 import com.orctom.laputa.service.example.model.Products;
 import com.orctom.laputa.service.model.MultipartFile;
@@ -46,6 +43,14 @@ public class Product {
   public String addProducts(@Param("products") Products products) {
     System.out.println(products);
     return "success.";
+  }
+
+  // curl -H "Content-Type: application/json" -X POST -d '{"uid":"1001","skus":[{"sku":"123","desc":"a sku","category":"1","stock":"1000"},{"sku":"122","desc":"b sku","category":"2","stock":"100"}]}' http://localhost:7000/product/products/2
+  @Path("/products/2")
+  @POST
+  public String addProducts2(@Data Products products) {
+    System.out.println(products);
+    return "success..";
   }
 
   // curl -F "file=@sent.txt" http://localhost:7000/product/upload | less

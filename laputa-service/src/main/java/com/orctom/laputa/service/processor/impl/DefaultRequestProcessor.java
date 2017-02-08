@@ -18,12 +18,10 @@ import com.orctom.laputa.service.translator.ResponseTranslator;
 import com.orctom.laputa.service.translator.ResponseTranslators;
 import com.orctom.laputa.service.util.ArgsResolver;
 import com.orctom.laputa.service.util.ParamResolver;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
+import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cglib.reflect.FastMethod;
@@ -80,10 +78,10 @@ public class DefaultRequestProcessor implements RequestProcessor {
   }
 
   @Override
-  public ResponseWrapper handleRequest(HttpRequest req) {
-    RequestWrapper requestWrapper = getRequestWrapper(req);
+  public ResponseWrapper handleRequest(FullHttpRequest request) {
+    RequestWrapper requestWrapper = getRequestWrapper(request);
 
-    String accept = req.headers().get(HttpHeaderNames.ACCEPT);
+    String accept = request.headers().get(HttpHeaderNames.ACCEPT);
     ResponseTranslator translator = ResponseTranslators.getTranslator(requestWrapper.getPath(), accept);
 
     if (null != rateLimiter && !rateLimiter.tryAcquire(200, TimeUnit.MILLISECONDS)) {
@@ -118,22 +116,22 @@ public class DefaultRequestProcessor implements RequestProcessor {
     }
   }
 
-  private RequestWrapper getRequestWrapper(HttpRequest req) {
-    HttpMethod method = req.method();
-    String uri = req.uri();
+  private RequestWrapper getRequestWrapper(FullHttpRequest request) {
+    HttpMethod method = request.method();
+    String uri = request.uri();
     LOGGER.debug("uri = {}", uri);
 
     if (HttpMethod.POST.equals(method) ||
         HttpMethod.PUT.equals(method) ||
         HttpMethod.PATCH.equals(method)) {
-      return wrapPostRequest(req);
+      return wrapPostRequest(request);
     } else {
-      return wrapGetRequest(method, uri);
+      return wrapGetRequest(request, method, uri);
     }
   }
 
-  private RequestWrapper wrapPostRequest(HttpRequest req) {
-    HttpPostRequestDecoder decoder = getHttpPostRequestDecoder(req);
+  private RequestWrapper wrapPostRequest(FullHttpRequest request) {
+    HttpPostRequestDecoder decoder = getHttpPostRequestDecoder(request);
     List<InterfaceHttpData> bodyDatas = decoder.getBodyHttpDatas();
 
     Map<String, List<String>> parameters = new HashMap<>();
@@ -149,7 +147,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
       }
     }
 
-    return new RequestWrapper(req.method(), req.uri(), parameters);
+    String data = getRequestData(request);
+    return new RequestWrapper(request.method(), request.uri(), parameters, data);
   }
 
   private void addToParameters(Map<String, List<String>> parameters, Attribute attribute) {
@@ -182,11 +181,16 @@ public class DefaultRequestProcessor implements RequestProcessor {
     }
   }
 
-  private RequestWrapper wrapGetRequest(HttpMethod method, String uri) {
+  private RequestWrapper wrapGetRequest(FullHttpRequest request, HttpMethod method, String uri) {
     QueryStringDecoder queryStringDecoder = getQueryStringDecoder(uri);
     String path = queryStringDecoder.path();
     Map<String, List<String>> queryParameters = queryStringDecoder.parameters();
-    return new RequestWrapper(method, path, queryParameters);
+    String data = getRequestData(request);
+    return new RequestWrapper(method, path, queryParameters, data);
+  }
+
+  private String getRequestData(FullHttpRequest request) {
+    return request.content().toString(CharsetUtil.UTF_8);
   }
 
   private <T> Collection<T> getBeansOfType(Class<T> type) {
@@ -236,12 +240,12 @@ public class DefaultRequestProcessor implements RequestProcessor {
     }
   }
 
-  private HttpPostRequestDecoder getHttpPostRequestDecoder(HttpRequest req) {
+  private HttpPostRequestDecoder getHttpPostRequestDecoder(HttpRequest request) {
     Charset charset = Configurator.getInstance().getCharset();
     if (null != charset) {
-      return new HttpPostRequestDecoder(new DefaultHttpDataFactory(true, charset), req);
+      return new HttpPostRequestDecoder(new DefaultHttpDataFactory(true, charset), request);
     } else {
-      return new HttpPostRequestDecoder(new DefaultHttpDataFactory(true), req);
+      return new HttpPostRequestDecoder(new DefaultHttpDataFactory(true), request);
     }
   }
 
@@ -263,6 +267,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
     if (0 == methodParameters.length) {
       return handlerMethod.invoke(target, null);
     }
+
+    // process @Data
 
     Map<String, String> params = ParamResolver.extractParams(
         handlerMethod.getJavaMethod(),

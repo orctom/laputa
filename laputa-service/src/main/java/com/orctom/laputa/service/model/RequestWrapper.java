@@ -14,11 +14,13 @@ public class RequestWrapper {
   private HttpMethod httpMethod;
   private String path;
   private Map<String, List<String>> params;
+  private String data;
 
-  public RequestWrapper(HttpMethod httpMethod, String path, Map<String, List<String>> params) {
+  public RequestWrapper(HttpMethod httpMethod, String path, Map<String, List<String>> params, String data) {
     this.httpMethod = httpMethod;
     this.path = path;
     this.params = params;
+    this.data = data;
   }
 
   public HttpMethod getHttpMethod() {
@@ -45,8 +47,16 @@ public class RequestWrapper {
     this.params = params;
   }
 
+  public String getData() {
+    return data;
+  }
+
+  public void setData(String data) {
+    this.data = data;
+  }
+
   @Override
   public String toString() {
-    return "path: " + path + ", params: " + params;
+    return "path: " + path + ", params: " + params + ", data: " + data;
   }
 }
