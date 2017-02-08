@@ -130,7 +130,7 @@ public abstract class ArgsResolver {
               String param = paramName + ".";
               String key = item.getKey();
               int start = key.indexOf(param);
-              return start > 0 ? key.substring(start + param.length()) : key;
+              return start >= 0 ? key.substring(start + param.length()) : key;
             },
             Map.Entry::getValue));
   }

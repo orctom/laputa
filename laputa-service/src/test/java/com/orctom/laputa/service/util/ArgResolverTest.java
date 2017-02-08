@@ -1,9 +1,12 @@
 package com.orctom.laputa.service.util;
 
+import com.google.common.collect.Lists;
 import com.orctom.laputa.service.annotation.Param;
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.domain.Category;
+import com.orctom.laputa.service.domain.Categories;
 import com.orctom.laputa.service.domain.SKU;
+import org.joda.time.DateTime;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -12,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class ArgResolverTest {
 
@@ -35,6 +39,9 @@ public class ArgResolverTest {
     public void mixed(@Param("a") String a,
                       @Param("b") String b,
                       @Param("category") Category category) {
+    }
+
+    public void indexed(@Param("skus") Categories categories) {
     }
   }
 
@@ -107,7 +114,6 @@ public class ArgResolverTest {
     assertArrayEquals(expected, actual);
   }
 
-
   @Test
   public void testDate() throws Exception {
     Method method = Dummy.class.getDeclaredMethod("complex", Category.class);
@@ -121,4 +127,26 @@ public class ArgResolverTest {
     assertArrayEquals(expected, actual);
   }
 
+  @Test
+  public void testIndexed() throws Exception {
+    Method method = Dummy.class.getDeclaredMethod("indexed", Categories.class);
+    Map<String, String> paramValues = new HashMap<>();
+    paramValues.put("id", "10000");
+    paramValues.put("categories[0].id", "10000");
+    paramValues.put("categories[0].name", "the name");
+    paramValues.put("categories[0].date", "2016-09-09");
+    paramValues.put("categories[1].id", "10001");
+    paramValues.put("categories[1].name", "the other name");
+    paramValues.put("categories[1].date", "2016-09-10");
+
+    Categories categories = new Categories();
+    categories.setId("10000");
+    categories.setCategories(Lists.newArrayList(
+        new Category(10000L, "the name", DateTime.parse("2016-09-09").toDate()),
+        new Category(10001L, "the other name", DateTime.parse("2016-09-10").toDate())
+    ));
+    Object[] expected = new Object[] {categories};
+    Object[] actual = ArgsResolver.resolveArgs(method.getParameters(), paramValues);
+    assertArrayEquals(expected, actual);
+  }
 }
