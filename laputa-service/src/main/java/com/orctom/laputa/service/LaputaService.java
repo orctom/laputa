@@ -49,6 +49,7 @@ public class LaputaService {
   }
 
   public void run(Class<?> configurationClass) {
+    printAsciiArt();
     validate(configurationClass);
     createApplicationContext(configurationClass);
     startup();
@@ -69,7 +70,6 @@ public class LaputaService {
   }
 
   private void startup() {
-    printAsciiArt();
     loadMappings();
     LOGGER.info("Starting service...");
     bootstrapHttpsService();
