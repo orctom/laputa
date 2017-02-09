@@ -4,11 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
+import java.util.Map;
+import java.util.Scanner;
 import java.util.regex.Pattern;
 
 /**
@@ -24,8 +27,9 @@ public abstract class HostUtils {
   private static final Pattern PATTERN_IP = Pattern.compile("\\d{1,3}(\\.\\d{1,3}){3,5}$");
   private static final String ETH0 = "eth0";
   private static final String PREFIX_DOCKER = "docker";
-  private static volatile InetAddress LOCAL_ADDRESS = null;
-  private static volatile String MAC_ADDRESS = null;
+  private static volatile String hostname = null;
+  private static volatile InetAddress localAddress = null;
+  private static volatile String macAddress = null;
 
   public static String getHostIdentity() {
     InetAddress localhost = getLocalHostAddress();
@@ -33,6 +37,26 @@ public abstract class HostUtils {
       return localhost.getHostName() + "" + getHostId();
     }
     return String.valueOf(getHostId());
+  }
+
+  public static String getHostname() {
+    if (null == hostname) {
+      hostname = getHostname0();
+    }
+    return hostname;
+  }
+
+  private static String getHostname0() {
+    InetAddress localhost = getLocalHostAddress();
+    if (null != localhost) {
+      return localhost.getHostName();
+    }
+
+    try {
+      return executeCommand("hostname");
+    } catch (IOException e) {
+      return null;
+    }
   }
 
   public static Long getHostId() {
@@ -49,10 +73,10 @@ public abstract class HostUtils {
   }
 
   public static String getMacAddress() {
-    if (null == MAC_ADDRESS) {
-      MAC_ADDRESS = getMacAddress0();
+    if (null == macAddress) {
+      macAddress = getMacAddress0();
     }
-    return MAC_ADDRESS;
+    return macAddress;
   }
 
   private static String getMacAddress0() {
@@ -106,10 +130,10 @@ public abstract class HostUtils {
   }
 
   public static InetAddress getLocalAddress() {
-    if (null == LOCAL_ADDRESS) {
-      LOCAL_ADDRESS = getLocalAddress0();
+    if (null == localAddress) {
+      localAddress = getLocalAddress0();
     }
-    return LOCAL_ADDRESS;
+    return localAddress;
   }
 
   private static InetAddress getLocalAddress0() {
@@ -186,6 +210,15 @@ public abstract class HostUtils {
     } catch (UnknownHostException e) {
       LOGGER.warn(e.getMessage(), e);
       return null;
+    }
+  }
+
+  public static String executeCommand(String command) throws IOException {
+    Process proc = Runtime.getRuntime().exec(command);
+    try (InputStream stream = proc.getInputStream()) {
+      try (Scanner s = new Scanner(stream).useDelimiter("\\A")) {
+        return s.hasNext() ? s.next() : "";
+      }
     }
   }
 }
