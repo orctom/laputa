@@ -1,6 +1,8 @@
 package com.orctom.laputa.service.config;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.orctom.laputa.utils.HostUtils;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
@@ -27,6 +29,8 @@ public class Configurator {
 
   private static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd,yyyyMMdd,yyyy-MM-dd HH:mm:ss";
 
+  private static final String DIR_HOST = "host/";
+
   private Config config;
   private boolean debugEnabled;
   private Charset charset;
@@ -49,9 +53,12 @@ public class Configurator {
   private void initConfig() {
     String appRootDir = Paths.get(".").toAbsolutePath().toString();
 
-    config = ConfigFactory.parseString("appRootDir=\"" + appRootDir + "\"")
-        .withFallback(ConfigFactory.load())
-        .withFallback(ConfigFactory.load("reference"));
+    config = ConfigFactory.parseString("appRootDir=\"" + appRootDir + "\"");
+    String hostname = HostUtils.getHostname();
+    if (!Strings.isNullOrEmpty(hostname)) {
+      config = config.withFallback(ConfigFactory.load(DIR_HOST + hostname));
+    }
+    config = config.withFallback(ConfigFactory.load());
   }
 
   private void initDebugFlag() {
