@@ -43,7 +43,7 @@ public class ClassUtils {
       throws ClassLoadingException {
     LOGGER.trace("Finding classes with annotation: {}, in package: {}", annotationClass, packageName);
     try {
-      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+      ClassLoader classLoader = getClassLoader();
       String packagePath = packageName.replace('.', '/');
       Enumeration<URL> resources = classLoader.getResources(packagePath);
       while (resources.hasMoreElements()) {
@@ -64,6 +64,10 @@ public class ClassUtils {
     } catch (IOException e) {
       throw new ClassLoadingException(e);
     }
+  }
+
+  private static ClassLoader getClassLoader() {
+    return Thread.currentThread().getContextClassLoader();
   }
 
   private static void findClassesInJar(File jarFilePath,
@@ -123,7 +127,7 @@ public class ClassUtils {
     int endIndex = classFileName.length() - 6;
     try {
       String className = classFileName.substring(beginIndex, endIndex).replaceAll("/", ".");
-      return Class.forName(className);
+      return Class.forName(className, false, getClassLoader());
     } catch (ClassNotFoundException e) {
       throw new ClassLoadingException(e);
     }
@@ -132,7 +136,7 @@ public class ClassUtils {
   private static Class<?> loadClass(String classFileName) {
     try {
       String className = classFileName.substring(0, classFileName.length() - 6);
-      return Class.forName(className);
+      return Class.forName(className, false, getClassLoader());
     } catch (ClassNotFoundException e) {
       throw new ClassLoadingException(e);
     }
