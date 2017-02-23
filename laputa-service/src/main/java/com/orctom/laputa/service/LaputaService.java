@@ -5,6 +5,9 @@ import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.config.MappingConfig;
 import com.orctom.laputa.service.internal.Bootstrapper;
 import com.orctom.laputa.service.internal.handler.DefaultHandler;
+import com.orctom.laputa.service.model.Response;
+import com.orctom.laputa.service.translator.ResponseTranslator;
+import com.orctom.laputa.service.translator.ResponseTranslators;
 import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ServiceLoader;
 
 /**
  * Serving http
@@ -52,6 +56,7 @@ public class LaputaService {
     printAsciiArt();
     validate(configurationClass);
     createApplicationContext(configurationClass);
+    loadResponseTranslators();
     startup();
   }
 
@@ -67,6 +72,10 @@ public class LaputaService {
   private void createApplicationContext(Class<?> configurationClass) {
     applicationContext = new AnnotationConfigApplicationContext(configurationClass);
     registerBean(DefaultHandler.class, "defaultHandler");
+  }
+
+  private void loadResponseTranslators() {
+    ServiceLoader.load(ResponseTranslator.class).forEach(ResponseTranslators::register);
   }
 
   private void startup() {

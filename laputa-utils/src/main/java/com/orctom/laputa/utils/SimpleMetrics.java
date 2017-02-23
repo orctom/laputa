@@ -21,7 +21,7 @@ public class SimpleMetrics {
   private final Logger logger;
   private final long period;
   private final TimeUnit unit;
-  private Map<String, MutableInt> meters;
+  private Map<String, SimpleMeter> meters;
   private Map<String, Callable<String>> gauges = new LinkedHashMap<>();
   private MetricCallback callback;
 
@@ -71,19 +71,19 @@ public class SimpleMetrics {
   }
 
   public void mark(String key) {
-    MutableInt meter = meter(key);
+    SimpleMeter meter = meter(key);
     meter.increase();
   }
 
-  public MutableInt meter(String key) {
-    MutableInt meter = meters.get(key);
+  public SimpleMeter meter(String key) {
+    SimpleMeter meter = meters.get(key);
     if (null != meter) {
       return meter;
     }
 
-    meter = new MutableInt(0);
+    meter = new SimpleMeter();
     synchronized (this) {
-      MutableInt old = meters.put(key, meter);
+      SimpleMeter old = meters.put(key, meter);
       if (null != old) {
         meter.increaseBy(old.getValue());
       }
@@ -124,10 +124,11 @@ public class SimpleMetrics {
 
   private void reportMeters() {
     float duration = unit.toSeconds(period);
-    for (Map.Entry<String, MutableInt> entry : meters.entrySet()) {
+    for (Map.Entry<String, SimpleMeter> entry : meters.entrySet()) {
       String key = entry.getKey();
-      MutableInt value = entry.getValue();
-      int count = value.getAndSet(0);
+      SimpleMeter meter = entry.getValue();
+      int count = meter.getValue();
+      meter.reset();
       float rate = count / duration;
       logger.info("meter: {}, count: {}, mean: {}/s", entry.getKey(), count, rate);
       sendToCallback(key, count, rate);

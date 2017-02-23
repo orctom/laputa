@@ -82,7 +82,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
     RequestWrapper requestWrapper = getRequestWrapper(request);
 
     String accept = request.headers().get(HttpHeaderNames.ACCEPT);
-    ResponseTranslator translator = ResponseTranslators.getTranslator(requestWrapper.getPath(), accept);
+    ResponseTranslator translator = ResponseTranslators.getTranslator(requestWrapper, accept);
 
     if (null != rateLimiter && !rateLimiter.tryAcquire(200, TimeUnit.MILLISECONDS)) {
       return new ResponseWrapper(translator.getMediaType(), ERROR_BUSY);
@@ -105,7 +105,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
         // post-processors
         Object processed = postProcess(data);
 
-        byte[] content = translator.translate(processed);
+        byte[] content = translator.translate(mapping, processed);
         return new ResponseWrapper(translator.getMediaType(), content);
       } catch (ParameterValidationException e) {
         return new ResponseWrapper(translator.getMediaType(), e.getMessage().getBytes(UTF8));

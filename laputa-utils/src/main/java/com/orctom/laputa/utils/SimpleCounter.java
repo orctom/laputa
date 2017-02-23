@@ -1,9 +1,10 @@
 package com.orctom.laputa.utils;
 
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 
 /**
@@ -12,35 +13,35 @@ import java.util.stream.Collectors;
  */
 public class SimpleCounter {
 
-  private Map<String, MutableInt> counters = new HashMap<>();
+  private Map<String, LongAdder> counters = new HashMap<>();
 
-  public int count(String key) {
-    return getCounter(key).increase();
+  public void count(String key) {
+    getCounter(key).increment();
   }
 
-  public int count(String key, int increment) {
-    return getCounter(key).increaseBy(increment);
+  public void count(String key, int increment) {
+    getCounter(key).add(increment);
   }
 
-  private MutableInt getCounter(String key) {
-    MutableInt counter = counters.get(key);
+  private LongAdder getCounter(String key) {
+    LongAdder counter = counters.get(key);
     if (null != counter) {
       return counter;
     }
 
-    counter = new MutableInt(0);
+    counter = new LongAdder();
     synchronized (this) {
-      MutableInt old = counters.put(key, counter);
+      LongAdder old = counters.put(key, counter);
       if (null != old) {
-        counter.increaseBy(old.getValue());
+        counter.add(old.longValue());
       }
     }
     return counter;
   }
 
-  public List<Map.Entry<String, MutableInt>> getResult() {
-    List<Map.Entry<String, MutableInt>> result = counters.entrySet().stream().collect(Collectors.toList());
-    Collections.sort(result, (o1, o2) -> o1.getValue().compareTo(o2.getValue()));
+  public List<Map.Entry<String, LongAdder>> getResult() {
+    List<Map.Entry<String, LongAdder>> result = counters.entrySet().stream().collect(Collectors.toList());
+    result.sort(Comparator.comparingLong(o -> o.getValue().longValue()));
     return result;
   }
 

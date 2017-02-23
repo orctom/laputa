@@ -16,7 +16,11 @@ public class RequestWrapper {
   private Map<String, List<String>> params;
   private String data;
 
-  public RequestWrapper(HttpMethod httpMethod, String path, Map<String, List<String>> params, String data) {
+  public RequestWrapper(
+      HttpMethod httpMethod,
+      String path,
+      Map<String, List<String>> params,
+      String data) {
     this.httpMethod = httpMethod;
     this.path = path;
     this.params = params;

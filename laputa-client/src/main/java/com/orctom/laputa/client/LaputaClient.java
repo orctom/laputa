@@ -5,7 +5,11 @@ package com.orctom.laputa.client;
  */
 public class LaputaClient {
 
-  public static <T> T consume(String serviceURL, String endpoint, Class<T> returnClass, Object... args) {
+  public static <T> T consume(
+      String serviceURL,
+      String endpoint,
+      Class<T> returnClass,
+      Object... args) {
     return null;
   }
 }

@@ -3,6 +3,10 @@ package com.orctom.laputa.service.translator;
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.model.Accepts;
 import com.orctom.laputa.service.model.MediaType;
+import com.orctom.laputa.service.model.RequestWrapper;
+import io.netty.handler.codec.http.HttpMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +17,8 @@ import java.util.Map;
  * Created by hao on 11/25/15.
  */
 public abstract class ResponseTranslators {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ResponseTranslators.class);
 
   private static final Map<String, ResponseTranslator> REGISTRY = new HashMap<>();
 
@@ -30,15 +36,24 @@ public abstract class ResponseTranslators {
     registerTranslator(ProtoBufResponseTranslator.TYPE.getValue(), protoBufResponseTranslator);
   }
 
-  public static void registerTranslator(String type, ResponseTranslator encoder) {
+  private static void registerTranslator(String type, ResponseTranslator encoder) {
     REGISTRY.put(type, encoder);
   }
 
-  public static ResponseTranslator getTranslator(String uri, String accept) {
+  public static void register(ResponseTranslator responseTranslator) {
+    LOGGER.info("Registered ResponseTranslator: {}} -> {}", responseTranslator.getMediaType(), responseTranslator);
+    registerTranslator(responseTranslator.getMediaType(), responseTranslator);
+  }
+
+  public static ResponseTranslator getTranslator(RequestWrapper requestWrapper, String accept) {
+    String uri = requestWrapper.getPath();
     String extension = getExtension(uri);
     ResponseTranslator translator = REGISTRY.get(extension);
 
     if (null != translator) {
+      if (isRequestingForWebButNotGetMethod(requestWrapper, translator)) {
+        return getResponseTypeEncoder(MediaType.APPLICATION_JSON);
+      }
       return translator;
     }
 
@@ -54,11 +69,18 @@ public abstract class ResponseTranslators {
     for (String type : accepts) {
       ResponseTranslator encoder = REGISTRY.get(type);
       if (null != encoder) {
+        if (isRequestingForWebButNotGetMethod(requestWrapper, encoder)) {
+          return getResponseTypeEncoder(MediaType.APPLICATION_JSON);
+        }
         return encoder;
       }
     }
 
     return getResponseTypeEncoder(MediaType.APPLICATION_JSON);
+  }
+
+  private static boolean isRequestingForWebButNotGetMethod(RequestWrapper requestWrapper, ResponseTranslator translator) {
+    return translator instanceof TemplateResponseTranslator && HttpMethod.GET != requestWrapper.getHttpMethod();
   }
 
   private static String getExtension(String uri) {
