@@ -93,7 +93,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
         RequestMapping mapping = MappingConfig.getInstance().getMapping(
             requestWrapper.getPath(),
-            getHttpMethod(requestWrapper.getHttpMethod()));
+            getHttpMethod(requestWrapper.getHttpMethod())
+        );
 
         Object data;
         try {
@@ -159,11 +160,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
       }
 
       String name = attribute.getName();
-      List<String> params = parameters.get(name);
-      if (null == params) {
-        params = new ArrayList<>();
-        parameters.put(name, params);
-      }
+      List<String> params = parameters.computeIfAbsent(name, k -> new ArrayList<>());
       params.add(value);
     } catch (IOException e) {
       throw new RequestProcessingException(e.getMessage(), e);
@@ -221,7 +218,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
     List<PostProcessor> processors = new ArrayList<>(postProcessors);
     Object processed = data;
     if (processors.size() > 1) {
-      Collections.sort(processors, (p1, p2) -> p1.getOrder() - p2.getOrder());
+      processors.sort(Comparator.comparingInt(PostProcessor::getOrder));
     }
     for (PostProcessor processor : processors) {
       LOGGER.debug("processing post-processor: #{}", processor.getOrder());
@@ -258,7 +255,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
     return HTTPMethod.GET;
   }
 
-  public Object processRequest(RequestWrapper requestWrapper, RequestMapping mapping)
+  private Object processRequest(RequestWrapper requestWrapper, RequestMapping mapping)
       throws InvocationTargetException, IllegalAccessException {
     FastMethod handlerMethod = mapping.getHandlerMethod();
     Object target = mapping.getTarget();

@@ -37,7 +37,7 @@ public class Accepts {
       }
     }
 
-    Collections.sort(accepts, (o1, o2) -> o2.getValue().compareTo(o1.getValue()));
+    accepts.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));
     sorted = accepts.stream().map(Tuple::getKey).collect(Collectors.toList());
     cache.put(accept, sorted);
 
