@@ -133,7 +133,7 @@ public class MappingConfig {
     }
   }
 
-  protected void configureMappings(Object instance, Class<?> clazz) {
+  private void configureMappings(Object instance, Class<?> clazz) {
     String basePath = "";
     if (clazz.isAnnotationPresent(Path.class)) {
       basePath = clazz.getAnnotation(Path.class).value();
@@ -141,15 +141,16 @@ public class MappingConfig {
 
     for (Method method : clazz.getMethods()) {
       Path path = method.getAnnotation(Path.class);
-      if (null != path) {
-        String pathValue = path.value().trim();
-        if (Strings.isNullOrEmpty(pathValue)) {
-          throw new IllegalArgumentException(
-              "Empty value of Path annotation on " + clazz.getCanonicalName() + " " + method.getName());
-        }
-        String uri = basePath + pathValue;
-        addToMappings(instance, clazz, method, uri);
+      if (null == path) {
+        continue;
       }
+      String pathValue = path.value().trim();
+      if (Strings.isNullOrEmpty(pathValue)) {
+        throw new IllegalArgumentException(
+            "Empty value of Path annotation on " + clazz.getCanonicalName() + " " + method.getName());
+      }
+      String uri = basePath + pathValue;
+      addToMappings(instance, clazz, method, uri);
     }
   }
 
@@ -184,7 +185,7 @@ public class MappingConfig {
       } else {
         RequestMapping mapping = staticMappings.put(
             uri + "/" + httpMethodKey,
-            new RequestMapping(uri, instance, clazz, method, httpMethodKey)
+            new RequestMapping(uri, instance, clazz, method, httpMethodKey, getRedirectTo(method))
         );
         if (null != mapping && !(mapping.getTarget() instanceof DefaultHandler)) {
           throw new IllegalArgumentException("Conflicts found in configured @Path:\n" + uri + ", " + httpMethodKey +
@@ -217,18 +218,24 @@ public class MappingConfig {
 
       boolean containsParam = path.contains("{");
       String pathKey = containsParam ? KEY_PATH_PARAM : path;
-      PathTrie child = children.get(pathKey);
-
-      if (null == child) {
-        child = new PathTrie();
-        children.put(pathKey, child);
-      }
+      PathTrie child = children.computeIfAbsent(pathKey, k -> new PathTrie());
 
       children = child.getChildren();
     }
 
-    PathTrie leaf = new PathTrie(uri, instance, clazz, method, httpMethodKey);
+    PathTrie leaf = new PathTrie(uri, instance, clazz, method, httpMethodKey, getRedirectTo(method));
     children.put(httpMethodKey, leaf);
   }
 
+  private String getRedirectTo(Method method) {
+    RedirectTo redirectTo = method.getAnnotation(RedirectTo.class);
+    if (null == redirectTo) {
+      return null;
+    }
+    String redirectToValue = redirectTo.value().trim();
+    if (Strings.isNullOrEmpty(redirectToValue)) {
+      throw new IllegalArgumentException("Empty value of RedirectTo annotation on " + method.toString());
+    }
+    return redirectToValue;
+  }
 }

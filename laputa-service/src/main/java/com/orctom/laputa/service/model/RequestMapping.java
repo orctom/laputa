@@ -12,16 +12,19 @@ public class RequestMapping {
   private Object target;
   private FastMethod handlerMethod;
   private String httpMethod;
+  private String redirectTo;
 
   public RequestMapping(String uriPattern,
                         Object target,
                         Class<?> handlerClass,
                         Method handlerMethod,
-                        String httpMethod) {
+                        String httpMethod,
+                        String redirectTo) {
     this.uriPattern = uriPattern;
     this.target = target;
     this.handlerMethod = FastClass.create(handlerClass).getMethod(handlerMethod);
     this.httpMethod = httpMethod;
+    this.redirectTo = redirectTo;
   }
 
   public String getUriPattern() {
@@ -42,6 +45,10 @@ public class RequestMapping {
 
   public String getHttpMethod() {
     return httpMethod;
+  }
+
+  public String getRedirectTo() {
+    return redirectTo;
   }
 
   @Override

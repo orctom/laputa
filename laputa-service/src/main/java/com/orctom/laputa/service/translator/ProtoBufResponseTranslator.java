@@ -3,6 +3,7 @@ package com.orctom.laputa.service.translator;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.MediaType;
 import com.orctom.laputa.service.model.RequestMapping;
 import io.protostuff.GraphIOUtil;
@@ -37,7 +38,7 @@ class ProtoBufResponseTranslator implements ResponseTranslator {
 
   @Override
   @SuppressWarnings("unchecked")
-  public byte[] translate(RequestMapping mapping, Object data) throws IOException {
+  public byte[] translate(RequestMapping mapping, Object data, Context ctx) throws IOException {
     Schema schema;
     try {
       schema = schemaCache.get(data.getClass());

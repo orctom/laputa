@@ -3,6 +3,7 @@ package com.orctom.laputa.service.example.controller;
 import com.orctom.laputa.service.annotation.*;
 import com.orctom.laputa.service.example.model.SKU;
 import com.orctom.laputa.service.example.model.Products;
+import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +28,29 @@ public class Product {
     return "hello: " + hello + ", id=" + id;
   }
 
+  @RedirectTo("/product/sku")
+  @Path("/test")
+  public void redirection() {
+  }
+
+  @Path("/test2/{id}")
+  public SKU getSku(String id, Context ctx) {
+    if ("test".equals(id)) {
+      ctx.redirectTo("/product/sku");
+      return null;
+    }
+
+    return sku(id);
+  }
+
   @Path("/sku")
   public SKU sku() {
     return new SKU("315515", "folder", 123456, 100000);
+  }
+
+  @Path("/sku/{id}")
+  public SKU sku(String id) {
+    return new SKU(id, id + "-desc", 123456, 100000);
   }
 
   // http://localhost:7000/product/sku/new?sku=sku&desc=desc&category=cate&stock=100

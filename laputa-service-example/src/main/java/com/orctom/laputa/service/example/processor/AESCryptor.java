@@ -1,53 +1,42 @@
 package com.orctom.laputa.service.example.processor;
 
 import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.orctom.laputa.service.example.util.AES;
+import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.processor.PreProcessor;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class AESCryptor implements PreProcessor {
 
   private static final byte[] KEY = "BGNJLEfl4MJaGXwYZc4DosxYHJaKTJmEAV55FaFfES+ecSIHomxK0d2exkxhDm+k".getBytes();
+  private static final String UTF8 = "UTF-8";
 
   @Override
-  public void process(RequestWrapper requestWrapper) {
+  public void process(RequestWrapper requestWrapper, Context ctx) {
     Map<String, List<String>> requestParams = requestWrapper.getParams();
 
-    // dummy
-    if (requestParams.containsKey("hello")) {
-      requestParams.put("version", Lists.newArrayList("1.0"));
-    }
-
-    List<String> encryped = requestParams.get("q");
-    if (null == encryped || encryped.isEmpty()) {
+    List<String> encrypted = requestParams.remove("data");
+    if (null == encrypted || encrypted.isEmpty()) {
       return;
     }
 
-    String decryped = Base64.getEncoder().encodeToString(AES.decrypt(encryped.get(0).getBytes(), KEY));
-    if (Strings.isNullOrEmpty(decryped)) {
-      return;
+    String decrypted = Base64.getEncoder().encodeToString(AES.decrypt(encrypted.get(0).getBytes(), KEY));
+    try {
+      String decoded = URLDecoder.decode(decrypted, UTF8);
+      Splitter.on("&").trimResults().withKeyValueSeparator("=").split(decoded)
+          .entrySet()
+          .forEach(entry -> requestParams.put(entry.getKey(), Lists.newArrayList(entry.getValue())));
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(e.getMessage(), e);
     }
-
-    Map<String, List<String>> newParams = new HashMap<>();
-    Splitter.on("&").split(decryped).forEach(item -> {
-      String[] param = item.split("=");
-      String key = param[0];
-      String value = param[1];
-      List<String> values = newParams.get(key);
-      if (null == values) {
-        values = new ArrayList<>();
-        newParams.put(key, values);
-      }
-
-      values.add(value);
-    });
-
-    requestWrapper.setParams(newParams);
   }
 }

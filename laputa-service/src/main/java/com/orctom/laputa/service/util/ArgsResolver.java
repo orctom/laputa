@@ -2,6 +2,7 @@ package com.orctom.laputa.service.util;
 
 import com.orctom.laputa.service.annotation.Param;
 import com.orctom.laputa.service.exception.ParameterValidationException;
+import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.utils.ClassUtils;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
@@ -21,7 +22,7 @@ public abstract class ArgsResolver {
   private static final Logger LOGGER = LoggerFactory.getLogger(ArgsResolver.class);
   private static final String DOT = ".";
 
-  public static Object[] resolveArgs(Parameter[] methodParameters, Map<String, String> paramValues) {
+  public static Object[] resolveArgs(Parameter[] methodParameters, Map<String, String> paramValues, Context ctx) {
     if (0 == methodParameters.length) {
       return null;
     }
@@ -32,7 +33,7 @@ public abstract class ArgsResolver {
     int resolved = resolveSimpleTypeArgs(paramValues, methodParameters, args, complexParameters);
 
     if (methodParameters.length != resolved) { // complex types exist
-      resolveComplexTypeArgs(paramValues, args, complexParameters);
+      resolveComplexTypeArgs(paramValues, args, complexParameters, ctx);
     }
 
     return args;
@@ -61,12 +62,18 @@ public abstract class ArgsResolver {
 
   private static void resolveComplexTypeArgs(Map<String, String> paramValues,
                                              Object[] args,
-                                             Map<Parameter, Integer> complexParameters) {
+                                             Map<Parameter, Integer> complexParameters,
+                                             Context ctx) {
     for (Map.Entry<Parameter, Integer> entry : complexParameters.entrySet()) {
       Parameter parameter = entry.getKey();
       String paramName = parameter.getAnnotation(Param.class).value();
       Class<?> type = entry.getKey().getType();
       int index = entry.getValue();
+
+      if (Context.class.isAssignableFrom(type)) {
+        args[index] = ctx;
+        continue;
+      }
 
       Map<String, String> params = retrieveParams(paramValues, paramName);
       if (params.isEmpty()) {

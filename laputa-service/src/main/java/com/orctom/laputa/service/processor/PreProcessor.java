@@ -1,5 +1,6 @@
 package com.orctom.laputa.service.processor;
 
+import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
 
 /**
@@ -8,5 +9,5 @@ import com.orctom.laputa.service.model.RequestWrapper;
  */
 public interface PreProcessor {
 
-  void process(RequestWrapper requestWrapper);
+  void process(RequestWrapper requestWrapper, Context ctx);
 }

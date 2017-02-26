@@ -16,6 +16,7 @@ import com.orctom.laputa.service.processor.PreProcessor;
 import com.orctom.laputa.service.processor.RequestProcessor;
 import com.orctom.laputa.service.translator.ResponseTranslator;
 import com.orctom.laputa.service.translator.ResponseTranslators;
+import com.orctom.laputa.service.translator.TemplateResponseTranslator;
 import com.orctom.laputa.service.util.ArgsResolver;
 import com.orctom.laputa.service.util.ParamResolver;
 import io.netty.handler.codec.http.*;
@@ -86,34 +87,55 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
     if (null != rateLimiter && !rateLimiter.tryAcquire(200, TimeUnit.MILLISECONDS)) {
       return new ResponseWrapper(translator.getMediaType(), ERROR_BUSY);
-    } else {
-      try {
-        // pre-processors
-        preProcess(requestWrapper);
+    }
 
-        RequestMapping mapping = MappingConfig.getInstance().getMapping(
-            requestWrapper.getPath(),
-            getHttpMethod(requestWrapper.getHttpMethod())
-        );
+    return handleRequest(request.headers(), requestWrapper, translator);
+  }
 
-        Object data;
-        try {
-          data = processRequest(requestWrapper, mapping);
-        } catch (ParameterValidationException e) {
-          data = new ValidationError(e.getMessages());
-        }
+  private ResponseWrapper handleRequest(HttpHeaders headers, RequestWrapper requestWrapper, ResponseTranslator translator) {
+    Context ctx = getContext(requestWrapper.getPath(), headers);
 
-        // post-processors
-        Object processed = postProcess(data);
+    // pre-processors
+    preProcess(requestWrapper, ctx);
 
-        byte[] content = translator.translate(mapping, processed);
-        return new ResponseWrapper(translator.getMediaType(), content);
-      } catch (ParameterValidationException e) {
-        return new ResponseWrapper(translator.getMediaType(), e.getMessage().getBytes(UTF8));
-      } catch (Throwable e) {
-        LOGGER.error(e.getMessage(), e);
-        return new ResponseWrapper(translator.getMediaType(), ERROR_CONTENT);
+    try {
+      RequestMapping mapping = MappingConfig.getInstance().getMapping(
+          requestWrapper.getPath(),
+          getHttpMethod(requestWrapper.getHttpMethod())
+      );
+
+      String permanentRedirectTo = mapping.getRedirectTo();
+      if (!Strings.isNullOrEmpty(permanentRedirectTo)) {
+        return new ResponseWrapper(permanentRedirectTo, true);
       }
+
+      Object data;
+      try {
+        data = processRequest(requestWrapper, ctx, mapping);
+      } catch (ParameterValidationException e) {
+        data = new ValidationError(e.getMessages());
+        ctx.put("error", e.getMessage());
+        onValidationError(translator, requestWrapper, ctx);
+      }
+
+      String redirectTo = ctx.getRedirectTo();
+      if (!Strings.isNullOrEmpty(redirectTo)) {
+        if (null != data) {
+          LOGGER.warn("`return null;` probably is missing after `context.redirectTo(...`");
+        }
+        return new ResponseWrapper(redirectTo, false);
+      }
+
+      // post-processors
+      Object processed = postProcess(data);
+
+      byte[] content = translator.translate(mapping, processed, ctx);
+      return new ResponseWrapper(translator.getMediaType(), content);
+    } catch (ParameterValidationException e) {
+      return new ResponseWrapper(translator.getMediaType(), e.getMessage().getBytes(UTF8));
+    } catch (Throwable e) {
+      LOGGER.error(e.getMessage(), e);
+      return new ResponseWrapper(translator.getMediaType(), ERROR_CONTENT);
     }
   }
 
@@ -129,6 +151,13 @@ public class DefaultRequestProcessor implements RequestProcessor {
     } else {
       return wrapGetRequest(request, method, uri);
     }
+  }
+
+  private Context getContext(String uri, HttpHeaders headers) {
+    Context ctx = new Context();
+    ctx.put("uri", uri);
+    ctx.put("referer", headers.get(HttpHeaderNames.REFERER));
+    return ctx;
   }
 
   private RequestWrapper wrapPostRequest(FullHttpRequest request) {
@@ -190,18 +219,36 @@ public class DefaultRequestProcessor implements RequestProcessor {
     return request.content().toString(CharsetUtil.UTF_8);
   }
 
+  private void onValidationError(ResponseTranslator translator, RequestWrapper requestWrapper, Context ctx) {
+    if (translator instanceof TemplateResponseTranslator) {
+      String referer = (String) ctx.get("referer");
+      if (Strings.isNullOrEmpty(referer)) {
+        ctx.redirectTo("/403");
+        return;
+      }
+      StringBuilder url = new StringBuilder(referer);
+      if (referer.contains("?")) {
+        url.append("&");
+      } else {
+        url.append("&");
+      }
+      url.append("error=").append(ctx.get("error"));
+      ctx.redirectTo(url.toString());
+    }
+  }
+
   private <T> Collection<T> getBeansOfType(Class<T> type) {
     return LaputaService.getInstance().getApplicationContext().getBeansOfType(type).values();
   }
 
-  private void preProcess(RequestWrapper requestWrapper) {
+  private void preProcess(RequestWrapper requestWrapper, Context ctx) {
     Collection<PreProcessor> preProcessors = getBeansOfType(PreProcessor.class);
     if (preProcessors.isEmpty()) {
       return;
     }
 
     for (PreProcessor processor : preProcessors) {
-      processor.process(requestWrapper);
+      processor.process(requestWrapper, ctx);
     }
 
     if (LOGGER.isDebugEnabled()) {
@@ -255,7 +302,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
     return HTTPMethod.GET;
   }
 
-  private Object processRequest(RequestWrapper requestWrapper, RequestMapping mapping)
+  private Object processRequest(RequestWrapper requestWrapper, Context ctx, RequestMapping mapping)
       throws InvocationTargetException, IllegalAccessException {
     FastMethod handlerMethod = mapping.getHandlerMethod();
     Object target = mapping.getTarget();
@@ -273,7 +320,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
         requestWrapper
     );
 
-    Object[] args = ArgsResolver.resolveArgs(methodParameters, params);
+    Object[] args = ArgsResolver.resolveArgs(methodParameters, params, ctx);
 
     validate(target, handlerMethod.getJavaMethod(), args);
 

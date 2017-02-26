@@ -1,6 +1,7 @@
 package com.orctom.laputa.service.translator;
 
 import com.alibaba.fastjson.JSON;
+import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.MediaType;
 import com.orctom.laputa.service.model.RequestMapping;
 
@@ -20,7 +21,7 @@ class JsonResponseTranslator implements ResponseTranslator {
   }
 
   @Override
-  public byte[] translate(RequestMapping mapping, Object data) throws IOException {
+  public byte[] translate(RequestMapping mapping, Object data, Context ctx) throws IOException {
     return toBytes(JSON.toJSONString(data));
   }
 }

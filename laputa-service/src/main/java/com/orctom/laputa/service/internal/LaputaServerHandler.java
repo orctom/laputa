@@ -1,5 +1,6 @@
 package com.orctom.laputa.service.internal;
 
+import com.google.common.base.Strings;
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.processor.RequestProcessor;
@@ -19,8 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.*;
-import static io.netty.handler.codec.http.HttpResponseStatus.CONTINUE;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
@@ -105,13 +105,21 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
     ResponseWrapper responseWrapper = requestProcessor.handleRequest(req);
 
-    FullHttpResponse res = new DefaultFullHttpResponse(
-        HTTP_1_1,
-        OK,
-        Unpooled.wrappedBuffer(responseWrapper.getContent())
-    );
-    res.headers().set(CONTENT_TYPE, responseWrapper.getMediaType());
-    res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
+    FullHttpResponse res;
+    if (Strings.isNullOrEmpty(responseWrapper.getRedirectTo())) {
+      res = new DefaultFullHttpResponse(
+          HTTP_1_1,
+          OK,
+          Unpooled.wrappedBuffer(responseWrapper.getContent())
+      );
+      res.headers().set(CONTENT_TYPE, responseWrapper.getMediaType());
+      res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
+    } else {
+      HttpResponseStatus status = responseWrapper.isPermanentRedirect() ? MOVED_PERMANENTLY : FOUND;
+      res = new DefaultFullHttpResponse(HTTP_1_1, status);
+      res.headers().set(LOCATION, responseWrapper.getRedirectTo());
+      res.headers().set(CACHE_CONTROL, "max-age=0");
+    }
 
     if (!keepAlive) {
       ctx.write(res).addListener(ChannelFutureListener.CLOSE);
@@ -149,10 +157,8 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     if (frame instanceof BinaryWebSocketFrame) {
       // Echo the frame
       ctx.write(frame.retain());
-      return;
     }
   }
-
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {

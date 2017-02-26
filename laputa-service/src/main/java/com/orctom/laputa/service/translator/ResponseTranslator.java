@@ -1,6 +1,7 @@
 package com.orctom.laputa.service.translator;
 
 import com.orctom.laputa.service.config.Configurator;
+import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestMapping;
 
 import java.io.IOException;
@@ -15,7 +16,7 @@ public interface ResponseTranslator {
 
   String getMediaType();
 
-  byte[] translate(RequestMapping mapping, Object data) throws IOException;
+  byte[] translate(RequestMapping mapping, Object data, Context ctx) throws IOException;
 
   default byte[] toBytes(String string) {
     Charset charset = Configurator.getInstance().getCharset();

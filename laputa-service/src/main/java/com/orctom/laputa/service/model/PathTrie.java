@@ -23,8 +23,13 @@ public class PathTrie {
     this.handler = handler;
   }
 
-  public PathTrie(String uri, Object instance, Class<?> handlerClass, Method handlerMethod, String httpMethod) {
-    this.handler = new RequestMapping(uri, instance, handlerClass, handlerMethod, httpMethod);
+  public PathTrie(String uri,
+                  Object instance,
+                  Class<?> handlerClass,
+                  Method handlerMethod,
+                  String httpMethod,
+                  String redirectTo) {
+    this.handler = new RequestMapping(uri, instance, handlerClass, handlerMethod, httpMethod, redirectTo);
   }
 
   public RequestMapping getHandler() {

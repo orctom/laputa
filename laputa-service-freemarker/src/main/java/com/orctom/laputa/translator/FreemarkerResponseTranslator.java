@@ -4,18 +4,22 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.orctom.laputa.exception.IllegalConfigException;
 import com.orctom.laputa.service.exception.TemplateProcessingException;
+import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestMapping;
 import com.orctom.laputa.service.translator.TemplateResponseTranslator;
 import com.orctom.laputa.utils.ClassUtils;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
+import org.apache.commons.collections.map.HashedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -49,16 +53,17 @@ public class FreemarkerResponseTranslator extends TemplateResponseTranslator {
   }
 
   @Override
-  public byte[] translate(RequestMapping mapping, Object data) throws IOException {
+  public byte[] translate(RequestMapping mapping, Object data, Context ctx) throws IOException {
     try {
       freemarker.template.Template template = templates.get(mapping);
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       Writer writer = new BufferedWriter(new OutputStreamWriter(out));
       if (ClassUtils.isSimpleValueType(data.getClass())) {
-        Map<String, Object> map = ImmutableMap.of("data", data);
-        template.process(map, writer);
+        Map<String, Object> model = new HashMap<>(ctx.getData());
+        model.put("data", data);
+        template.process(model, writer);
       } else {
-        template.process(data, writer);
+        template.process(Lists.newArrayList(data, ctx), writer);
       }
       return out.toByteArray();
     } catch (TemplateException | ExecutionException e) {
