@@ -4,12 +4,14 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.RateLimiter;
+import com.orctom.laputa.exception.IllegalConfigException;
 import com.orctom.laputa.service.LaputaService;
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.config.MappingConfig;
 import com.orctom.laputa.service.exception.FileUploadException;
 import com.orctom.laputa.service.exception.ParameterValidationException;
 import com.orctom.laputa.service.exception.RequestProcessingException;
+import com.orctom.laputa.service.exception.TemplateProcessingException;
 import com.orctom.laputa.service.model.*;
 import com.orctom.laputa.service.processor.PostProcessor;
 import com.orctom.laputa.service.processor.PreProcessor;
@@ -133,6 +135,9 @@ public class DefaultRequestProcessor implements RequestProcessor {
       return new ResponseWrapper(translator.getMediaType(), content);
     } catch (ParameterValidationException e) {
       return new ResponseWrapper(translator.getMediaType(), e.getMessage().getBytes(UTF8));
+    } catch (IllegalConfigException | TemplateProcessingException e) {
+      LOGGER.error(e.getMessage());
+      return new ResponseWrapper(translator.getMediaType(), ERROR_CONTENT);
     } catch (Throwable e) {
       LOGGER.error(e.getMessage(), e);
       return new ResponseWrapper(translator.getMediaType(), ERROR_CONTENT);

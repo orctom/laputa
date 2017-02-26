@@ -58,8 +58,8 @@ public class FreemarkerResponseTranslator extends TemplateResponseTranslator {
       model.put("model", data);
       template.process(model, writer);
       return out.toByteArray();
-    } catch (TemplateException | ExecutionException e) {
-      throw new TemplateProcessingException(e.getMessage(), e);
+    } catch (Exception e) {
+      throw new TemplateProcessingException(e.getMessage());
     }
   }
 
@@ -69,7 +69,7 @@ public class FreemarkerResponseTranslator extends TemplateResponseTranslator {
       LOGGER.debug("Template Path: {} for url: {}", templatePath, mapping.getUriPattern());
       return cfg.getTemplate(templatePath);
     } catch (IOException e) {
-      throw new IllegalConfigException(e.getMessage(), e);
+      throw new IllegalConfigException(e.getMessage());
     }
   }
 }

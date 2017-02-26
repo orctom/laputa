@@ -66,8 +66,7 @@ public abstract class ArgsResolver {
                                              Context ctx) {
     for (Map.Entry<Parameter, Integer> entry : complexParameters.entrySet()) {
       Parameter parameter = entry.getKey();
-      String paramName = parameter.getAnnotation(Param.class).value();
-      Class<?> type = entry.getKey().getType();
+      Class<?> type = parameter.getType();
       int index = entry.getValue();
 
       if (Context.class.isAssignableFrom(type)) {
@@ -75,6 +74,7 @@ public abstract class ArgsResolver {
         continue;
       }
 
+      String paramName = parameter.getAnnotation(Param.class).value();
       Map<String, String> params = retrieveParams(paramValues, paramName);
       if (params.isEmpty()) {
         params = paramValues;

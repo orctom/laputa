@@ -3,6 +3,7 @@ package com.orctom.laputa.service.util;
 import com.orctom.laputa.exception.IllegalArgException;
 import com.orctom.laputa.service.annotation.DefaultValue;
 import com.orctom.laputa.service.annotation.Param;
+import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.utils.ClassUtils;
 
@@ -36,6 +37,9 @@ public class ParamResolver {
 
     Map<String, String> params = new HashMap<>();
     for (Parameter parameter : methodParameters) {
+      if (Context.class.isAssignableFrom(parameter.getType())) {
+        continue;
+      }
       Param param = parameter.getAnnotation(Param.class);
       if (null == param) {
         throw new IllegalArgException("Missing @Param annotation at " + method.toString());
@@ -82,7 +86,7 @@ public class ParamResolver {
 
     Map<String, String> params = new HashMap<>();
     String[] patternItems = pattern.split("/");
-    String[] pathItems = path.split("/");
+    String[] pathItems = removeExtension(path).split("/");
     for (int i = 0; i < patternItems.length; i++) {
       String patternItem = patternItems[i];
       String pathItem = pathItems[i];
@@ -104,5 +108,13 @@ public class ParamResolver {
       params.put(varName, varValue);
     }
     return params;
+  }
+
+  private static String removeExtension(String path) {
+    int dotIndex = path.indexOf(".");
+    if (-1 == dotIndex) {
+      return path;
+    }
+    return path.substring(0, dotIndex);
   }
 }

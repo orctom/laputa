@@ -34,7 +34,7 @@ public class Product {
   }
 
   @Path("/test2/{id}")
-  public SKU getSku(String id, Context ctx) {
+  public SKU getSku(@Param("id") String id, Context ctx) {
     if ("test".equals(id)) {
       ctx.redirectTo("/product/sku");
       return null;
@@ -49,7 +49,7 @@ public class Product {
   }
 
   @Path("/sku/{id}")
-  public SKU sku(String id) {
+  public SKU sku(@Param("id") String id) {
     return new SKU(id, id + "-desc", 123456, 100000);
   }
 
