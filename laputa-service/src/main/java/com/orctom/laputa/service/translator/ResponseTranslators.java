@@ -1,6 +1,6 @@
 package com.orctom.laputa.service.translator;
 
-import com.orctom.laputa.service.config.Configurator;
+import com.google.common.base.Strings;
 import com.orctom.laputa.service.model.Accepts;
 import com.orctom.laputa.service.model.MediaType;
 import com.orctom.laputa.service.model.RequestWrapper;
@@ -46,59 +46,46 @@ public abstract class ResponseTranslators {
   }
 
   public static ResponseTranslator getTranslator(RequestWrapper requestWrapper, String accept) {
+    // 1, by extension
     String uri = requestWrapper.getPath();
     String extension = getExtension(uri);
-    ResponseTranslator translator = REGISTRY.get(extension);
-
-    if (null != translator) {
-      if (isRequestingForWebButNotGetMethod(requestWrapper, translator)) {
-        return getResponseTypeEncoder(MediaType.APPLICATION_JSON);
+    if (null != extension) {
+      ResponseTranslator translator = REGISTRY.get(extension);
+      if (null != translator) {
+        return translator;
       }
-      return translator;
     }
 
-    if (null == accept || 0 == accept.trim().length()) {
-      return getResponseTypeEncoder(MediaType.APPLICATION_JSON);
+    // 2, by accept header
+    if (Strings.isNullOrEmpty(accept)) {
+      return getResponseTranslatorOfType(MediaType.APPLICATION_JSON);
     }
 
     List<String> accepts = Accepts.sortAsList(accept);
-
     if (null == accepts) {
-      return getResponseTypeEncoder(MediaType.APPLICATION_JSON);
+      return getResponseTranslatorOfType(MediaType.APPLICATION_JSON);
     }
+
     for (String type : accepts) {
       ResponseTranslator encoder = REGISTRY.get(type);
       if (null != encoder) {
-        if (isRequestingForWebButNotGetMethod(requestWrapper, encoder)) {
-          return getResponseTypeEncoder(MediaType.APPLICATION_JSON);
-        }
         return encoder;
       }
     }
 
-    return getResponseTypeEncoder(MediaType.APPLICATION_JSON);
-  }
-
-  private static boolean isRequestingForWebButNotGetMethod(RequestWrapper requestWrapper, ResponseTranslator translator) {
-    return translator instanceof TemplateResponseTranslator && HttpMethod.GET != requestWrapper.getHttpMethod();
+    return getResponseTranslatorOfType(MediaType.APPLICATION_JSON);
   }
 
   private static String getExtension(String uri) {
     int lastDotIndex = uri.lastIndexOf('.');
-    String extension;
-    if (lastDotIndex > 1) {
-      extension = uri.substring(lastDotIndex);
+    if (lastDotIndex > 1 && lastDotIndex < uri.length() - 1) {
+      return uri.substring(lastDotIndex);
     } else {
-      try {
-        extension = Configurator.getInstance().getConfig().getString("default.extension");
-      } catch (Exception e) {
-        extension = JsonResponseTranslator.TYPE.getExtension();
-      }
+      return null;
     }
-    return extension;
   }
 
-  private static ResponseTranslator getResponseTypeEncoder(MediaType mediaType) {
+  private static ResponseTranslator getResponseTranslatorOfType(MediaType mediaType) {
     return REGISTRY.get(mediaType.getValue());
   }
 }
