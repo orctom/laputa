@@ -1,7 +1,6 @@
 package com.orctom.laputa.service.processor.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -59,11 +58,15 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private static final Charset UTF8 = Charset.forName("UTF-8");
 
-  private static final byte[] ERROR_CONTENT = "500".getBytes();
-  private static final byte[] ERROR_BUSY = "500, too busy".getBytes();
+  private static SimpleMeter simpleMeter;
+  private static final String METER_REQUESTS = "requests";
 
+  private static final byte[] ERROR_CONTENT = "500".getBytes();
+
+  private static final byte[] ERROR_BUSY = "500, too busy".getBytes();
   private static final String FILE = ".file";
   private static final String FILENAME = ".originalFilename";
+
   private static final String CONTENT_TYPE = ".contentType";
 
   private static final HttpDataFactory HTTP_DATA_FACTORY = new DefaultHttpDataFactory(
@@ -81,12 +84,13 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
-  private static final SimpleMetrics SIMPLE_METRICS = SimpleMetrics.create(LOGGER);
-  private static final SimpleMeter SIMPLE_METER = SIMPLE_METRICS.meter("requests");
-
   private static RateLimiter rateLimiter;
 
   public DefaultRequestProcessor() {
+    if (LOGGER.isInfoEnabled()) {
+      simpleMeter = SimpleMetrics.create(LOGGER).meter(METER_REQUESTS);
+    }
+
     Integer maxRequestsPerSecond = Configurator.getInstance().getRequestRateLimit();
     if (null == maxRequestsPerSecond) {
       return;
@@ -97,7 +101,10 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   @Override
   public ResponseWrapper handleRequest(FullHttpRequest request) {
-    SIMPLE_METER.mark();
+    if (LOGGER.isInfoEnabled()) {
+      simpleMeter.mark();
+    }
+
     RequestWrapper requestWrapper = getRequestWrapper(request);
 
     String accept = request.headers().get(HttpHeaderNames.ACCEPT);
@@ -152,7 +159,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
       long end = System.currentTimeMillis();
       if (LOGGER.isInfoEnabled()) {
-        LOGGER.info("{} took: {}ms", requestWrapper.toString(), (end - start));
+        LOGGER.info("{} took: {}ms", requestWrapper.getPath(), (end - start));
       }
 
       byte[] content = translator.translate(mapping, processed, ctx);
