@@ -63,6 +63,11 @@ public class DefaultRequestProcessor implements RequestProcessor {
   private static final String FILENAME = ".originalFilename";
   private static final String CONTENT_TYPE = ".contentType";
 
+  private static final HttpDataFactory HTTP_DATA_FACTORY = new DefaultHttpDataFactory(
+      true,
+      Configurator.getInstance().getCharset()
+  );
+
   private static final Map<HttpMethod, HTTPMethod> HTTP_METHODS = ImmutableMap.of(
       HttpMethod.DELETE, HTTPMethod.DELETE,
       HttpMethod.HEAD, HTTPMethod.HEAD,
@@ -173,7 +178,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
   }
 
   private RequestWrapper wrapPostRequest(FullHttpRequest request) {
-    HttpPostRequestDecoder decoder = getHttpPostRequestDecoder(request);
+    HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(HTTP_DATA_FACTORY, request);
     List<InterfaceHttpData> bodyDatas = decoder.getBodyHttpDatas();
 
     Map<String, List<String>> parameters = new HashMap<>();
@@ -293,15 +298,6 @@ public class DefaultRequestProcessor implements RequestProcessor {
       return new QueryStringDecoder(uri, charset);
     } else {
       return new QueryStringDecoder(uri);
-    }
-  }
-
-  private HttpPostRequestDecoder getHttpPostRequestDecoder(HttpRequest request) {
-    Charset charset = Configurator.getInstance().getCharset();
-    if (null != charset) {
-      return new HttpPostRequestDecoder(new DefaultHttpDataFactory(true, charset), request);
-    } else {
-      return new HttpPostRequestDecoder(new DefaultHttpDataFactory(true), request);
     }
   }
 
