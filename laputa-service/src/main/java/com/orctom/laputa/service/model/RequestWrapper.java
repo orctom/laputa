@@ -61,6 +61,6 @@ public class RequestWrapper {
 
   @Override
   public String toString() {
-    return "path: " + path + ", params: " + params + ", data: " + data;
+    return "path: " + path + ", params: " + params;
   }
 }

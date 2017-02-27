@@ -1,6 +1,7 @@
 package com.orctom.laputa.service.processor.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -114,6 +115,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
     String mediaType = translator.getMediaType().getValue();
 
+    long start = System.currentTimeMillis();
     // pre-processors
     preProcess(requestWrapper, ctx);
 
@@ -147,6 +149,11 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
       // post-processors
       Object processed = postProcess(data);
+
+      long end = System.currentTimeMillis();
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("{} took: {}ms", requestWrapper.toString(), (end - start));
+      }
 
       byte[] content = translator.translate(mapping, processed, ctx);
       boolean is404 = PATH_404.equals(mapping.getUriPattern());
