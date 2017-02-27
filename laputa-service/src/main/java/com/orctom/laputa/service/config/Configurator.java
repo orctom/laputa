@@ -4,7 +4,6 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.orctom.laputa.utils.HostUtils;
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
@@ -17,6 +16,8 @@ import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
 
+import static com.orctom.laputa.service.Constants.*;
+
 /**
  * Config items
  * Created by hao on 1/6/16.
@@ -28,6 +29,7 @@ public class Configurator {
   private static final Configurator INSTANCE = new Configurator();
 
   private static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd,yyyyMMdd,yyyy-MM-dd HH:mm:ss";
+  private static final String DEFAULT_CHARSET = "UTF-8";
 
   private static final String DIR_HOST = "host/";
 
@@ -62,20 +64,17 @@ public class Configurator {
   }
 
   private void initDebugFlag() {
-    try {
-      debugEnabled = config.getBoolean("debug.enabled");
-    } catch (Exception e) {
-      debugEnabled = false;
+    if (config.hasPath(CFG_DEBUG)) {
+      debugEnabled = config.getBoolean(CFG_DEBUG);
     }
   }
 
   private void initDatePattern() {
-    String pattern;
-    try {
-      pattern = config.getString("date.pattern");
-    } catch (Exception e) {
-      LOGGER.warn("`date.pattern` is not configured, using default: {}", DEFAULT_DATE_PATTERN);
-      pattern = DEFAULT_DATE_PATTERN;
+    String pattern = DEFAULT_DATE_PATTERN;
+    if (config.hasPath(CFG_DATE_PATTERN)) {
+      pattern = config.getString(CFG_DATE_PATTERN);
+    } else {
+      LOGGER.warn("`{}` is not configured, using default: {}", CFG_DATE_PATTERN, DEFAULT_DATE_PATTERN);
     }
 
     List<String> splits = Splitter.on(",").omitEmptyStrings().trimResults().splitToList(pattern);
@@ -87,29 +86,32 @@ public class Configurator {
   }
 
   private void initCharset() {
-    try {
-      String charsetName = config.getString("charset");
-      charset = Charset.forName(charsetName);
-    } catch (ConfigException e) {
-      LOGGER.warn("`charset` is not configured, using system default.");
-    } catch (UnsupportedCharsetException e) {
-      LOGGER.error("Unsupported charset: {}, using system default.", e.getCharsetName());
+    charset = Charset.forName(DEFAULT_CHARSET);
+    if (config.hasPath(CFG_CHARSET)) {
+      String charsetName = config.getString(CFG_CHARSET);
+      try {
+        charset = Charset.forName(charsetName);
+      } catch (UnsupportedCharsetException e) {
+        LOGGER.error("Unsupported charset: {}, using default: {}.", charsetName, DEFAULT_CHARSET);
+      }
+    } else {
+      LOGGER.warn("`{}` is not configured, using default: {}.", CFG_CHARSET, DEFAULT_CHARSET);
     }
   }
 
   private void initStaticFilesDir() {
-    try {
-      staticFilesDir = config.getString("static.files.dir");
-    } catch (ConfigException e) {
-      LOGGER.warn("`static.files.dir` is not configured, using system temporal.");
+    if (config.hasPath(CFG_STATIC_DIR)) {
+      staticFilesDir = config.getString(CFG_STATIC_DIR);
+    } else {
+      LOGGER.warn("`{}` is not configured, using system temporal.", CFG_STATIC_DIR);
     }
   }
 
   private void initRateLimiter() {
-    try {
-      requestRateLimit = config.getInt("server.requests.rate.limit");
-    } catch (ConfigException e) {
-      LOGGER.info("`server.requests.rate.limit` is not configured, request rate limiter is turned off.");
+    if (config.hasPath(CFG_THROTTLE)) {
+      requestRateLimit = config.getInt(CFG_THROTTLE);
+    } else {
+      LOGGER.info("`{}` is not configured, request rate limiter is turned off.", CFG_THROTTLE);
     }
   }
 
