@@ -24,20 +24,18 @@ public abstract class ResponseTranslators {
 
   static {
     JsonResponseTranslator jsonResponseTranslator = new JsonResponseTranslator();
-    registerTranslator(JsonResponseTranslator.TYPE.getExtension(), jsonResponseTranslator);
-    registerTranslator(JsonResponseTranslator.TYPE.getValue(), jsonResponseTranslator);
+    registerTranslator(JsonResponseTranslator.TYPE, jsonResponseTranslator);
 
     XmlResponseTranslator xmlResponseTranslator = new XmlResponseTranslator();
-    registerTranslator(XmlResponseTranslator.TYPE.getExtension(), xmlResponseTranslator);
-    registerTranslator(XmlResponseTranslator.TYPE.getValue(), xmlResponseTranslator);
+    registerTranslator(XmlResponseTranslator.TYPE, xmlResponseTranslator);
 
     ProtoBufResponseTranslator protoBufResponseTranslator = new ProtoBufResponseTranslator();
-    registerTranslator(ProtoBufResponseTranslator.TYPE.getExtension(), protoBufResponseTranslator);
-    registerTranslator(ProtoBufResponseTranslator.TYPE.getValue(), protoBufResponseTranslator);
+    registerTranslator(ProtoBufResponseTranslator.TYPE, protoBufResponseTranslator);
   }
 
-  private static void registerTranslator(String type, ResponseTranslator encoder) {
-    REGISTRY.put(type, encoder);
+  private static void registerTranslator(MediaType mediaType, ResponseTranslator encoder) {
+    REGISTRY.put(mediaType.getExtension(), encoder);
+    REGISTRY.put(mediaType.getValue(), encoder);
   }
 
   public static void register(ResponseTranslator responseTranslator) {

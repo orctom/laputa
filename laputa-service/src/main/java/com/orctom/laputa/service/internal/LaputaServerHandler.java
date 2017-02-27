@@ -109,7 +109,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     if (Strings.isNullOrEmpty(responseWrapper.getRedirectTo())) {
       res = new DefaultFullHttpResponse(
           HTTP_1_1,
-          OK,
+          responseWrapper.getStatus(),
           Unpooled.wrappedBuffer(responseWrapper.getContent())
       );
       res.headers().set(CONTENT_TYPE, responseWrapper.getMediaType());
@@ -121,11 +121,11 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
       res.headers().set(CACHE_CONTROL, "max-age=0");
     }
 
-    if (!keepAlive) {
-      ctx.write(res).addListener(ChannelFutureListener.CLOSE);
-    } else {
+    if (keepAlive) {
       res.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
       ctx.write(res);
+    } else {
+      ctx.write(res).addListener(ChannelFutureListener.CLOSE);
     }
   }
 

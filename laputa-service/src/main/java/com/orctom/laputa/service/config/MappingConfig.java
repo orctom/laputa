@@ -88,7 +88,7 @@ public class MappingConfig {
       PathTrie child = parent.getChildren().get(path);
       if (null != child) {
         if (isEndPath) {
-          return child.getChildren().get(httpMethod.getKey()).getHandler();
+          return getRequestMappingFromChildren(httpMethod, child);
         }
         parent = child;
         continue;
@@ -98,13 +98,25 @@ public class MappingConfig {
       child = parent.getChildren().get(KEY_PATH_PARAM);
       if (null != child) {
         if (isEndPath) {
-          return child.getChildren().get(httpMethod.getKey()).getHandler();
+          return getRequestMappingFromChildren(httpMethod, child);
         }
         parent = child;
       }
     }
 
     return null;
+  }
+
+  private RequestMapping getRequestMappingFromChildren(HTTPMethod httpMethod, PathTrie child) {
+    Map<String, PathTrie> children = child.getChildren();
+    if (null == children || children.isEmpty()) {
+      return null;
+    }
+    PathTrie node = children.get(httpMethod.getKey());
+    if (null == node) {
+      return null;
+    }
+    return node.getHandler();
   }
 
   public void scan(ApplicationContext applicationContext) {

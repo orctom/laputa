@@ -32,8 +32,8 @@ class ProtoBufResponseTranslator implements ResponseTranslator {
       });
 
   @Override
-  public String getMediaType() {
-    return TYPE.getValue();
+  public MediaType getMediaType() {
+    return TYPE;
   }
 
   @Override

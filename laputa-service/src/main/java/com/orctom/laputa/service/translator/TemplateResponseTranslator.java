@@ -17,8 +17,8 @@ public abstract class TemplateResponseTranslator implements ResponseTranslator {
   private static final String EMPTY_STR = "";
 
   @Override
-  public final String getMediaType() {
-    return TYPE.getValue();
+  public final MediaType getMediaType() {
+    return TYPE;
   }
 
   protected static String getTemplatePath(RequestMapping mapping) {

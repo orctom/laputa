@@ -16,8 +16,8 @@ class JsonResponseTranslator implements ResponseTranslator {
   static final MediaType TYPE = MediaType.APPLICATION_JSON;
 
   @Override
-  public String getMediaType() {
-    return TYPE.getValue();
+  public MediaType getMediaType() {
+    return TYPE;
   }
 
   @Override

@@ -2,6 +2,7 @@ package com.orctom.laputa.service.translator;
 
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.model.Context;
+import com.orctom.laputa.service.model.MediaType;
 import com.orctom.laputa.service.model.RequestMapping;
 
 import java.io.IOException;
@@ -14,7 +15,7 @@ import java.nio.charset.Charset;
  */
 public interface ResponseTranslator {
 
-  String getMediaType();
+  MediaType getMediaType();
 
   byte[] translate(RequestMapping mapping, Object data, Context ctx) throws IOException;
 

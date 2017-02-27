@@ -16,7 +16,7 @@ public class Store {
   }
 
   @Path("/{id}")
-  public String id(String id) {
+  public String id(@Param("id") String id) {
     return "hello " + id;
   }
 

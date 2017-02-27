@@ -43,6 +43,9 @@ import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.orctom.laputa.service.Constants.*;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
+
 /**
  * request processor
  * Created by hao on 1/6/16.
@@ -89,7 +92,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
     ResponseTranslator translator = ResponseTranslators.getTranslator(requestWrapper, accept);
 
     if (null != rateLimiter && !rateLimiter.tryAcquire(200, TimeUnit.MILLISECONDS)) {
-      return new ResponseWrapper(translator.getMediaType(), ERROR_BUSY);
+      return new ResponseWrapper(translator.getMediaType().getValue(), ERROR_BUSY);
     }
 
     return handleRequest(request.headers(), requestWrapper, translator);
@@ -97,6 +100,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private ResponseWrapper handleRequest(HttpHeaders headers, RequestWrapper requestWrapper, ResponseTranslator translator) {
     Context ctx = getContext(requestWrapper.getPath(), headers);
+
+    String mediaType = translator.getMediaType().getValue();
 
     // pre-processors
     preProcess(requestWrapper, ctx);
@@ -133,15 +138,16 @@ public class DefaultRequestProcessor implements RequestProcessor {
       Object processed = postProcess(data);
 
       byte[] content = translator.translate(mapping, processed, ctx);
-      return new ResponseWrapper(translator.getMediaType(), content);
+      boolean is404 = PATH_404.equals(mapping.getUriPattern());
+      return new ResponseWrapper(mediaType, content, is404 ? NOT_FOUND: OK);
     } catch (ParameterValidationException e) {
-      return new ResponseWrapper(translator.getMediaType(), e.getMessage().getBytes(UTF8));
+      return new ResponseWrapper(mediaType, e.getMessage().getBytes(UTF8), BAD_REQUEST);
     } catch (IllegalConfigException | TemplateProcessingException e) {
       LOGGER.error(e.getMessage());
-      return new ResponseWrapper(translator.getMediaType(), ERROR_CONTENT);
+      return new ResponseWrapper(mediaType, ERROR_CONTENT, INTERNAL_SERVER_ERROR);
     } catch (Throwable e) {
       LOGGER.error(e.getMessage(), e);
-      return new ResponseWrapper(translator.getMediaType(), ERROR_CONTENT);
+      return new ResponseWrapper(mediaType, ERROR_CONTENT, INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -161,8 +167,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private Context getContext(String uri, HttpHeaders headers) {
     Context ctx = new Context();
-    ctx.put("uri", uri);
-    ctx.put("referer", headers.get(HttpHeaderNames.REFERER));
+    ctx.put(KEY_URL, uri);
+    ctx.put(KEY_REFERER, headers.get(HttpHeaderNames.REFERER));
     return ctx;
   }
 
@@ -227,16 +233,16 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private void onValidationError(ResponseTranslator translator, RequestWrapper requestWrapper, Context ctx) {
     if (translator instanceof TemplateResponseTranslator) {
-      String referer = (String) ctx.get("referer");
+      String referer = (String) ctx.get(KEY_REFERER);
       if (Strings.isNullOrEmpty(referer)) {
-        ctx.redirectTo("/403");
+        ctx.redirectTo(PATH_403);
         return;
       }
       StringBuilder url = new StringBuilder(referer);
-      if (referer.contains("?")) {
-        url.append("&");
+      if (referer.contains(SIGN_QUESTION)) {
+        url.append(SIGN_AND);
       } else {
-        url.append("&");
+        url.append(SIGN_QUESTION);
       }
       url.append("error=").append(ctx.get("error"));
       ctx.redirectTo(url.toString());

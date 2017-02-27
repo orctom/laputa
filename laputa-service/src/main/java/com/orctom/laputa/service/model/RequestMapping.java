@@ -49,22 +49,32 @@ public class RequestMapping {
     Map<String, String> _paramDefaultValues = new LinkedHashMap<>();
     Map<String, Class<?>> _paramTypes = new LinkedHashMap<>();
     for (Parameter parameter : parameters) {
+      Class<?> paramType = parameter.getType();
+      if (1 == paramLength && parameter.isAnnotationPresent(Data.class)) {
+        dataType = paramType;
+        break;
+      }
+
+      if (Context.class.isAssignableFrom(paramType)) {
+        continue;
+      }
+
       Param param = parameter.getAnnotation(Param.class);
       if (null == param) {
-        throw new IllegalConfigException("Missing @Param annotation at " + handlerMethod.toString());
+        if (parameter.isAnnotationPresent(Data.class)) {
+          throw new IllegalConfigException("Only one param is allowed when using @Data annotation, at " + handlerMethod.toString());
+        } else {
+          throw new IllegalConfigException("Missing @Param annotation at " + handlerMethod.toString());
+        }
       }
       String paramName = param.value();
 
       DefaultValue defaultValue = parameter.getAnnotation(DefaultValue.class);
-      if (null != defaultValue && ClassUtils.isSimpleValueType(parameter.getType())) {
+      if (null != defaultValue && ClassUtils.isSimpleValueType(paramType)) {
         _paramDefaultValues.put(paramName, defaultValue.value());
       }
 
-      _paramTypes.put(paramName, parameter.getType());
-
-      if (1 == paramLength && parameter.isAnnotationPresent(Data.class)) {
-        dataType = parameter.getType();
-      }
+      _paramTypes.put(paramName, paramType);
     }
 
     paramDefaultValues = Collections.unmodifiableMap(_paramDefaultValues);
