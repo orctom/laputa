@@ -19,6 +19,8 @@ import io.netty.handler.timeout.ReadTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 import static io.netty.handler.codec.http.HttpHeaderNames.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -162,9 +164,11 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-    if (!(cause instanceof ReadTimeoutException)) {
-      LOGGER.error(cause.getMessage(), cause);
-    }
     ctx.close();
+    if (cause instanceof IOException ||
+        cause instanceof ReadTimeoutException) {
+      return;
+    }
+    LOGGER.error(cause.getMessage(), cause);
   }
 }
