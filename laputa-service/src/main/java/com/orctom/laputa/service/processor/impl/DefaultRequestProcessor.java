@@ -1,5 +1,6 @@
 package com.orctom.laputa.service.processor.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -21,6 +22,7 @@ import com.orctom.laputa.service.translator.ResponseTranslators;
 import com.orctom.laputa.service.translator.TemplateResponseTranslator;
 import com.orctom.laputa.service.util.ArgsResolver;
 import com.orctom.laputa.service.util.ParamResolver;
+import com.orctom.laputa.utils.ClassUtils;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
@@ -37,7 +39,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -312,20 +313,25 @@ public class DefaultRequestProcessor implements RequestProcessor {
     FastMethod handlerMethod = mapping.getHandlerMethod();
     Object target = mapping.getTarget();
 
-    Parameter[] methodParameters = mapping.getParameters();
-    if (0 == methodParameters.length) {
+    Map<String, Class<?>> paramTypes = mapping.getParamTypes();
+    if (paramTypes.isEmpty()) {
       return handlerMethod.invoke(target, null);
     }
 
     // process @Data
+    Class<?> dataType = mapping.getDataType();
+    if (null != dataType) {
+      if (ClassUtils.isSimpleValueType(dataType)) {
+        return handlerMethod.invoke(target, new Object[]{requestWrapper.getData()});
+      } else {
+        Object arg = JSON.parseObject(requestWrapper.getData(), dataType);
+        return handlerMethod.invoke(target, new Object[]{arg});
+      }
+    }
 
-    Map<String, String> params = ParamResolver.extractParams(
-        handlerMethod.getJavaMethod(),
-        mapping.getUriPattern(),
-        requestWrapper
-    );
+    Map<String, String> params = ParamResolver.extractParams(mapping, requestWrapper);
 
-    Object[] args = ArgsResolver.resolveArgs(methodParameters, params, ctx);
+    Object[] args = ArgsResolver.resolveArgs(params, paramTypes, ctx);
 
     validate(target, handlerMethod.getJavaMethod(), args);
 

@@ -1,14 +1,8 @@
 package com.orctom.laputa.service.util;
 
-import com.orctom.laputa.exception.IllegalArgException;
-import com.orctom.laputa.service.annotation.DefaultValue;
-import com.orctom.laputa.service.annotation.Param;
-import com.orctom.laputa.service.model.Context;
+import com.orctom.laputa.service.model.RequestMapping;
 import com.orctom.laputa.service.model.RequestWrapper;
-import com.orctom.laputa.utils.ClassUtils;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -16,41 +10,22 @@ import java.util.Map;
 
 public class ParamResolver {
 
-  public static Map<String, String> extractParams(Method method, String pattern, RequestWrapper requestWrapper) {
+  public static Map<String, String> extractParams(RequestMapping mapping, RequestWrapper requestWrapper) {
     String path = requestWrapper.getPath();
     Map<String, List<String>> queryParameters = requestWrapper.getParams();
 
+    String pattern = mapping.getUriPattern();
     Map<String, String> params = new HashMap<>();
 
-    params.putAll(extractDefaultValues(method));
+    params.putAll(extractDefaultValues(mapping));
     params.putAll(extractQueryParams(queryParameters));
     params.putAll(extractPathParams(pattern, path));
 
     return params;
   }
 
-  public static Map<String, String> extractDefaultValues(Method method) {
-    Parameter[] methodParameters = method.getParameters();
-    if (0 == methodParameters.length) {
-      return Collections.emptyMap();
-    }
-
-    Map<String, String> params = new HashMap<>();
-    for (Parameter parameter : methodParameters) {
-      if (Context.class.isAssignableFrom(parameter.getType())) {
-        continue;
-      }
-      Param param = parameter.getAnnotation(Param.class);
-      if (null == param) {
-        throw new IllegalArgException("Missing @Param annotation at " + method.toString());
-      }
-      DefaultValue defaultValue = parameter.getAnnotation(DefaultValue.class);
-      if (null != defaultValue && ClassUtils.isSimpleValueType(parameter.getType())) {
-        params.put(param.value(), defaultValue.value());
-      }
-    }
-
-    return params;
+  public static Map<String, String> extractDefaultValues(RequestMapping mapping) {
+    return mapping.getParamDefaultValues();
   }
 
   public static Map<String, String> extractQueryParams(Map<String, List<String>> queryParameters) {

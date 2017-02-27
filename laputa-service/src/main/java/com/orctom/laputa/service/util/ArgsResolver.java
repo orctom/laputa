@@ -1,6 +1,5 @@
 package com.orctom.laputa.service.util;
 
-import com.orctom.laputa.service.annotation.Param;
 import com.orctom.laputa.service.exception.ParameterValidationException;
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.utils.ClassUtils;
@@ -8,7 +7,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,17 +20,18 @@ public abstract class ArgsResolver {
   private static final Logger LOGGER = LoggerFactory.getLogger(ArgsResolver.class);
   private static final String DOT = ".";
 
-  public static Object[] resolveArgs(Parameter[] methodParameters, Map<String, String> paramValues, Context ctx) {
-    if (0 == methodParameters.length) {
+  public static Object[] resolveArgs(Map<String, String> paramValues, Map<String, Class<?>> paramTypes, Context ctx) {
+    if (paramTypes.isEmpty()) {
       return null;
     }
 
-    Object[] args = new Object[methodParameters.length];
+    int paramLength = paramTypes.size();
+    Object[] args = new Object[paramLength];
 
-    Map<Parameter, Integer> complexParameters = new HashMap<>();
-    int resolved = resolveSimpleTypeArgs(paramValues, methodParameters, args, complexParameters);
+    Map<Map.Entry<String, Class<?>>, Integer> complexParameters = new HashMap<>();
+    int resolved = resolveSimpleTypeArgs(paramValues, paramTypes, args, complexParameters);
 
-    if (methodParameters.length != resolved) { // complex types exist
+    if (paramLength != resolved) { // complex types exist
       resolveComplexTypeArgs(paramValues, args, complexParameters, ctx);
     }
 
@@ -40,21 +39,20 @@ public abstract class ArgsResolver {
   }
 
   private static int resolveSimpleTypeArgs(Map<String, String> paramValues,
-                                           Parameter[] methodParameters,
+                                           Map<String, Class<?>> paramTypes,
                                            Object[] args,
-                                           Map<Parameter, Integer> complexParameters) {
-    int count = 0;
-    for (int i = 0; i < methodParameters.length; i++) {
-      Parameter parameter = methodParameters[i];
-      Class<?> type = parameter.getType();
-
+                                           Map<Map.Entry<String, Class<?>>, Integer> complexParameters) {
+    int count = 0, i = 0;
+    for (Map.Entry<String, Class<?>> entry : paramTypes.entrySet()) {
+      String paramName = entry.getKey();
+      Class<?> type = entry.getValue();
       if (ClassUtils.isSimpleValueType((type))) {
-        String paramName = parameter.getAnnotation(Param.class).value();
         args[i] = resolveSimpleTypeValue(paramValues, paramName, type);
         count++;
       } else {
-        complexParameters.put(parameter, i);
+        complexParameters.put(entry, i);
       }
+      i++;
     }
 
     return count;
@@ -62,11 +60,12 @@ public abstract class ArgsResolver {
 
   private static void resolveComplexTypeArgs(Map<String, String> paramValues,
                                              Object[] args,
-                                             Map<Parameter, Integer> complexParameters,
+                                             Map<Map.Entry<String, Class<?>>, Integer> complexParameters,
                                              Context ctx) {
-    for (Map.Entry<Parameter, Integer> entry : complexParameters.entrySet()) {
-      Parameter parameter = entry.getKey();
-      Class<?> type = parameter.getType();
+    for (Map.Entry<Map.Entry<String, Class<?>>, Integer> entry : complexParameters.entrySet()) {
+      Map.Entry<String, Class<?>> key = entry.getKey();
+      String paramName = key.getKey();
+      Class<?> type = key.getValue();
       int index = entry.getValue();
 
       if (Context.class.isAssignableFrom(type)) {
@@ -74,7 +73,6 @@ public abstract class ArgsResolver {
         continue;
       }
 
-      String paramName = parameter.getAnnotation(Param.class).value();
       Map<String, String> params = retrieveParams(paramValues, paramName);
       if (params.isEmpty()) {
         params = paramValues;

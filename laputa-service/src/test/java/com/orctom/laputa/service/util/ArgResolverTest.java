@@ -1,10 +1,11 @@
 package com.orctom.laputa.service.util;
 
 import com.google.common.collect.Lists;
+import com.orctom.laputa.exception.IllegalConfigException;
 import com.orctom.laputa.service.annotation.Param;
 import com.orctom.laputa.service.config.Configurator;
-import com.orctom.laputa.service.domain.Category;
 import com.orctom.laputa.service.domain.Categories;
+import com.orctom.laputa.service.domain.Category;
 import com.orctom.laputa.service.domain.SKU;
 import com.orctom.laputa.service.model.Context;
 import org.joda.time.DateTime;
@@ -12,11 +13,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 
 public class ArgResolverTest {
 
@@ -55,7 +56,7 @@ public class ArgResolverTest {
     paramValues.put("c", "ccc");
 
     Object[] expected = new Object[]{"aaa", "bbb", "ccc"};
-    Object[] actual = ArgsResolver.resolveArgs(method.getParameters(), paramValues, new Context());
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParamTypes(method), new Context());
     assertArrayEquals(expected, actual);
   }
 
@@ -67,7 +68,7 @@ public class ArgResolverTest {
     paramValues.put("name", "the name");
 
     Object[] expected = new Object[]{new Category(10000L, "the name")};
-    Object[] actual = ArgsResolver.resolveArgs(method.getParameters(), paramValues, new Context());
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParamTypes(method), new Context());
     assertArrayEquals(expected, actual);
   }
 
@@ -79,7 +80,7 @@ public class ArgResolverTest {
     paramValues.put("category.name", "the name");
 
     Object[] expected = new Object[]{new Category(10000L, "the name")};
-    Object[] actual = ArgsResolver.resolveArgs(method.getParameters(), paramValues, new Context());
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParamTypes(method), new Context());
     assertArrayEquals(expected, actual);
   }
 
@@ -94,7 +95,7 @@ public class ArgResolverTest {
       paramValues.put("category.name", "category name");
 
       Object[] expected = new Object[]{new SKU(1000L, "sku name", new Category(1111L, "category name"))};
-      Object[] actual = ArgsResolver.resolveArgs(method.getParameters(), paramValues, new Context());
+      Object[] actual = ArgsResolver.resolveArgs(paramValues, getParamTypes(method), new Context());
       assertArrayEquals(expected, actual);
     } catch (Exception e) {
       e.printStackTrace();
@@ -111,7 +112,7 @@ public class ArgResolverTest {
     paramValues.put("category.name", "category name");
 
     Object[] expected = new Object[]{"aaa", "bbb", new Category(1000L, "category name")};
-    Object[] actual = ArgsResolver.resolveArgs(method.getParameters(), paramValues, new Context());
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParamTypes(method), new Context());
     assertArrayEquals(expected, actual);
   }
 
@@ -124,7 +125,7 @@ public class ArgResolverTest {
     paramValues.put("date", "2016-09-09");
 
     Object[] expected = new Object[]{new Category(10000L, "the name")};
-    Object[] actual = ArgsResolver.resolveArgs(method.getParameters(), paramValues, new Context());
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParamTypes(method), new Context());
     assertArrayEquals(expected, actual);
   }
 
@@ -147,7 +148,23 @@ public class ArgResolverTest {
         new Category(10001L, "the other name", DateTime.parse("2016-09-10").toDate())
     ));
     Object[] expected = new Object[] {categories};
-    Object[] actual = ArgsResolver.resolveArgs(method.getParameters(), paramValues, new Context());
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParamTypes(method), new Context());
     assertArrayEquals(expected, actual);
+  }
+
+  private Map<String, Class<?>> getParamTypes(Method handlerMethod) {
+    Map<String, Class<?>> paramTypes = new HashMap<>();
+    Parameter[] parameters = handlerMethod.getParameters();
+    for (Parameter parameter : parameters) {
+      Param param = parameter.getAnnotation(Param.class);
+      if (null == param) {
+        throw new IllegalConfigException("Missing @Param annotation at " + handlerMethod.toString());
+      }
+      String paramName = param.value();
+
+      paramTypes.put(paramName, parameter.getType());
+    }
+
+    return paramTypes;
   }
 }
