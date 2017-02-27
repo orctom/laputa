@@ -10,6 +10,7 @@ import com.orctom.laputa.service.model.RequestMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Controller;
 
 import java.lang.reflect.Method;
@@ -152,7 +153,7 @@ public class MappingConfig {
     }
 
     for (Method method : clazz.getMethods()) {
-      Path path = method.getAnnotation(Path.class);
+      Path path = AnnotationUtils.findAnnotation(method, Path.class);
       if (null == path) {
         continue;
       }

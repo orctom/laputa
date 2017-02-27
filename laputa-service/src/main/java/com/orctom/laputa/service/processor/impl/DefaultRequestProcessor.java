@@ -23,6 +23,8 @@ import com.orctom.laputa.service.translator.TemplateResponseTranslator;
 import com.orctom.laputa.service.util.ArgsResolver;
 import com.orctom.laputa.service.util.ParamResolver;
 import com.orctom.laputa.utils.ClassUtils;
+import com.orctom.laputa.utils.SimpleMeter;
+import com.orctom.laputa.utils.SimpleMetrics;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
@@ -78,6 +80,9 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
+  private static final SimpleMetrics SIMPLE_METRICS = SimpleMetrics.create(LOGGER);
+  private static final SimpleMeter SIMPLE_METER = SIMPLE_METRICS.meter("requests");
+
   private static RateLimiter rateLimiter;
 
   public DefaultRequestProcessor() {
@@ -91,6 +96,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   @Override
   public ResponseWrapper handleRequest(FullHttpRequest request) {
+    SIMPLE_METER.mark();
     RequestWrapper requestWrapper = getRequestWrapper(request);
 
     String accept = request.headers().get(HttpHeaderNames.ACCEPT);

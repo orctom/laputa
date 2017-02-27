@@ -18,20 +18,12 @@ public class SimpleMeter implements Comparable<SimpleMeter> {
     return value.intValue();
   }
 
-  public void increase() {
+  public void mark() {
     value.increment();
   }
 
   public void increaseBy(int delta) {
     value.add(delta);
-  }
-
-  public void decrease() {
-    value.decrement();
-  }
-
-  public void decreaseBy(int delta) {
-    value.add(-delta);
   }
 
   public void reset() {

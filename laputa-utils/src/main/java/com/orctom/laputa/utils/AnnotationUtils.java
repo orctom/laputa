@@ -1,11 +1,8 @@
-package com.orctom.laputa.client.util;
+package com.orctom.laputa.utils;
 
 import java.lang.annotation.Annotation;
 
-/**
- * Created by hao on 4/28/15.
- */
-public class AnnotationUtils {
+public abstract class AnnotationUtils {
 
   public static <A extends Annotation> A findAnnotation(Class<?> clazz, Class<A> annotationClass) {
     A annotation = clazz.getAnnotation(annotationClass);
