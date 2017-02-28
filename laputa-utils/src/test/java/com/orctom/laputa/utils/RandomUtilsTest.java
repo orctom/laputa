@@ -14,7 +14,7 @@ import static org.junit.Assert.assertThat;
 
 public class RandomUtilsTest {
 
-  private static final int COUNTS = 1000000;
+  private static final int COUNTS = 10_000;
 
   @Test
   public void testRandomAlpha() {
@@ -34,7 +34,7 @@ public class RandomUtilsTest {
     sw2.stop();
     System.out.println("RandomStringUtils.randomAlphabetic   = " + sw2.toString() + "\t\t" + randoms2.size());
 
-    Assert.assertTrue(sw.elapsed(TimeUnit.SECONDS) <= sw2.elapsed(TimeUnit.SECONDS));
+    Assert.assertTrue(sw.elapsed(TimeUnit.MILLISECONDS) < 2 * sw2.elapsed(TimeUnit.MILLISECONDS));
     Assert.assertTrue(randoms.size() >= randoms2.size() * .9999);
   }
 
@@ -56,7 +56,7 @@ public class RandomUtilsTest {
     sw2.stop();
     System.out.println("RandomStringUtils.randomNumeric      = " + sw2.toString() + "\t\t" + randoms2.size());
 
-    Assert.assertTrue(sw.elapsed(TimeUnit.SECONDS) <= sw2.elapsed(TimeUnit.SECONDS));
+    Assert.assertTrue(sw.elapsed(TimeUnit.MILLISECONDS) < 2 *sw2.elapsed(TimeUnit.MILLISECONDS));
     Assert.assertTrue(randoms.size() >= randoms2.size() * .9999);
   }
 
@@ -78,7 +78,7 @@ public class RandomUtilsTest {
     sw2.stop();
     System.out.println("RandomStringUtils.randomAlphanumeric = " + sw2.toString() + "\t\t" + randoms2.size());
 
-    Assert.assertTrue(sw.elapsed(TimeUnit.SECONDS) <= sw2.elapsed(TimeUnit.SECONDS));
+    Assert.assertTrue(sw.elapsed(TimeUnit.MILLISECONDS) < 2 * sw2.elapsed(TimeUnit.MILLISECONDS));
     Assert.assertTrue(randoms.size() >= randoms2.size() * .9999);
   }
 
