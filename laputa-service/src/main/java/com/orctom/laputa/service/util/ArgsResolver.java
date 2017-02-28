@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.orctom.laputa.service.Constants.SIGN_DOT;
+
 /**
  * Utils to set/get properties or invoke methods dynamically
  * Created by hao on 1/5/16.
@@ -18,7 +20,6 @@ import java.util.stream.Collectors;
 public abstract class ArgsResolver {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ArgsResolver.class);
-  private static final String DOT = ".";
 
   public static Object[] resolveArgs(Map<String, String> paramValues, Map<String, Class<?>> paramTypes, Context ctx) {
     if (paramTypes.isEmpty()) {
@@ -99,7 +100,7 @@ public abstract class ArgsResolver {
 
   private static Map<String, String> getNestedParamValues(Map<String, String> paramValues) {
     return paramValues.entrySet().stream()
-        .filter(entry -> entry.getKey().contains(DOT))
+        .filter(entry -> entry.getKey().contains(SIGN_DOT))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
@@ -132,7 +133,7 @@ public abstract class ArgsResolver {
         .filter(item -> item.getKey().startsWith(paramName) && item.getKey().length() > paramName.length())
         .collect(Collectors.toMap(
             item -> {
-              String param = paramName + ".";
+              String param = paramName + SIGN_DOT;
               String key = item.getKey();
               int start = key.indexOf(param);
               return start >= 0 ? key.substring(start + param.length()) : key;

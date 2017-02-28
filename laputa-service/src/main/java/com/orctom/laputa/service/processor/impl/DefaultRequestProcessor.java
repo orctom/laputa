@@ -60,7 +60,6 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private static SimpleMeter simpleMeter;
   private static final String METER_REQUESTS = "requests";
-
   private static final byte[] ERROR_CONTENT = "500".getBytes();
 
   private static final byte[] ERROR_BUSY = "500, too busy".getBytes();
@@ -70,7 +69,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
   private static final String CONTENT_TYPE = ".contentType";
 
   private static final HttpDataFactory HTTP_DATA_FACTORY = new DefaultHttpDataFactory(
-      true,
+      Configurator.getInstance().getHttpDataUseDiskMinSize(),
       Configurator.getInstance().getCharset()
   );
 

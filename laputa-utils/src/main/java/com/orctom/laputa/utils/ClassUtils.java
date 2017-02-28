@@ -25,6 +25,8 @@ public class ClassUtils {
 
   private static final Set<Class<?>> primitiveWrapperTypes = new HashSet<>(8);
   private static final String CHARSET = Charset.defaultCharset().name();
+  private static final String DOT = ".";
+  private static final String SLASH = "/";
 
   static {
     primitiveWrapperTypes.add(Boolean.class);
@@ -44,7 +46,7 @@ public class ClassUtils {
     LOGGER.trace("Finding classes with annotation: {}, in package: {}", annotationClass, packageName);
     try {
       ClassLoader classLoader = getClassLoader();
-      String packagePath = packageName.replace('.', '/');
+      String packagePath = packageName.replace(DOT, SLASH);
       Enumeration<URL> resources = classLoader.getResources(packagePath);
       while (resources.hasMoreElements()) {
         URL resource = resources.nextElement();
@@ -110,11 +112,11 @@ public class ClassUtils {
 
     for (File file : files) {
       if (file.isDirectory()) {
-        assert !file.getName().contains(".");
-        findClassesInFile(file, packageName + "." + file.getName(), annotationClass, visitor);
+        assert !file.getName().contains(DOT);
+        findClassesInFile(file, packageName + DOT + file.getName(), annotationClass, visitor);
 
       } else if (file.getName().endsWith(".class")) {
-        Class<?> clazz = loadClass(packageName + '.' + file.getName());
+        Class<?> clazz = loadClass(packageName + DOT + file.getName());
         if (clazz.isAnnotationPresent(annotationClass)) {
           visitor.visit(clazz);
         }
@@ -126,7 +128,7 @@ public class ClassUtils {
     int beginIndex = classFileName.indexOf(packagePath);
     int endIndex = classFileName.length() - 6;
     try {
-      String className = classFileName.substring(beginIndex, endIndex).replaceAll("/", ".");
+      String className = classFileName.substring(beginIndex, endIndex).replaceAll(SLASH, DOT);
       return Class.forName(className, false, getClassLoader());
     } catch (ClassNotFoundException e) {
       throw new ClassLoadingException(e);

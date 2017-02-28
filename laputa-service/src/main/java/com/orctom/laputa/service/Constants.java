@@ -7,7 +7,9 @@ public class Constants {
   public static final String CFG_CHARSET = "charset";
   public static final String CFG_STATIC_DIR = "static.files.dir";
   public static final String CFG_THROTTLE = "throttle";
+  public static final String CFG_HTTPDATA_USEDISK_MINSIZE = "httpData.useDisk.minSize";
 
+  public static final String PATH_SEPARATOR = "/";
   public static final String PATH_FAVICON = "/favicon.ico";
   public static final String PATH_403 = "/403";
   public static final String PATH_404 = "/404";

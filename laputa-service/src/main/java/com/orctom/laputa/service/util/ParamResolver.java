@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.orctom.laputa.service.Constants.PATH_SEPARATOR;
+import static com.orctom.laputa.service.Constants.SIGN_DOT;
+
 public class ParamResolver {
 
   public static Map<String, String> extractParams(RequestMapping mapping, RequestWrapper requestWrapper) {
@@ -60,8 +63,8 @@ public class ParamResolver {
     }
 
     Map<String, String> params = new HashMap<>();
-    String[] patternItems = pattern.split("/");
-    String[] pathItems = removeExtension(path).split("/");
+    String[] patternItems = pattern.split(PATH_SEPARATOR);
+    String[] pathItems = removeExtension(path).split(PATH_SEPARATOR);
     for (int i = 0; i < patternItems.length; i++) {
       String patternItem = patternItems[i];
       String pathItem = pathItems[i];
@@ -86,7 +89,7 @@ public class ParamResolver {
   }
 
   private static String removeExtension(String path) {
-    int dotIndex = path.indexOf(".");
+    int dotIndex = path.indexOf(SIGN_DOT);
     if (-1 == dotIndex) {
       return path;
     }

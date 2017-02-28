@@ -18,6 +18,9 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.orctom.laputa.service.Constants.PATH_SEPARATOR;
+import static com.orctom.laputa.service.Constants.SIGN_DOT;
+
 /**
  * Holding url mappings...
  * Created by hao on 9/21/15.
@@ -41,11 +44,11 @@ public class MappingConfig {
 
   public RequestMapping getMapping(String uri, HTTPMethod httpMethod) {
     String path = uri;
-    int dotIndex = path.lastIndexOf(".");
+    int dotIndex = path.lastIndexOf(SIGN_DOT);
     if (dotIndex > 0) {
       path = path.substring(0, dotIndex);
     }
-    RequestMapping handler = staticMappings.get(path + "/" + httpMethod.getKey());
+    RequestMapping handler = staticMappings.get(path + PATH_SEPARATOR + httpMethod.getKey());
     if (null != handler) {
       return handler;
     }

@@ -5,6 +5,7 @@ import com.google.common.base.Strings;
 import com.orctom.laputa.utils.HostUtils;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.slf4j.Logger;
@@ -28,7 +29,7 @@ public class Configurator {
 
   private static final Configurator INSTANCE = new Configurator();
 
-  private static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd,yyyyMMdd,yyyy-MM-dd HH:mm:ss";
+  private static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd,yyyyMMdd,yyyy-MM-dd HH:mm:ss,dd/mm/yyyy";
   private static final String DEFAULT_CHARSET = "UTF-8";
 
   private static final String DIR_HOST = "host/";
@@ -38,6 +39,7 @@ public class Configurator {
   private Charset charset;
   private String staticFilesDir;
   private Integer requestRateLimit;
+  private long httpDataUseDiskMinSize = DefaultHttpDataFactory.MINSIZE;
 
   private Configurator() {
     initConfig();
@@ -53,7 +55,7 @@ public class Configurator {
   }
 
   private void initConfig() {
-    String appRootDir = Paths.get(".").toAbsolutePath().toString();
+    String appRootDir = Paths.get(SIGN_DOT).toAbsolutePath().toString();
 
     config = ConfigFactory.parseString("appRootDir=\"" + appRootDir + "\"");
     String hostname = HostUtils.getHostname();
@@ -115,6 +117,13 @@ public class Configurator {
     }
   }
 
+  private void initHttpDataUseDiskMinSize() {
+    if (config.hasPath(CFG_HTTPDATA_USEDISK_MINSIZE)) {
+      httpDataUseDiskMinSize = config.getLong(CFG_HTTPDATA_USEDISK_MINSIZE);
+      LOGGER.info("set `{}` to {} bytes.", CFG_HTTPDATA_USEDISK_MINSIZE, httpDataUseDiskMinSize);
+    }
+  }
+
   public Config getConfig() {
     return config;
   }
@@ -137,5 +146,9 @@ public class Configurator {
 
   public Integer getRequestRateLimit() {
     return requestRateLimit;
+  }
+
+  public long getHttpDataUseDiskMinSize() {
+    return httpDataUseDiskMinSize;
   }
 }
