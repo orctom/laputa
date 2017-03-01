@@ -5,7 +5,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 public class Constants {
 
-  public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
+  public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss ZZ";
   public static final DateTimeFormatter HTTP_DATE_FORMATTER = DateTimeFormat.forPattern(HTTP_DATE_FORMAT);
 
   public static final String CFG_APP_ROOT = "app.root";
@@ -15,6 +15,7 @@ public class Constants {
   public static final String CFG_URLS_STATIC = "urls.static";
   public static final String CFG_UPLOAD_URL = "upload.url";
   public static final String CFG_UPLOAD_DIR = "upload.dir";
+  public static final String CFG_STATIC_FILE_CACHE = "static.file.cache";
   public static final String CFG_SERVER_HTTP_PORT = "server.http.port";
   public static final String CFG_SERVER_HTTPS_PORT = "server.https.port";
   public static final String CFG_WEBSOCKET_PATH = "server.websocket.path";
@@ -41,4 +42,7 @@ public class Constants {
 
   public static final int DEFAULT_HTTP_PORT = 7000;
   public static final String UTF_8 = "UTF-8";
+
+  public static final String HEADER_CACHE_CONTROL_NO_CACHE = "no-cache, no-store, must-revalidate";
+  public static final String HEADER_EXPIRE_NOW = "0";
 }

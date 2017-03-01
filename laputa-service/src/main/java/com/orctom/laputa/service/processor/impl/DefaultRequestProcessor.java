@@ -45,9 +45,7 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.executable.ExecutableValidator;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -174,12 +172,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
       return new ResponseWrapper(mediaType, NOT_MODIFIED);
     }
 
-    try {
-      RandomAccessFile raf = new RandomAccessFile(file, "r");
-      return new ResponseWrapper(mediaType, raf);
-    } catch (FileNotFoundException ignore) {
-      return fileNotFound(mediaType);
-    }
+    return new ResponseWrapper(mediaType, file);
   }
 
   private ResponseWrapper fileNotFound(String mediaType) {
@@ -216,7 +209,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
       return new File(uploadDir + uri.substring(urlUpload.length()));
     }
 
-    URL fileURL = getClass().getClassLoader().getResource(PATH_THEME + uri);
+    URL fileURL = getClass().getResource(PATH_THEME + uri);
     if (null == fileURL) {
       return null;
     }

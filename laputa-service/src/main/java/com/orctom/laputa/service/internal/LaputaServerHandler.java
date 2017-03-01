@@ -23,6 +23,8 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -42,6 +44,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
   private static boolean isUseSSL = false;
 
   private static String websocketPath;
+  private static int staticFileCache;
   private WebSocketServerHandshaker handshaker;
 
   static {
@@ -54,6 +57,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     DiskAttribute.baseDirectory = uploadDir;
 
     websocketPath = config.getString(CFG_WEBSOCKET_PATH);
+    staticFileCache = config.getInt(CFG_STATIC_FILE_CACHE);
   }
 
   public LaputaServerHandler(boolean isUseSSL) {
@@ -112,14 +116,8 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
     ResponseWrapper responseWrapper = requestProcessor.handleRequest(req);
 
-    if (OK != responseWrapper.getStatus()) {
-      FullHttpResponse res = new DefaultFullHttpResponse(
-          HTTP_1_1,
-          responseWrapper.getStatus(),
-          Unpooled.wrappedBuffer(responseWrapper.getContent())
-      );
-      res.headers().set(HttpHeaderNames.CONTENT_TYPE, MediaType.TEXT_PLAIN);
-      ctx.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+    if (responseWrapper.getStatus().code() >= 400) {
+      sendError(ctx, req, responseWrapper);
       return;
     }
 
@@ -145,7 +143,8 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     HttpResponseStatus status = responseWrapper.isPermanentRedirect() ? MOVED_PERMANENTLY : FOUND;
     FullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, status);
     res.headers().set(LOCATION, responseWrapper.getRedirectTo());
-    res.headers().set(CACHE_CONTROL, "max-age=0");
+    res.headers().set(CACHE_CONTROL, HEADER_CACHE_CONTROL_NO_CACHE);
+    res.headers().set(EXPIRES, HEADER_EXPIRE_NOW);
     writeResponse(ctx, req, res);
   }
 
@@ -157,10 +156,25 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
                                   FullHttpRequest req,
                                   ResponseWrapper responseWrapper) {
     try {
-      RandomAccessFile file = responseWrapper.getFile();
+      RandomAccessFile file;
+      try {
+        file = new RandomAccessFile(responseWrapper.getFile(), "r");
+      } catch (FileNotFoundException ignore) {
+        sendError(ctx, req, responseWrapper);
+        return;
+      }
+
       HttpResponse res = new DefaultHttpResponse(HTTP_1_1, OK);
       long contentLength = file.length();
       res.headers().set(CONTENT_LENGTH, contentLength);
+      res.headers().set(CONTENT_TYPE, responseWrapper.getMediaType());
+      setDateAndCacheHeaders(res, responseWrapper.getFile());
+      boolean keepAlive = HttpUtil.isKeepAlive(req);
+      if (keepAlive) {
+        res.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+      }
+
+      ctx.write(res);
 
       ChannelFuture lastContentFuture;
       if (null == ctx.pipeline().get(SslHandler.class)) {
@@ -175,7 +189,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
             );
       }
 
-      if (!HttpUtil.isKeepAlive(req)) {
+      if (!keepAlive) {
         lastContentFuture.addListener(ChannelFutureListener.CLOSE);
       }
     } catch (IOException e) {
@@ -183,15 +197,37 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     }
   }
 
+  private void setDateAndCacheHeaders(HttpResponse res, File file) {
+    DateTime now = DateTime.now();
+    res.headers().set(DATE, now.toString(HTTP_DATE_FORMATTER));
+    res.headers().set(EXPIRES, now.plusSeconds(staticFileCache).toString(HTTP_DATE_FORMATTER));
+    res.headers().set(CACHE_CONTROL, "public, max-age=" + staticFileCache);
+    res.headers().set(LAST_MODIFIED, new DateTime(file.lastModified()).toString(HTTP_DATE_FORMATTER));
+  }
+
   private void response(ChannelHandlerContext ctx, FullHttpRequest req, ResponseWrapper responseWrapper) {
-    FullHttpResponse res = new DefaultFullHttpResponse(
+    FullHttpResponse res = getHttpResponse(responseWrapper);
+    res.headers().set(CONTENT_TYPE, responseWrapper.getMediaType());
+    res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
+    res.headers().set(DATE, DateTime.now().toString(HTTP_DATE_FORMATTER));
+    writeResponse(ctx, req, res);
+  }
+
+  private FullHttpResponse getHttpResponse(ResponseWrapper responseWrapper) {
+    if (null == responseWrapper.getContent()) {
+      return new DefaultFullHttpResponse(HTTP_1_1, responseWrapper.getStatus());
+    }
+
+    return new DefaultFullHttpResponse(
         HTTP_1_1,
         responseWrapper.getStatus(),
         Unpooled.wrappedBuffer(responseWrapper.getContent())
     );
-    res.headers().set(CONTENT_TYPE, responseWrapper.getMediaType());
-    res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
-    res.headers().set(DATE, DateTime.now().toString(HTTP_DATE_FORMATTER));
+  }
+
+  private void sendError(ChannelHandlerContext ctx, FullHttpRequest req, ResponseWrapper responseWrapper) {
+    FullHttpResponse res = getHttpResponse(responseWrapper);
+    res.headers().set(HttpHeaderNames.CONTENT_TYPE, MediaType.TEXT_PLAIN.getValue());
     writeResponse(ctx, req, res);
   }
 

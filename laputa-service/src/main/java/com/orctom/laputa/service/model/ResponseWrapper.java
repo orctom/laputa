@@ -2,7 +2,7 @@ package com.orctom.laputa.service.model;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 
-import java.io.RandomAccessFile;
+import java.io.File;
 
 /**
  * Encoded response
@@ -12,7 +12,7 @@ public class ResponseWrapper {
 
   private String mediaType;
   private byte[] content;
-  private RandomAccessFile file;
+  private File file;
   private HttpResponseStatus status = HttpResponseStatus.OK;
   private String redirectTo;
   private boolean permanentRedirect;
@@ -27,7 +27,7 @@ public class ResponseWrapper {
     this.status = status;
   }
 
-  public ResponseWrapper(String mediaType, RandomAccessFile file) {
+  public ResponseWrapper(String mediaType, File file) {
     this.mediaType = mediaType;
     this.file = file;
   }
@@ -51,7 +51,7 @@ public class ResponseWrapper {
     return mediaType;
   }
 
-  public RandomAccessFile getFile() {
+  public File getFile() {
     return file;
   }
 
