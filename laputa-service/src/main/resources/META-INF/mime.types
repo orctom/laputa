@@ -1,0 +1,35 @@
+application/atom+xml atom
+application/javascript js JS
+application/json json
+application/msword doc DOC
+application/vnd.ms-excel xls XLS
+application/pdf pdf PDF
+application/postscript ai eps ps
+application/rtf rtf
+application/xhtml+xml xhtml
+application/xml xml XML
+application/x-7z-compressed 7z
+application/x-tex tex TEX
+application/x-texinfo texinfo texi
+application/x-troff t tr roff
+application/zip zip ZIP
+audio/basic au
+audio/midi midi mid
+audio/x-aifc aifc
+audio/x-aiff aif aiff
+audio/x-mpeg mpeg mpg
+audio/x-wav wav
+image/gif gif GIF
+image/ief ief
+image/jpeg jpeg jpg jpe JPG
+image/tiff tiff tif
+image/png png PNG
+image/x-xwindowdump xwd
+text/html html htm HTML HTM
+text/markdown markdown md MD
+text/css css CSS
+text/plain txt text TXT TEXT conf properties ini
+text/x-c c C
+video/mpeg mpeg mpg mpe
+video/quicktime qt mov
+video/x-msvideo avi

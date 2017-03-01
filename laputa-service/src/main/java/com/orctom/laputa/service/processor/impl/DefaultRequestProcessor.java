@@ -1,6 +1,7 @@
 package com.orctom.laputa.service.processor.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -25,25 +26,34 @@ import com.orctom.laputa.service.util.ParamResolver;
 import com.orctom.laputa.utils.ClassUtils;
 import com.orctom.laputa.utils.SimpleMeter;
 import com.orctom.laputa.utils.SimpleMetrics;
-import io.netty.handler.codec.http.*;
+import com.typesafe.config.Config;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 import io.netty.util.CharsetUtil;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cglib.reflect.FastMethod;
 
+import javax.activation.MimetypesFileTypeMap;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.executable.ExecutableValidator;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import static com.orctom.laputa.service.Constants.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
@@ -60,16 +70,16 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private static SimpleMeter simpleMeter;
   private static final String METER_REQUESTS = "requests";
-  private static final byte[] ERROR_CONTENT = "500".getBytes();
+  private static final byte[] ERROR_CONTENT = INTERNAL_SERVER_ERROR.reasonPhrase().getBytes();
 
-  private static final byte[] ERROR_BUSY = "500, too busy".getBytes();
+  private static final byte[] ERROR_BUSY = "The server is busy, please try again later.".getBytes();
   private static final String FILE = ".file";
   private static final String FILENAME = ".originalFilename";
 
   private static final String CONTENT_TYPE = ".contentType";
 
   private static final HttpDataFactory HTTP_DATA_FACTORY = new DefaultHttpDataFactory(
-      Configurator.getInstance().getHttpDataUseDiskMinSize(),
+      Configurator.getInstance().getPostDataUseDiskThreshold(),
       Configurator.getInstance().getCharset()
   );
 
@@ -81,21 +91,39 @@ public class DefaultRequestProcessor implements RequestProcessor {
       HttpMethod.PUT, HTTPMethod.PUT
   );
 
+  private static final MimetypesFileTypeMap MIMETYPES_FILE_TYPE_MAP = new MimetypesFileTypeMap();
+
   private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
   private static RateLimiter rateLimiter;
+
+  private static Set<String> staticPaths = new HashSet<>();
+  private static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
 
   public DefaultRequestProcessor() {
     if (LOGGER.isInfoEnabled()) {
       simpleMeter = SimpleMetrics.create(LOGGER).meter(METER_REQUESTS);
     }
 
-    Integer maxRequestsPerSecond = Configurator.getInstance().getRequestRateLimit();
+    Integer maxRequestsPerSecond = Configurator.getInstance().getThrottle();
     if (null == maxRequestsPerSecond) {
       return;
     }
 
     rateLimiter = RateLimiter.create(maxRequestsPerSecond);
+    initStaticPaths();
+  }
+
+  private static void initStaticPaths() {
+    Config config = Configurator.getInstance().getConfig();
+    String urlsStatic = config.getString(CFG_URLS_STATIC);
+    if (!Strings.isNullOrEmpty(urlsStatic)) {
+      staticPaths.addAll(Splitter.on(SIGN_COMMA).omitEmptyStrings().trimResults().splitToList(urlsStatic));
+    }
+    String urlUpload = config.getString(CFG_UPLOAD_URL);
+    if (!Strings.isNullOrEmpty(urlsStatic)) {
+      staticPaths.add(urlUpload);
+    }
   }
 
   @Override
@@ -106,20 +134,92 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
     RequestWrapper requestWrapper = getRequestWrapper(request);
 
-    String accept = request.headers().get(HttpHeaderNames.ACCEPT);
-    ResponseTranslator translator = ResponseTranslators.getTranslator(requestWrapper, accept);
+    String mediaType = MIMETYPES_FILE_TYPE_MAP.getContentType(requestWrapper.getPath());
 
     if (null != rateLimiter && !rateLimiter.tryAcquire(200, TimeUnit.MILLISECONDS)) {
-      return new ResponseWrapper(translator.getMediaType().getValue(), ERROR_BUSY);
+      return new ResponseWrapper(mediaType, ERROR_BUSY);
     }
 
-    return handleRequest(request.headers(), requestWrapper, translator);
+    if (isRequestingForStaticContent(requestWrapper.getPath())) {
+      return handleStaticFileRequest(requestWrapper, mediaType);
+
+    } else {
+      ResponseTranslator translator = ResponseTranslators.getTranslator(requestWrapper);
+      return handleRequest(requestWrapper, translator);
+    }
   }
 
-  private ResponseWrapper handleRequest(HttpHeaders headers, RequestWrapper requestWrapper, ResponseTranslator translator) {
-    Context ctx = getContext(requestWrapper.getPath(), headers);
+  private boolean isRequestingForStaticContent(String uri) {
+    for (String path : staticPaths) {
+      if (uri.startsWith(path)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
-    String mediaType = translator.getMediaType().getValue();
+  private ResponseWrapper handleStaticFileRequest(RequestWrapper requestWrapper, String mediaType) {
+    if (HttpMethod.GET != requestWrapper.getHttpMethod()) {
+      return new ResponseWrapper(mediaType, BAD_REQUEST.reasonPhrase().getBytes(), BAD_REQUEST);
+    }
+
+    String path = getFilePath(requestWrapper.getPath());
+    if (Strings.isNullOrEmpty(path)) {
+      return fileNotFound(mediaType);
+    }
+
+    File file = new File(path);
+    if (!file.exists() || file.isHidden() || !file.isFile()) {
+      return fileNotFound(mediaType);
+    }
+
+    if (fileNotChanged(requestWrapper, file)) {
+      return new ResponseWrapper(mediaType, NOT_MODIFIED);
+    }
+
+    try {
+      RandomAccessFile raf = new RandomAccessFile(file, "r");
+      return new ResponseWrapper(mediaType, raf);
+    } catch (FileNotFoundException ignore) {
+      return fileNotFound(mediaType);
+    }
+  }
+
+  private ResponseWrapper fileNotFound(String mediaType) {
+    return new ResponseWrapper(mediaType, NOT_FOUND.reasonPhrase().getBytes(), NOT_FOUND);
+  }
+
+  private boolean fileNotChanged(RequestWrapper requestWrapper, File file) {
+    String ifModifiedSince = requestWrapper.getHeaders().get(HttpHeaderNames.IF_MODIFIED_SINCE);
+    if (Strings.isNullOrEmpty(ifModifiedSince)) {
+      return false;
+    }
+
+    long ifModifiedSinceSeconds = DateTime.parse(ifModifiedSince, HTTP_DATE_FORMATTER).getMillis() / 1000;
+    long fileLastModifiedSeconds = file.lastModified() / 1000;
+    return ifModifiedSinceSeconds == fileLastModifiedSeconds;
+  }
+
+  private String getFilePath(String uri) {
+    if (uri.isEmpty() || uri.charAt(0) != SLASH) {
+      return null;
+    }
+
+    uri = uri.replace(SLASH, File.separatorChar);
+
+    if (uri.contains(File.separator + DOT) ||
+        uri.contains(DOT + File.separator) ||
+        uri.charAt(0) == DOT || uri.charAt(uri.length() - 1) == DOT ||
+        INSECURE_URI.matcher(uri).matches()) {
+      return null;
+    }
+    return Configurator.getInstance().getConfig().getString(CFG_UPLOAD_DIR) + File.separator + uri;
+  }
+
+  private ResponseWrapper handleRequest(RequestWrapper requestWrapper, ResponseTranslator translator) {
+    Context ctx = getContext(requestWrapper);
+
+    String mediaType = translator.getMediaType();
 
     long start = System.currentTimeMillis();
     // pre-processors
@@ -163,7 +263,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
       byte[] content = translator.translate(mapping, processed, ctx);
       boolean is404 = PATH_404.equals(mapping.getUriPattern());
-      return new ResponseWrapper(mediaType, content, is404 ? NOT_FOUND: OK);
+      return new ResponseWrapper(mediaType, content, is404 ? NOT_FOUND : OK);
     } catch (ParameterValidationException e) {
       return new ResponseWrapper(mediaType, e.getMessage().getBytes(UTF8), BAD_REQUEST);
     } catch (IllegalConfigException | TemplateProcessingException e) {
@@ -189,10 +289,10 @@ public class DefaultRequestProcessor implements RequestProcessor {
     }
   }
 
-  private Context getContext(String uri, HttpHeaders headers) {
+  private Context getContext(RequestWrapper requestWrapper) {
     Context ctx = new Context();
-    ctx.put(KEY_URL, uri);
-    ctx.put(KEY_REFERER, headers.get(HttpHeaderNames.REFERER));
+    ctx.put(KEY_URL, requestWrapper.getPath());
+    ctx.put(KEY_REFERER, requestWrapper.getHeaders().get(HttpHeaderNames.REFERER));
     return ctx;
   }
 
@@ -214,7 +314,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
     }
 
     String data = getRequestData(request);
-    return new RequestWrapper(request.method(), request.uri(), parameters, data);
+    return new RequestWrapper(request.method(), request.headers(), request.uri(), parameters, data);
   }
 
   private void addToParameters(Map<String, List<String>> parameters, Attribute attribute) {
@@ -248,7 +348,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
     String path = queryStringDecoder.path();
     Map<String, List<String>> queryParameters = queryStringDecoder.parameters();
     String data = getRequestData(request);
-    return new RequestWrapper(method, path, queryParameters, data);
+    return new RequestWrapper(method, request.headers(), path, queryParameters, data);
   }
 
   private String getRequestData(FullHttpRequest request) {

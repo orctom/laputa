@@ -1,6 +1,5 @@
 package com.orctom.laputa.service.model;
 
-
 /**
  * media types
  * Created by hao on 11/26/15.

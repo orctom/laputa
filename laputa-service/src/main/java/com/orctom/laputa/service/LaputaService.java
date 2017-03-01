@@ -5,7 +5,6 @@ import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.config.MappingConfig;
 import com.orctom.laputa.service.internal.Bootstrapper;
 import com.orctom.laputa.service.internal.handler.DefaultHandler;
-import com.orctom.laputa.service.model.Response;
 import com.orctom.laputa.service.translator.ResponseTranslator;
 import com.orctom.laputa.service.translator.ResponseTranslators;
 import com.typesafe.config.Config;
@@ -20,6 +19,10 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ServiceLoader;
+
+import static com.orctom.laputa.service.Constants.CFG_SERVER_HTTPS_PORT;
+import static com.orctom.laputa.service.Constants.CFG_SERVER_HTTP_PORT;
+import static com.orctom.laputa.service.Constants.DEFAULT_HTTP_PORT;
 
 /**
  * Serving http
@@ -79,34 +82,35 @@ public class LaputaService {
   }
 
   private void startup() {
+    Config config = Configurator.getInstance().getConfig();
     loadMappings();
+
     LOGGER.info("Starting service...");
-    bootstrapHttpsService();
-    bootstrapHttpService();
+    boolean bootstrapHttpsService = config.hasPath(CFG_SERVER_HTTPS_PORT);
+    if (bootstrapHttpsService) {
+      bootstrapHttpsService(config.getInt(CFG_SERVER_HTTPS_PORT));
+    }
+
+    boolean bootstrapHttpService = config.hasPath(CFG_SERVER_HTTP_PORT);
+    if (bootstrapHttpService) {
+      bootstrapHttpService(config.getInt(CFG_SERVER_HTTP_PORT));
+    }
+
+    if (!bootstrapHttpService && !bootstrapHttpsService) {
+      bootstrapHttpService(DEFAULT_HTTP_PORT);
+    }
   }
 
   private void loadMappings() {
     MappingConfig.getInstance().scan(applicationContext);
   }
 
-  private void bootstrapHttpsService() {
-    Config config = Configurator.getInstance().getConfig();
-    try {
-      int port = config.getInt("server.https.port");
-      new Bootstrapper(port, true).start(); // start https in separate thread
-    } catch (Exception e) {
-      LOGGER.warn("Skipped to start https service, due to: {}", e.getMessage());
-    }
+  private void bootstrapHttpsService(int port) {
+    new Bootstrapper(port, true).start();
   }
 
-  private void bootstrapHttpService() {
-    Config config = Configurator.getInstance().getConfig();
-    try {
-      int port = config.getInt("server.http.port");
-      new Bootstrapper(port, false).run(); // not start http in separate thread
-    } catch (Exception e) {
-      LOGGER.warn("Skipped to start http service, due to: {}", e.getMessage());
-    }
+  private void bootstrapHttpService(int port) {
+    new Bootstrapper(port, false).run();
   }
 
   private void printAsciiArt() {

@@ -1,9 +1,14 @@
 package com.orctom.laputa.service.model;
 
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.List;
 import java.util.Map;
+
+import static com.orctom.laputa.service.Constants.UTF_8;
 
 /**
  * Request Wrapper holding the path and the params translated from query string
@@ -12,17 +17,24 @@ import java.util.Map;
 public class RequestWrapper {
 
   private HttpMethod httpMethod;
+  private HttpHeaders headers;
   private String path;
   private Map<String, List<String>> params;
   private String data;
 
   public RequestWrapper(
       HttpMethod httpMethod,
+      HttpHeaders headers,
       String path,
       Map<String, List<String>> params,
       String data) {
     this.httpMethod = httpMethod;
-    this.path = path;
+    this.headers = headers;
+    try {
+      this.path = URLDecoder.decode(path, UTF_8);
+    } catch (UnsupportedEncodingException e) {
+      this.path = path;
+    }
     this.params = params;
     this.data = data;
   }
@@ -33,6 +45,10 @@ public class RequestWrapper {
 
   public void setHttpMethod(HttpMethod httpMethod) {
     this.httpMethod = httpMethod;
+  }
+
+  public HttpHeaders getHeaders() {
+    return headers;
   }
 
   public String getPath() {

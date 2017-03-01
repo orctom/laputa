@@ -4,7 +4,8 @@ import com.google.common.base.Strings;
 import com.orctom.laputa.service.model.Accepts;
 import com.orctom.laputa.service.model.MediaType;
 import com.orctom.laputa.service.model.RequestWrapper;
-import io.netty.handler.codec.http.HttpMethod;
+import com.orctom.laputa.service.util.PathUtils;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,20 +34,21 @@ public abstract class ResponseTranslators {
     registerTranslator(ProtoBufResponseTranslator.TYPE, protoBufResponseTranslator);
   }
 
-  private static void registerTranslator(MediaType mediaType, ResponseTranslator encoder) {
-    REGISTRY.put(mediaType.getExtension(), encoder);
-    REGISTRY.put(mediaType.getValue(), encoder);
+  private static void registerTranslator(MediaType mediaType, ResponseTranslator responseTranslator) {
+    REGISTRY.put(mediaType.getExtension(), responseTranslator);
+    REGISTRY.put(mediaType.getValue(), responseTranslator);
   }
 
   public static void register(ResponseTranslator responseTranslator) {
     LOGGER.info("Registered ResponseTranslator: {}} -> {}", responseTranslator.getMediaType(), responseTranslator);
-    registerTranslator(responseTranslator.getMediaType(), responseTranslator);
+    REGISTRY.put(responseTranslator.getExtension(), responseTranslator);
+    REGISTRY.put(responseTranslator.getMediaType(), responseTranslator);
   }
 
-  public static ResponseTranslator getTranslator(RequestWrapper requestWrapper, String accept) {
+  public static ResponseTranslator getTranslator(RequestWrapper requestWrapper) {
     // 1, by extension
-    String uri = requestWrapper.getPath();
-    String extension = getExtension(uri);
+    String path = requestWrapper.getPath();
+    String extension = PathUtils.getExtension(path);
     if (null != extension) {
       ResponseTranslator translator = REGISTRY.get(extension);
       if (null != translator) {
@@ -55,6 +57,7 @@ public abstract class ResponseTranslators {
     }
 
     // 2, by accept header
+    String accept = requestWrapper.getHeaders().get(HttpHeaderNames.ACCEPT);
     if (Strings.isNullOrEmpty(accept)) {
       return getResponseTranslatorOfType(MediaType.APPLICATION_JSON);
     }
@@ -72,15 +75,6 @@ public abstract class ResponseTranslators {
     }
 
     return getResponseTranslatorOfType(MediaType.APPLICATION_JSON);
-  }
-
-  private static String getExtension(String uri) {
-    int lastDotIndex = uri.lastIndexOf('.');
-    if (lastDotIndex > 1 && lastDotIndex < uri.length() - 1) {
-      return uri.substring(lastDotIndex);
-    } else {
-      return null;
-    }
   }
 
   private static ResponseTranslator getResponseTranslatorOfType(MediaType mediaType) {

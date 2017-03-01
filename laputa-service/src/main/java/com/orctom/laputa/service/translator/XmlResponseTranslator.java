@@ -18,8 +18,13 @@ class XmlResponseTranslator implements ResponseTranslator {
   private static XStream xstream = new XStream();
 
   @Override
-  public MediaType getMediaType() {
-    return TYPE;
+  public String getMediaType() {
+    return TYPE.getValue();
+  }
+
+  @Override
+  public String getExtension() {
+    return TYPE.getExtension();
   }
 
   @Override

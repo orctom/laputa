@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
@@ -29,25 +28,21 @@ public class Configurator {
 
   private static final Configurator INSTANCE = new Configurator();
 
-  private static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd,yyyyMMdd,yyyy-MM-dd HH:mm:ss,dd/mm/yyyy";
-  private static final String DEFAULT_CHARSET = "UTF-8";
-
   private static final String DIR_HOST = "host/";
 
   private Config config;
   private boolean debugEnabled;
   private Charset charset;
-  private String staticFilesDir;
-  private Integer requestRateLimit;
-  private long httpDataUseDiskMinSize = DefaultHttpDataFactory.MINSIZE;
+  private Integer throttle;
+  private long postDataUseDiskThreshold = DefaultHttpDataFactory.MINSIZE;
 
   private Configurator() {
     initConfig();
-    initDebugFlag();
-    initDatePattern();
-    initCharset();
-    initStaticFilesDir();
-    initRateLimiter();
+    loadDebugFlag();
+    loadDatePattern();
+    loadCharset();
+    loadPostDataUseDiskThreshold();
+    loadThrottle();
   }
 
   public static Configurator getInstance() {
@@ -57,7 +52,9 @@ public class Configurator {
   private void initConfig() {
     String appRootDir = Paths.get(SIGN_DOT).toAbsolutePath().toString();
 
-    config = ConfigFactory.parseString("appRootDir=\"" + appRootDir + "\"");
+    System.setProperty(CFG_APP_ROOT, appRootDir);
+
+    config = ConfigFactory.parseString(CFG_APP_ROOT + "=\"" + appRootDir + "\"");
     String hostname = HostUtils.getHostname();
     if (!Strings.isNullOrEmpty(hostname)) {
       config = config.withFallback(ConfigFactory.load(DIR_HOST + hostname));
@@ -65,21 +62,15 @@ public class Configurator {
     config = config.withFallback(ConfigFactory.load());
   }
 
-  private void initDebugFlag() {
-    if (config.hasPath(CFG_DEBUG)) {
-      debugEnabled = config.getBoolean(CFG_DEBUG);
-    }
+  private void loadDebugFlag() {
+    debugEnabled = config.getBoolean(CFG_DEBUG);
   }
 
-  private void initDatePattern() {
-    String pattern = DEFAULT_DATE_PATTERN;
-    if (config.hasPath(CFG_DATE_PATTERN)) {
-      pattern = config.getString(CFG_DATE_PATTERN);
-    } else {
-      LOGGER.warn("`{}` is not configured, using default: {}", CFG_DATE_PATTERN, DEFAULT_DATE_PATTERN);
-    }
+  private void loadDatePattern() {
+    String pattern = config.getString(CFG_DATE_PATTERN);
+    LOGGER.info("Setting date format to: {}", pattern);
 
-    List<String> splits = Splitter.on(",").omitEmptyStrings().trimResults().splitToList(pattern);
+    List<String> splits = Splitter.on(SIGN_SEMI_COLON).omitEmptyStrings().trimResults().splitToList(pattern);
     String[] patterns = splits.toArray(new String[splits.size()]);
 
     DateConverter converter = new DateConverter();
@@ -87,40 +78,22 @@ public class Configurator {
     ConvertUtils.register(converter, Date.class);
   }
 
-  private void initCharset() {
-    charset = Charset.forName(DEFAULT_CHARSET);
-    if (config.hasPath(CFG_CHARSET)) {
-      String charsetName = config.getString(CFG_CHARSET);
-      try {
-        charset = Charset.forName(charsetName);
-      } catch (UnsupportedCharsetException e) {
-        LOGGER.error("Unsupported charset: {}, using default: {}.", charsetName, DEFAULT_CHARSET);
-      }
-    } else {
-      LOGGER.warn("`{}` is not configured, using default: {}.", CFG_CHARSET, DEFAULT_CHARSET);
-    }
+  private void loadCharset() {
+    String charsetName = config.getString(CFG_CHARSET);
+    charset = Charset.forName(charsetName);
+    LOGGER.info("Setting charset to: {}", charsetName);
   }
 
-  private void initStaticFilesDir() {
-    if (config.hasPath(CFG_STATIC_DIR)) {
-      staticFilesDir = config.getString(CFG_STATIC_DIR);
-    } else {
-      LOGGER.warn("`{}` is not configured, using system temporal.", CFG_STATIC_DIR);
-    }
+  private void loadPostDataUseDiskThreshold() {
+    postDataUseDiskThreshold = config.getLong(CFG_POSTDATA_USEDISK_THRESHOLD);
+    LOGGER.info("Setting `{}` to {} bytes.", CFG_POSTDATA_USEDISK_THRESHOLD, postDataUseDiskThreshold);
   }
 
-  private void initRateLimiter() {
+  private void loadThrottle() {
     if (config.hasPath(CFG_THROTTLE)) {
-      requestRateLimit = config.getInt(CFG_THROTTLE);
+      throttle = config.getInt(CFG_THROTTLE);
     } else {
-      LOGGER.info("`{}` is not configured, request rate limiter is turned off.", CFG_THROTTLE);
-    }
-  }
-
-  private void initHttpDataUseDiskMinSize() {
-    if (config.hasPath(CFG_HTTPDATA_USEDISK_MINSIZE)) {
-      httpDataUseDiskMinSize = config.getLong(CFG_HTTPDATA_USEDISK_MINSIZE);
-      LOGGER.info("set `{}` to {} bytes.", CFG_HTTPDATA_USEDISK_MINSIZE, httpDataUseDiskMinSize);
+      LOGGER.info("Setting request rate limiter off, `{}` is configured.", CFG_THROTTLE);
     }
   }
 
@@ -136,19 +109,11 @@ public class Configurator {
     return charset;
   }
 
-  public void setCharset(Charset charset) {
-    this.charset = charset;
+  public Integer getThrottle() {
+    return throttle;
   }
 
-  public String getStaticFilesDir() {
-    return staticFilesDir;
-  }
-
-  public Integer getRequestRateLimit() {
-    return requestRateLimit;
-  }
-
-  public long getHttpDataUseDiskMinSize() {
-    return httpDataUseDiskMinSize;
+  public long getPostDataUseDiskThreshold() {
+    return postDataUseDiskThreshold;
   }
 }
