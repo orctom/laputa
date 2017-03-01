@@ -6,6 +6,7 @@ package com.orctom.laputa.service.model;
  */
 public enum MediaType {
 
+  TEXT_PLAIN(".txt", "text/plain"),
   TEXT_HTML(".html", "text/html"),
   APPLICATION_JSON(".json", "application/json"),
   APPLICATION_XML(".xml", "application/xml"),

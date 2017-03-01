@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -97,10 +98,12 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private static RateLimiter rateLimiter;
 
+  private static String urlUpload;
   private static Set<String> staticPaths = new HashSet<>();
   private static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
 
   public DefaultRequestProcessor() {
+    initStaticPaths();
     if (LOGGER.isInfoEnabled()) {
       simpleMeter = SimpleMetrics.create(LOGGER).meter(METER_REQUESTS);
     }
@@ -111,7 +114,6 @@ public class DefaultRequestProcessor implements RequestProcessor {
     }
 
     rateLimiter = RateLimiter.create(maxRequestsPerSecond);
-    initStaticPaths();
   }
 
   private static void initStaticPaths() {
@@ -120,7 +122,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
     if (!Strings.isNullOrEmpty(urlsStatic)) {
       staticPaths.addAll(Splitter.on(SIGN_COMMA).omitEmptyStrings().trimResults().splitToList(urlsStatic));
     }
-    String urlUpload = config.getString(CFG_UPLOAD_URL);
+    urlUpload = config.getString(CFG_UPLOAD_URL);
     if (!Strings.isNullOrEmpty(urlsStatic)) {
       staticPaths.add(urlUpload);
     }
@@ -160,16 +162,11 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private ResponseWrapper handleStaticFileRequest(RequestWrapper requestWrapper, String mediaType) {
     if (HttpMethod.GET != requestWrapper.getHttpMethod()) {
-      return new ResponseWrapper(mediaType, BAD_REQUEST.reasonPhrase().getBytes(), BAD_REQUEST);
+      return new ResponseWrapper(mediaType, METHOD_NOT_ALLOWED.reasonPhrase().getBytes(), METHOD_NOT_ALLOWED);
     }
 
-    String path = getFilePath(requestWrapper.getPath());
-    if (Strings.isNullOrEmpty(path)) {
-      return fileNotFound(mediaType);
-    }
-
-    File file = new File(path);
-    if (!file.exists() || file.isHidden() || !file.isFile()) {
+    File file = getFile(requestWrapper.getPath());
+    if (null == file || !file.exists() || file.isHidden() || !file.isFile()) {
       return fileNotFound(mediaType);
     }
 
@@ -200,7 +197,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
     return ifModifiedSinceSeconds == fileLastModifiedSeconds;
   }
 
-  private String getFilePath(String uri) {
+  private File getFile(String uri) {
     if (uri.isEmpty() || uri.charAt(0) != SLASH) {
       return null;
     }
@@ -213,7 +210,17 @@ public class DefaultRequestProcessor implements RequestProcessor {
         INSECURE_URI.matcher(uri).matches()) {
       return null;
     }
-    return Configurator.getInstance().getConfig().getString(CFG_UPLOAD_DIR) + File.separator + uri;
+
+    if (uri.startsWith(urlUpload)) {
+      String uploadDir = Configurator.getInstance().getConfig().getString(CFG_UPLOAD_DIR) + File.separator;
+      return new File(uploadDir + uri.substring(urlUpload.length()));
+    }
+
+    URL fileURL = getClass().getClassLoader().getResource(PATH_THEME + uri);
+    if (null == fileURL) {
+      return null;
+    }
+    return new File(fileURL.getFile());
   }
 
   private ResponseWrapper handleRequest(RequestWrapper requestWrapper, ResponseTranslator translator) {

@@ -5,6 +5,7 @@ DummyTest.java
 *.iml
 *.ipr
 *.iws
+/files/
 build/
 target/
 

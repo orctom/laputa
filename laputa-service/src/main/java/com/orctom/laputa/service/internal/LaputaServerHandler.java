@@ -2,6 +2,7 @@ package com.orctom.laputa.service.internal;
 
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.exception.RequestProcessingException;
+import com.orctom.laputa.service.model.MediaType;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.processor.RequestProcessor;
 import com.orctom.laputa.service.processor.impl.DefaultRequestProcessor;
@@ -96,7 +97,6 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
       ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
     }
 
-
     if (websocketPath.equals(req.uri())) {
       WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
           getWebSocketLocation(req), null, true, MAX_FRAME_PAYLOAD_LENGTH
@@ -111,6 +111,17 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     ResponseWrapper responseWrapper = requestProcessor.handleRequest(req);
+
+    if (OK != responseWrapper.getStatus()) {
+      FullHttpResponse res = new DefaultFullHttpResponse(
+          HTTP_1_1,
+          responseWrapper.getStatus(),
+          Unpooled.wrappedBuffer(responseWrapper.getContent())
+      );
+      res.headers().set(HttpHeaderNames.CONTENT_TYPE, MediaType.TEXT_PLAIN);
+      ctx.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+      return;
+    }
 
     if (isRedirectionResponse(responseWrapper)) {
       redirectionResponse(ctx, req, responseWrapper);
@@ -151,7 +162,6 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
       long contentLength = file.length();
       res.headers().set(CONTENT_LENGTH, contentLength);
 
-      // Write the content.
       ChannelFuture lastContentFuture;
       if (null == ctx.pipeline().get(SslHandler.class)) {
         ctx.write(new DefaultFileRegion(file.getChannel(), 0, contentLength), ctx.newProgressivePromise());
@@ -189,9 +199,9 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     boolean keepAlive = HttpUtil.isKeepAlive(req);
     if (keepAlive) {
       res.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-      ctx.write(res);
+      ctx.writeAndFlush(res);
     } else {
-      ctx.write(res).addListener(ChannelFutureListener.CLOSE);
+      ctx.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
     }
   }
 

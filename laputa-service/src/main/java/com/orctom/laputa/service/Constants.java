@@ -27,6 +27,7 @@ public class Constants {
   public static final String PATH_403 = "/403";
   public static final String PATH_404 = "/404";
   public static final String PATH_500 = "/500";
+  public static final String PATH_THEME = "/theme";
 
   public static final String KEY_URL = "url";
   public static final String KEY_REFERER = "referer";
