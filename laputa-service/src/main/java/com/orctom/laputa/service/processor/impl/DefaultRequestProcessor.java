@@ -132,20 +132,24 @@ public class DefaultRequestProcessor implements RequestProcessor {
       simpleMeter.mark();
     }
 
-    RequestWrapper requestWrapper = getRequestWrapper(request);
+    try {
+      RequestWrapper requestWrapper = getRequestWrapper(request);
 
-    String mediaType = MIMETYPES_FILE_TYPE_MAP.getContentType(requestWrapper.getPath());
+      String mediaType = MIMETYPES_FILE_TYPE_MAP.getContentType(requestWrapper.getPath());
 
-    if (null != rateLimiter && !rateLimiter.tryAcquire(200, TimeUnit.MILLISECONDS)) {
-      return new ResponseWrapper(mediaType, ERROR_BUSY);
-    }
+      if (null != rateLimiter && !rateLimiter.tryAcquire(200, TimeUnit.MILLISECONDS)) {
+        return new ResponseWrapper(mediaType, ERROR_BUSY);
+      }
 
-    if (isRequestingForStaticContent(requestWrapper.getPath())) {
-      return handleStaticFileRequest(requestWrapper, mediaType);
+      if (isRequestingForStaticContent(requestWrapper.getPath())) {
+        return handleStaticFileRequest(requestWrapper, mediaType);
 
-    } else {
-      ResponseTranslator translator = ResponseTranslators.getTranslator(requestWrapper);
-      return handleRequest(requestWrapper, translator);
+      } else {
+        ResponseTranslator translator = ResponseTranslators.getTranslator(requestWrapper);
+        return handleRequest(requestWrapper, translator);
+      }
+    } finally {
+      HTTP_DATA_FACTORY.cleanRequestHttpData(request);
     }
   }
 
