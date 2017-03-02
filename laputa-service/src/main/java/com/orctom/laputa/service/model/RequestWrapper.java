@@ -30,13 +30,17 @@ public class RequestWrapper {
       String data) {
     this.httpMethod = httpMethod;
     this.headers = headers;
-    try {
-      this.path = URLDecoder.decode(path, UTF_8);
-    } catch (UnsupportedEncodingException e) {
-      this.path = path;
-    }
+    this.path = decode(path);
     this.params = params;
-    this.data = data;
+    this.data = decode(data);
+  }
+
+  private String decode(String raw) {
+    try {
+      return URLDecoder.decode(raw, UTF_8);
+    } catch (UnsupportedEncodingException e) {
+      return raw;
+    }
   }
 
   public HttpMethod getHttpMethod() {

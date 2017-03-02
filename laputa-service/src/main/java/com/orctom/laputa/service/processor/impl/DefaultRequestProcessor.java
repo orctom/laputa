@@ -434,11 +434,6 @@ public class DefaultRequestProcessor implements RequestProcessor {
     FastMethod handlerMethod = mapping.getHandlerMethod();
     Object target = mapping.getTarget();
 
-    Map<String, Class<?>> paramTypes = mapping.getParamTypes();
-    if (paramTypes.isEmpty()) {
-      return handlerMethod.invoke(target, null);
-    }
-
     // process @Data
     Class<?> dataType = mapping.getDataType();
     if (null != dataType) {
@@ -448,6 +443,11 @@ public class DefaultRequestProcessor implements RequestProcessor {
         Object arg = JSON.parseObject(requestWrapper.getData(), dataType);
         return handlerMethod.invoke(target, new Object[]{arg});
       }
+    }
+
+    Map<String, Class<?>> paramTypes = mapping.getParamTypes();
+    if (paramTypes.isEmpty()) {
+      return handlerMethod.invoke(target, null);
     }
 
     Map<String, String> params = ParamResolver.extractParams(mapping, requestWrapper);
