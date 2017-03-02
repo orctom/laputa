@@ -148,6 +148,9 @@ public class DefaultRequestProcessor implements RequestProcessor {
         ResponseTranslator translator = ResponseTranslators.getTranslator(requestWrapper);
         return handleRequest(requestWrapper, translator);
       }
+    } catch (Exception e) {
+      LOGGER.error(e.getMessage(), e);
+      return new ResponseWrapper(MediaType.TEXT_PLAIN.getValue(), e.getMessage().getBytes(), BAD_REQUEST);
     } finally {
       HTTP_DATA_FACTORY.cleanRequestHttpData(request);
     }
@@ -301,24 +304,31 @@ public class DefaultRequestProcessor implements RequestProcessor {
   }
 
   private RequestWrapper wrapPostRequest(FullHttpRequest request) {
-    HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(HTTP_DATA_FACTORY, request);
-    List<InterfaceHttpData> bodyDatas = decoder.getBodyHttpDatas();
+    try {
+      HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(HTTP_DATA_FACTORY, request);
+      List<InterfaceHttpData> bodyDatas = decoder.getBodyHttpDatas();
 
-    Map<String, List<String>> parameters = new HashMap<>();
+      Map<String, List<String>> parameters = new HashMap<>();
 
-    for (InterfaceHttpData bodyData : bodyDatas) {
-      if (HttpDataType.Attribute == bodyData.getHttpDataType()) {
-        Attribute attribute = (Attribute) bodyData;
-        addToParameters(parameters, attribute);
-      } else if (HttpDataType.FileUpload == bodyData.getHttpDataType()) {
-        FileUpload fileUpload = (FileUpload) bodyData;
-        addToParameters(parameters, fileUpload);
-        decoder.removeHttpDataFromClean(bodyData);
+      for (InterfaceHttpData bodyData : bodyDatas) {
+        if (HttpDataType.Attribute == bodyData.getHttpDataType()) {
+          Attribute attribute = (Attribute) bodyData;
+          addToParameters(parameters, attribute);
+        } else if (HttpDataType.FileUpload == bodyData.getHttpDataType()) {
+          FileUpload fileUpload = (FileUpload) bodyData;
+          addToParameters(parameters, fileUpload);
+          decoder.removeHttpDataFromClean(bodyData);
+        }
       }
-    }
 
-    String data = getRequestData(request);
-    return new RequestWrapper(request.method(), request.headers(), request.uri(), parameters, data);
+      String data = getRequestData(request);
+      return new RequestWrapper(request.method(), request.headers(), request.uri(), parameters, data);
+    } catch (HttpPostRequestDecoder.ErrorDataDecoderException |
+        HttpPostRequestDecoder.EndOfDataDecoderException |
+        HttpPostRequestDecoder.NotEnoughDataDecoderException e) {
+      LOGGER.error("Decoder exception: {}", getRequestData(request));
+      throw new RequestProcessingException(e.getMessage(), e);
+    }
   }
 
   private void addToParameters(Map<String, List<String>> parameters, Attribute attribute) {
