@@ -257,8 +257,8 @@ public class DefaultRequestProcessor implements RequestProcessor {
       Object processed = postProcess(data);
 
       long end = System.currentTimeMillis();
-      if (LOGGER.isInfoEnabled()) {
-        LOGGER.info("{} took: {}ms", requestWrapper.getPath(), (end - start));
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("{} took: {}ms", requestWrapper.getPath(), (end - start));
       }
 
       byte[] content = translator.translate(mapping, processed, ctx);
