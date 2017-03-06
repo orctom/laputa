@@ -326,10 +326,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
         } else if (HttpDataType.FileUpload == bodyData.getHttpDataType()) {
           FileUpload fileUpload = (FileUpload) bodyData;
           addToParameters(parameters, fileUpload);
-          decoder.removeHttpDataFromClean(bodyData);
         }
-
-        bodyData.release();
       }
 
       return new RequestWrapper(request.method(), request.headers(), request.uri(), parameters, data);
