@@ -208,8 +208,6 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
   private void response(ChannelHandlerContext ctx, FullHttpRequest req, ResponseWrapper responseWrapper) {
     FullHttpResponse res = getHttpResponse(responseWrapper);
     res.headers().set(CONTENT_TYPE, responseWrapper.getMediaType());
-    res.headers().set(CONTENT_LENGTH, res.content().readableBytes());
-    res.headers().set(DATE, DateTime.now().toString(HTTP_DATE_FORMATTER));
     writeResponse(ctx, req, res);
   }
 
@@ -232,10 +230,15 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
   }
 
   private void writeResponse(ChannelHandlerContext ctx, FullHttpRequest req, FullHttpResponse res) {
+    res.headers().set(DATE, DateTime.now().toString(HTTP_DATE_FORMATTER));
+    if (!HttpUtil.isContentLengthSet(res)) {
+      HttpUtil.setContentLength(res, res.content().readableBytes());
+    }
+
     boolean keepAlive = HttpUtil.isKeepAlive(req);
     if (keepAlive) {
       res.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-      ctx.writeAndFlush(res);
+      ctx.write(res);
     } else {
       ctx.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
     }
