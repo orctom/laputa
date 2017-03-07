@@ -5,6 +5,8 @@ import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.config.MappingConfig;
 import com.orctom.laputa.service.internal.Bootstrapper;
 import com.orctom.laputa.service.internal.handler.DefaultHandler;
+import com.orctom.laputa.service.lifecycle.PostStart;
+import com.orctom.laputa.service.lifecycle.PreStart;
 import com.orctom.laputa.service.translator.ResponseTranslator;
 import com.orctom.laputa.service.translator.ResponseTranslators;
 import com.typesafe.config.Config;
@@ -20,9 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ServiceLoader;
 
-import static com.orctom.laputa.service.Constants.CFG_SERVER_HTTPS_PORT;
-import static com.orctom.laputa.service.Constants.CFG_SERVER_HTTP_PORT;
-import static com.orctom.laputa.service.Constants.DEFAULT_HTTP_PORT;
+import static com.orctom.laputa.service.Constants.*;
 
 /**
  * Serving http
@@ -58,9 +58,11 @@ public class LaputaService {
   public void run(Class<?> configurationClass) {
     printAsciiArt();
     validate(configurationClass);
+    preStart();
     createApplicationContext(configurationClass);
     loadResponseTranslators();
     startup();
+    postStart();
   }
 
   private void validate(Class<?> configurationClass) {
@@ -110,7 +112,7 @@ public class LaputaService {
   }
 
   private void bootstrapHttpService(int port) {
-    new Bootstrapper(port, false).run();
+    new Bootstrapper(port, false).start();
   }
 
   private void printAsciiArt() {
@@ -119,5 +121,21 @@ public class LaputaService {
       reader.lines().forEach(System.out::println);
     } catch (Exception ignored) {
     }
+  }
+
+  private void preStart() {
+    LOGGER.info("Pre-start:");
+    ServiceLoader.load(PreStart.class).forEach(preStart -> {
+      LOGGER.info("\t{}", preStart.getClass());
+      preStart.run();
+    });
+  }
+
+  private void postStart() {
+    LOGGER.info("Post-start:");
+    ServiceLoader.load(PostStart.class).forEach(postStart -> {
+      LOGGER.info("\t{}", postStart.getClass());
+      postStart.run();
+    });
   }
 }
