@@ -138,7 +138,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
       String mediaType = MIMETYPES_FILE_TYPE_MAP.getContentType(requestWrapper.getPath());
 
       if (null != rateLimiter && !rateLimiter.tryAcquire(200, TimeUnit.MILLISECONDS)) {
-        return new ResponseWrapper(mediaType, ERROR_BUSY);
+        return new ResponseWrapper(mediaType, TOO_MANY_REQUESTS);
       }
 
       if (isRequestingForStaticContent(requestWrapper.getPath())) {
