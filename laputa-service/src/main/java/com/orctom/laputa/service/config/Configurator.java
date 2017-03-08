@@ -93,7 +93,7 @@ public class Configurator {
     if (config.hasPath(CFG_THROTTLE)) {
       throttle = config.getInt(CFG_THROTTLE);
     } else {
-      LOGGER.info("Setting request rate limiter off, `{}` is configured.", CFG_THROTTLE);
+      LOGGER.info("Setting request rate limiter off, `{}` is not configured.", CFG_THROTTLE);
     }
   }
 
