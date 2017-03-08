@@ -71,7 +71,6 @@ public class DefaultRequestProcessor implements RequestProcessor {
   private static final String METER_REQUESTS = "requests";
   private static final byte[] ERROR_CONTENT = INTERNAL_SERVER_ERROR.reasonPhrase().getBytes();
 
-  private static final byte[] ERROR_BUSY = "The server is busy, please try again later.".getBytes();
   private static final String FILE = ".file";
   private static final String FILENAME = ".originalFilename";
 
@@ -284,7 +283,6 @@ public class DefaultRequestProcessor implements RequestProcessor {
   private RequestWrapper getRequestWrapper(FullHttpRequest request) {
     HttpMethod method = request.method();
     String uri = request.uri();
-    LOGGER.debug("uri = {}", uri);
 
     if (HttpMethod.POST.equals(method) ||
         HttpMethod.PUT.equals(method) ||

@@ -3,12 +3,15 @@ package com.orctom.laputa.service.internal;
 import com.orctom.laputa.exception.IllegalConfigException;
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.utils.HostUtils;
+import com.typesafe.config.Config;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.cors.CorsConfig;
+import io.netty.handler.codec.http.cors.CorsConfigBuilder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
@@ -19,6 +22,11 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.SSLException;
 import java.io.File;
 import java.security.cert.CertificateException;
+import java.util.List;
+
+import static com.orctom.laputa.service.Constants.CFG_SERVER_CORS_ALLOWS_CREDENTIALS;
+import static com.orctom.laputa.service.Constants.CFG_SERVER_CORS_ALLOWS_ORIGINS;
+import static com.orctom.laputa.service.Constants.SIGN_STAR;
 
 /**
  * boot netty service
@@ -53,7 +61,7 @@ public class Bootstrapper extends Thread {
       b.group(bossGroup, workerGroup)
           .channel(NioServerSocketChannel.class)
           .handler(new LoggingHandler(LogLevel.INFO))
-          .childHandler(new LaputaServerInitializer(sslContext));
+          .childHandler(new LaputaServerInitializer(sslContext, getCorsConfig()));
 
       Channel ch = b.bind(port).sync().channel();
 
@@ -93,6 +101,39 @@ public class Bootstrapper extends Thread {
     if (!file.exists()) {
       throw new IllegalArgumentException(message + " Path: " + file.getAbsolutePath());
     }
+  }
+
+  private CorsConfig getCorsConfig() {
+    Config config = Configurator.getInstance().getConfig();
+    if (!config.hasPath(CFG_SERVER_CORS_ALLOWS_ORIGINS)) {
+      return null;
+    }
+
+    List<String> origins = config.getStringList(CFG_SERVER_CORS_ALLOWS_ORIGINS);
+    if (null == origins || origins.isEmpty()) {
+      return null;
+    }
+
+    CorsConfigBuilder builder = null;
+    for (String origin : origins) {
+      if (SIGN_STAR.equals(origin)) {
+        builder = CorsConfigBuilder.forAnyOrigin();
+        break;
+      }
+    }
+
+    if (null == builder) {
+      builder = CorsConfigBuilder.forOrigins(origins.toArray(new String[origins.size()]));
+    }
+
+    if (config.hasPath(CFG_SERVER_CORS_ALLOWS_CREDENTIALS)) {
+      boolean allowCredentials = config.getBoolean(CFG_SERVER_CORS_ALLOWS_CREDENTIALS);
+      if (allowCredentials) {
+        builder.allowCredentials();
+      }
+    }
+
+    return builder.build();
   }
 
   private void shutdown() {

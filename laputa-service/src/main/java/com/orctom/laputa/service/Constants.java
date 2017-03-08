@@ -18,6 +18,8 @@ public class Constants {
   public static final String CFG_STATIC_FILE_CACHE = "static.file.cache";
   public static final String CFG_SERVER_HTTP_PORT = "server.http.port";
   public static final String CFG_SERVER_HTTPS_PORT = "server.https.port";
+  public static final String CFG_SERVER_CORS_ALLOWS_ORIGINS = "server.cors.allows.origins";
+  public static final String CFG_SERVER_CORS_ALLOWS_CREDENTIALS = "server.cors.allows.credentials";
   public static final String CFG_WEBSOCKET_PATH = "server.websocket.path";
   public static final String CFG_THROTTLE = "server.throttle";
   public static final String CFG_POSTDATA_USEDISK_THRESHOLD = "server.postData.useDisk.threshold";
@@ -39,6 +41,7 @@ public class Constants {
   public static final String SIGN_SEMI_COLON = ";";
   public static final String SIGN_QUESTION = "?";
   public static final String SIGN_AND = "&";
+  public static final String SIGN_STAR = "*";
 
   public static final int DEFAULT_HTTP_PORT = 7000;
   public static final String UTF_8 = "UTF-8";
