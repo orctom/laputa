@@ -1,7 +1,6 @@
 package com.orctom.laputa.service.processor.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -96,7 +95,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
   private static RateLimiter rateLimiter;
 
   private static String urlUpload;
-  private static Set<String> staticPaths = new HashSet<>();
+  private static Map<String, String> staticPaths = new HashMap<>();
   private static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
 
   public DefaultRequestProcessor() {
@@ -115,14 +114,17 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private static void initStaticPaths() {
     Config config = Configurator.getInstance().getConfig();
-    String urlsStatic = config.getString(CFG_URLS_STATIC);
-    if (!Strings.isNullOrEmpty(urlsStatic)) {
-      staticPaths.addAll(Splitter.on(SIGN_COMMA).omitEmptyStrings().trimResults().splitToList(urlsStatic));
+
+    @SuppressWarnings("unchecked")
+    List<Config> staticMappings = (List<Config>) config.getConfigList(CFG_URLS_STATIC_MAPPINGS);
+    for (Config staticMapping : staticMappings) {
+      String uri = staticMapping.getString(CFG_URI);
+      String path = staticMapping.getString(CFG_PATH);
+      staticPaths.put(uri, path);
+      LOGGER.info("Added static mapping: {} -> {}", uri, path);
     }
-    urlUpload = config.getString(CFG_UPLOAD_URL);
-    if (!Strings.isNullOrEmpty(urlsStatic)) {
-      staticPaths.add(urlUpload);
-    }
+
+    urlUpload = config.getString(CFG_UPLOAD_URI);
   }
 
   @Override
@@ -155,7 +157,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
   }
 
   private boolean isRequestingForStaticContent(String uri) {
-    for (String path : staticPaths) {
+    for (String path : staticPaths.keySet()) {
       if (uri.startsWith(path)) {
         return true;
       }
@@ -235,6 +237,10 @@ public class DefaultRequestProcessor implements RequestProcessor {
           requestWrapper.getPath(),
           getHttpMethod(requestWrapper.getHttpMethod())
       );
+
+      if (PATH_404.equals(mapping.getUriPattern()) && null != getFile(requestWrapper.getPath())) {
+        return handleStaticFileRequest(requestWrapper, translator.getMediaType());
+      }
 
       String permanentRedirectTo = mapping.getRedirectTo();
       if (!Strings.isNullOrEmpty(permanentRedirectTo)) {

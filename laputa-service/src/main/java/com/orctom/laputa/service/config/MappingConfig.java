@@ -31,6 +31,7 @@ public class MappingConfig {
   private static final Pattern PATTERN_DOUBLE_SLASHES = Pattern.compile("//");
   private static final Pattern PATTERN_TAIL_SLASH = Pattern.compile("/$");
   private static final String KEY_PATH_PARAM = "{*}";
+  private static final String MAPPING_404 = "/404/@get";
   private static final MappingConfig INSTANCE = new MappingConfig();
   private Map<String, RequestMapping> staticMappings = new HashMap<>();
   private PathTrie wildcardMappings = new PathTrie();
@@ -62,7 +63,7 @@ public class MappingConfig {
   }
 
   private RequestMapping _404() {
-    return staticMappings.get("/404/@get");
+    return staticMappings.get(MAPPING_404);
   }
 
   /**

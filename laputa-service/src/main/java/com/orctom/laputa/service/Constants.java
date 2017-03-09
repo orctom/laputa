@@ -12,8 +12,10 @@ public class Constants {
   public static final String CFG_DEBUG = "debug.enabled";
   public static final String CFG_DATE_PATTERN = "date.pattern";
   public static final String CFG_CHARSET = "charset";
-  public static final String CFG_URLS_STATIC = "urls.static";
-  public static final String CFG_UPLOAD_URL = "upload.url";
+  public static final String CFG_URLS_STATIC_MAPPINGS = "urls.static.mappings";
+  public static final String CFG_URI = "uri";
+  public static final String CFG_PATH = "path";
+  public static final String CFG_UPLOAD_URI = "upload.uri";
   public static final String CFG_UPLOAD_DIR = "upload.dir";
   public static final String CFG_STATIC_FILE_CACHE = "static.file.cache";
   public static final String CFG_SERVER_HTTP_PORT = "server.http.port";
