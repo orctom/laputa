@@ -21,12 +21,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
 import java.io.File;
+import java.io.IOException;
 import java.security.cert.CertificateException;
 import java.util.List;
 
-import static com.orctom.laputa.service.Constants.CFG_SERVER_CORS_ALLOWS_CREDENTIALS;
-import static com.orctom.laputa.service.Constants.CFG_SERVER_CORS_ALLOWS_ORIGINS;
-import static com.orctom.laputa.service.Constants.SIGN_STAR;
+import static com.orctom.laputa.service.Constants.*;
 
 /**
  * boot netty service
@@ -71,6 +70,8 @@ public class Bootstrapper extends Thread {
       ch.closeFuture().sync();
     } catch (IllegalConfigException e) {
       LOGGER.error(e.getMessage());
+    } catch (IOException e) {
+      LOGGER.error(e.getMessage() + ", port: " + port, e);
     } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
     } finally {

@@ -17,7 +17,7 @@ public class Laputa {
 
   private static Map<String, String> SERVICE_URL_MAPPING = new HashMap<>();
 
-  public static <T> T instrument(Class<T> interfaceClass) {
+  public static <T> T lookup(Class<T> interfaceClass) {
     return Reflection.newProxy(interfaceClass, new ServiceInterceptor());
   }
 

@@ -38,6 +38,7 @@
     <module>laputa-utils</module>
     <module>laputa-client</module>
     <module>laputa-service</module>
+    <module>laputa-config</module>
     <module>laputa-service-freemarker</module>
     <module>laputa-service-example</module>
   </modules>
