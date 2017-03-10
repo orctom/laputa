@@ -2,6 +2,9 @@ package com.orctom.laputa.service.processor.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Strings;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.RateLimiter;
@@ -50,8 +53,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -98,6 +103,16 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private static Map<String, String> staticFileMapping = new HashMap<>();
   private static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
+
+  private final LoadingCache<String, byte[]> classpathStaticFileContentCache = CacheBuilder.newBuilder()
+      .softValues()
+      .maximumSize(500)
+      .build(new CacheLoader<String, byte[]>() {
+        @Override
+        public byte[] load(String resource) throws Exception {
+          return getContentAsByteArray(resource);
+        }
+      });
 
   public DefaultRequestProcessor() {
     initStaticPaths();
@@ -183,14 +198,14 @@ public class DefaultRequestProcessor implements RequestProcessor {
     }
 
     if (Strings.isNullOrEmpty(staticFilePath)) {
-      return serveStaticFileFromClasspath(requestWrapper, mediaType, PATH_THEME, uri);
+      return fromClasspath(requestWrapper, mediaType, PATH_THEME, uri);
     }
 
-    if (staticFilePath.startsWith("classpath:")) {
-      return serveStaticFileFromClasspath(requestWrapper, mediaType, staticFilePath.substring("classpath:".length()), uri);
+    if (staticFilePath.startsWith(PREFIX_CLASSPATH)) {
+      return fromClasspath(requestWrapper, mediaType, staticFilePath.substring(PREFIX_CLASSPATH_LEN), uri);
     }
 
-    return serveStaticFileFromFileSystem(requestWrapper, mediaType, staticFilePath, uri);
+    return fromFileSystem(requestWrapper, mediaType, staticFilePath, uri);
   }
 
   private boolean isUriInvalid(String uri) {
@@ -206,29 +221,40 @@ public class DefaultRequestProcessor implements RequestProcessor {
         INSECURE_URI.matcher(uri).matches();
   }
 
-  private ResponseWrapper serveStaticFileFromClasspath(RequestWrapper requestWrapper,
-                                                       String mediaType,
-                                                       String staticPath,
-                                                       String uri) {
-    String resource = staticPath + removeTopDir(uri);
-    InputStream input = getClass().getResourceAsStream(resource);
-    if (null == input) {
-      return fileNotFound(mediaType);
-    }
-
+  private ResponseWrapper fromClasspath(RequestWrapper requestWrapper,
+                                        String mediaType,
+                                        String staticPath,
+                                        String uri) {
     if (isModifiedSinceHeaderPresent(requestWrapper)) {
       return new ResponseWrapper(mediaType, NOT_MODIFIED);
     }
 
-    final ByteArrayOutputStream output = new ByteArrayOutputStream();
+    String resource = staticPath + removeTopDir(uri);
+    URL url = getClass().getResource(resource);
+    if (null == url) {
+      return fileNotFound(mediaType);
+    }
+
     try {
-      FileUtils.copy(input, output);
-    } catch (IOException e) {
+      byte[] content = classpathStaticFileContentCache.get(resource);
+      return new ResponseWrapper(mediaType, content);
+    } catch (ExecutionException e) {
       LOGGER.error(e.getMessage(), e);
       return new ResponseWrapper(MediaType.TEXT_PLAIN.getValue(), INTERNAL_SERVER_ERROR);
     }
+  }
 
-    return new ResponseWrapper(mediaType, output.toByteArray());
+  private byte[] getContentAsByteArray(String resource) throws IOException {
+    try (InputStream input = getClass().getResourceAsStream(resource);
+         ByteArrayOutputStream output = new ByteArrayOutputStream()
+    ) {
+      if (null == input) {
+        return null;
+      }
+
+      FileUtils.copy(input, output);
+      return output.toByteArray();
+    }
   }
 
   private boolean isModifiedSinceHeaderPresent(RequestWrapper requestWrapper) {
@@ -236,10 +262,10 @@ public class DefaultRequestProcessor implements RequestProcessor {
     return !Strings.isNullOrEmpty(ifModifiedSince);
   }
 
-  private ResponseWrapper serveStaticFileFromFileSystem(RequestWrapper requestWrapper,
-                                                        String mediaType,
-                                                        String staticPath,
-                                                        String uri) {
+  private ResponseWrapper fromFileSystem(RequestWrapper requestWrapper,
+                                         String mediaType,
+                                         String staticPath,
+                                         String uri) {
     File file = new File(staticPath + removeTopDir(uri));
     if (isInvalidFile(file)) {
       return fileNotFound(mediaType);

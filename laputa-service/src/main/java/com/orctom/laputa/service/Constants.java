@@ -35,6 +35,9 @@ public class Constants {
   public static final String PATH_THEME = "/theme";
   public static final String PATH_INDEX = "index.html";
 
+  public static final String PREFIX_CLASSPATH = "classpath:";
+  public static final int PREFIX_CLASSPATH_LEN = PREFIX_CLASSPATH.length();
+
   public static final String KEY_URL = "url";
   public static final String KEY_REFERER = "referer";
 

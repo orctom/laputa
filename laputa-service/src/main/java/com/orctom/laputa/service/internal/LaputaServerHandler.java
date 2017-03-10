@@ -138,7 +138,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     FullHttpResponse res = getHttpResponse(responseWrapper);
     res.headers().set(HttpHeaderNames.CONTENT_TYPE, MediaType.TEXT_PLAIN.getValue());
     setNoCacheHeader(res);
-    writeResponse(ctx, req, res);
+    writeResponse(ctx, req, res, responseWrapper.getStatus());
   }
 
   private boolean isRedirectionResponse(ResponseWrapper responseWrapper) {
@@ -151,7 +151,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     FullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, status);
     res.headers().set(LOCATION, responseWrapper.getRedirectTo());
     setNoCacheHeader(res);
-    writeResponse(ctx, req, res);
+    writeResponse(ctx, req, res, responseWrapper.getStatus());
   }
 
   private boolean isStaticFileResponse(ResponseWrapper responseWrapper) {
@@ -220,7 +220,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
   private void response(ChannelHandlerContext ctx, FullHttpRequest req, ResponseWrapper responseWrapper) {
     FullHttpResponse res = getHttpResponse(responseWrapper);
     res.headers().set(CONTENT_TYPE, responseWrapper.getMediaType());
-    writeResponse(ctx, req, res);
+    writeResponse(ctx, req, res, responseWrapper.getStatus());
   }
 
   private FullHttpResponse getHttpResponse(ResponseWrapper responseWrapper) {
@@ -235,10 +235,11 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     );
   }
 
-  private void writeResponse(ChannelHandlerContext ctx, FullHttpRequest req, FullHttpResponse res) {
-    String now = DateTime.now().toString(HTTP_DATE_FORMATTER);
-    res.headers().set(DATE, now);
-    res.headers().set(LAST_MODIFIED, now);
+  private void writeResponse(ChannelHandlerContext ctx,
+                             FullHttpRequest req,
+                             FullHttpResponse res,
+                             HttpResponseStatus status) {
+    setDateHeader(req, res, status);
     if (!HttpUtil.isContentLengthSet(res)) {
       HttpUtil.setContentLength(res, res.content().readableBytes());
     }
@@ -250,6 +251,15 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     } else {
       ctx.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
     }
+  }
+
+  private void setDateHeader(FullHttpRequest req, FullHttpResponse res, HttpResponseStatus status) {
+    String date = req.headers().get(IF_MODIFIED_SINCE);
+    if (NOT_MODIFIED != status) {
+      date = DateTime.now().toString(HTTP_DATE_FORMATTER);
+    }
+    res.headers().set(DATE, date);
+    res.headers().set(LAST_MODIFIED, date);
   }
 
   private static String getWebSocketLocation(FullHttpRequest req) {
