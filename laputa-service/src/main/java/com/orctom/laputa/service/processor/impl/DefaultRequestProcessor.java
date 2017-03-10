@@ -128,11 +128,21 @@ public class DefaultRequestProcessor implements RequestProcessor {
     rateLimiter = RateLimiter.create(maxRequestsPerSecond);
   }
 
+  @SuppressWarnings("unchecked")
   private static void initStaticPaths() {
     Config config = Configurator.getInstance().getConfig();
 
-    @SuppressWarnings("unchecked")
-    List<Config> staticFileMappingsConfig = (List<Config>) config.getConfigList(CFG_URLS_STATIC_MAPPINGS);
+    addToStaticFileMapping((List<Config>) config.getConfigList(CFG_URLS_STATIC_DEFAULT_MAPPINGS));
+    if (config.hasPath(CFG_URLS_STATIC_MAPPINGS)) {
+      addToStaticFileMapping((List<Config>) config.getConfigList(CFG_URLS_STATIC_MAPPINGS));
+    }
+  }
+
+  private static void addToStaticFileMapping(List<Config> staticFileMappingsConfig) {
+    if (null == staticFileMappingsConfig || staticFileMappingsConfig.isEmpty()) {
+      return;
+    }
+
     for (Config staticFileMappingConfig : staticFileMappingsConfig) {
       String uri = staticFileMappingConfig.getString(CFG_URI);
       String path = staticFileMappingConfig.getString(CFG_PATH);

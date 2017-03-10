@@ -11,6 +11,7 @@ import org.apache.commons.beanutils.converters.DateConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.Date;
@@ -56,10 +57,17 @@ public class Configurator {
 
     config = ConfigFactory.parseString(CFG_APP_ROOT + "=\"" + appRootDir + "\"");
     String hostname = HostUtils.getHostname();
-    if (!Strings.isNullOrEmpty(hostname)) {
+    if (isHostConfigExist(hostname)) {
       config = config.withFallback(ConfigFactory.load(DIR_HOST + hostname));
     }
     config = config.withFallback(ConfigFactory.load());
+  }
+
+  private boolean isHostConfigExist(String hostname) {
+    if (Strings.isNullOrEmpty(hostname)) {
+      return false;
+    }
+    return null != getClass().getResource(File.pathSeparator + hostname + ".conf");
   }
 
   private void loadDebugFlag() {
