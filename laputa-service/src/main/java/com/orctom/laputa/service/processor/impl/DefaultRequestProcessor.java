@@ -23,6 +23,7 @@ import com.orctom.laputa.service.translator.TemplateResponseTranslator;
 import com.orctom.laputa.service.util.ArgsResolver;
 import com.orctom.laputa.service.util.ParamResolver;
 import com.orctom.laputa.utils.ClassUtils;
+import com.orctom.laputa.utils.FileUtils;
 import com.orctom.laputa.utils.SimpleMeter;
 import com.orctom.laputa.utils.SimpleMetrics;
 import com.typesafe.config.Config;
@@ -43,11 +44,12 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.executable.ExecutableValidator;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -94,8 +96,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private static RateLimiter rateLimiter;
 
-  private static String urlUpload;
-  private static Map<String, String> staticPaths = new HashMap<>();
+  private static Map<String, String> staticFileMapping = new HashMap<>();
   private static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
 
   public DefaultRequestProcessor() {
@@ -116,15 +117,13 @@ public class DefaultRequestProcessor implements RequestProcessor {
     Config config = Configurator.getInstance().getConfig();
 
     @SuppressWarnings("unchecked")
-    List<Config> staticMappings = (List<Config>) config.getConfigList(CFG_URLS_STATIC_MAPPINGS);
-    for (Config staticMapping : staticMappings) {
-      String uri = staticMapping.getString(CFG_URI);
-      String path = staticMapping.getString(CFG_PATH);
-      staticPaths.put(uri, path);
-      LOGGER.info("Added static mapping: {} -> {}", uri, path);
+    List<Config> staticFileMappingsConfig = (List<Config>) config.getConfigList(CFG_URLS_STATIC_MAPPINGS);
+    for (Config staticFileMappingConfig : staticFileMappingsConfig) {
+      String uri = staticFileMappingConfig.getString(CFG_URI);
+      String path = staticFileMappingConfig.getString(CFG_PATH);
+      staticFileMapping.put(uri, path);
+      LOGGER.info("Added static content mapping: {} -> {}", uri, path);
     }
-
-    urlUpload = config.getString(CFG_UPLOAD_URI);
   }
 
   @Override
@@ -142,8 +141,9 @@ public class DefaultRequestProcessor implements RequestProcessor {
         return new ResponseWrapper(mediaType, TOO_MANY_REQUESTS);
       }
 
-      if (isRequestingForStaticContent(requestWrapper.getPath())) {
-        return handleStaticFileRequest(requestWrapper, mediaType);
+      String staticFilePath = getStaticFileMappingPath(requestWrapper.getPath());
+      if (!Strings.isNullOrEmpty(staticFilePath)) {
+        return handleStaticFileRequest(requestWrapper, mediaType, staticFilePath);
 
       } else {
         ResponseTranslator translator = ResponseTranslators.getTranslator(requestWrapper);
@@ -156,37 +156,121 @@ public class DefaultRequestProcessor implements RequestProcessor {
     }
   }
 
-  private boolean isRequestingForStaticContent(String uri) {
-    for (String path : staticPaths.keySet()) {
-      if (uri.startsWith(path)) {
-        return true;
+  private String getStaticFileMappingPath(String uri) {
+    for (Map.Entry<String, String> entry : staticFileMapping.entrySet()) {
+      if (uri.startsWith(entry.getKey())) {
+        return entry.getValue();
       }
     }
-    return false;
+    return null;
   }
 
-  private ResponseWrapper handleStaticFileRequest(RequestWrapper requestWrapper, String mediaType) {
+  private ResponseWrapper handleStaticFileRequest(RequestWrapper requestWrapper,
+                                                  String mediaType,
+                                                  String staticFilePath) {
     if (HttpMethod.GET != requestWrapper.getHttpMethod()) {
       return new ResponseWrapper(mediaType, METHOD_NOT_ALLOWED.reasonPhrase().getBytes(), METHOD_NOT_ALLOWED);
     }
 
-    File file = getFile(requestWrapper.getPath());
-    if (null == file || !file.exists() || file.isHidden() || !file.isFile()) {
+    if (isUriInvalid(requestWrapper.getPath())) {
       return fileNotFound(mediaType);
     }
 
-    if (fileNotChanged(requestWrapper, file)) {
+    String uri = requestWrapper.getPath();
+
+    if (uri.endsWith(PATH_SEPARATOR)) {
+      uri += PATH_INDEX;
+    }
+
+    if (Strings.isNullOrEmpty(staticFilePath)) {
+      return serveStaticFileFromClasspath(requestWrapper, mediaType, PATH_THEME, uri);
+    }
+
+    if (staticFilePath.startsWith("classpath:")) {
+      return serveStaticFileFromClasspath(requestWrapper, mediaType, staticFilePath.substring("classpath:".length()), uri);
+    }
+
+    return serveStaticFileFromFileSystem(requestWrapper, mediaType, staticFilePath, uri);
+  }
+
+  private boolean isUriInvalid(String uri) {
+    if (uri.isEmpty() || uri.charAt(0) != SLASH) {
+      return true;
+    }
+
+    uri = uri.replace(SLASH, File.separatorChar);
+
+    return uri.contains(File.separator + DOT) ||
+        uri.contains(DOT + File.separator) ||
+        uri.charAt(0) == DOT || uri.charAt(uri.length() - 1) == DOT ||
+        INSECURE_URI.matcher(uri).matches();
+  }
+
+  private ResponseWrapper serveStaticFileFromClasspath(RequestWrapper requestWrapper,
+                                                       String mediaType,
+                                                       String staticPath,
+                                                       String uri) {
+    String resource = staticPath + removeTopDir(uri);
+    InputStream input = getClass().getResourceAsStream(resource);
+    if (null == input) {
+      return fileNotFound(mediaType);
+    }
+
+    if (isModifiedSinceHeaderPresent(requestWrapper)) {
+      return new ResponseWrapper(mediaType, NOT_MODIFIED);
+    }
+
+    final ByteArrayOutputStream output = new ByteArrayOutputStream();
+    try {
+      FileUtils.copy(input, output);
+    } catch (IOException e) {
+      LOGGER.error(e.getMessage(), e);
+      return new ResponseWrapper(MediaType.TEXT_PLAIN.getValue(), INTERNAL_SERVER_ERROR);
+    }
+
+    return new ResponseWrapper(mediaType, output.toByteArray());
+  }
+
+  private boolean isModifiedSinceHeaderPresent(RequestWrapper requestWrapper) {
+    String ifModifiedSince = requestWrapper.getHeaders().get(HttpHeaderNames.IF_MODIFIED_SINCE);
+    return !Strings.isNullOrEmpty(ifModifiedSince);
+  }
+
+  private ResponseWrapper serveStaticFileFromFileSystem(RequestWrapper requestWrapper,
+                                                        String mediaType,
+                                                        String staticPath,
+                                                        String uri) {
+    File file = new File(staticPath + removeTopDir(uri));
+    if (isInvalidFile(file)) {
+      return fileNotFound(mediaType);
+    }
+
+    if (isFileNotModified(requestWrapper, file)) {
       return new ResponseWrapper(mediaType, NOT_MODIFIED);
     }
 
     return new ResponseWrapper(mediaType, file);
   }
 
+  private boolean isInvalidFile(File file) {
+    return !isValidFile(file);
+  }
+
+  private boolean isValidFile(File file) {
+    String path = file.getPath();
+    int endIndex = path.indexOf(SIGN_EXCLAMATION);
+    if (endIndex > 0) {
+      int startIndex = path.indexOf(SIGN_COLON);
+      return isValidFile(new File(path.substring(startIndex > 0 ? startIndex + 1 : 0, endIndex)));
+    }
+    return file.exists() && !file.isHidden() && !file.isDirectory() && file.isFile();
+  }
+
   private ResponseWrapper fileNotFound(String mediaType) {
     return new ResponseWrapper(mediaType, NOT_FOUND.reasonPhrase().getBytes(), NOT_FOUND);
   }
 
-  private boolean fileNotChanged(RequestWrapper requestWrapper, File file) {
+  private boolean isFileNotModified(RequestWrapper requestWrapper, File file) {
     String ifModifiedSince = requestWrapper.getHeaders().get(HttpHeaderNames.IF_MODIFIED_SINCE);
     if (Strings.isNullOrEmpty(ifModifiedSince)) {
       return false;
@@ -197,30 +281,13 @@ public class DefaultRequestProcessor implements RequestProcessor {
     return ifModifiedSinceSeconds == fileLastModifiedSeconds;
   }
 
-  private File getFile(String uri) {
-    if (uri.isEmpty() || uri.charAt(0) != SLASH) {
-      return null;
+  private String removeTopDir(String uri) {
+    int index = uri.indexOf(PATH_SEPARATOR, 1);
+    if (0 < index && index < uri.length()) {
+      return uri.substring(index);
     }
 
-    uri = uri.replace(SLASH, File.separatorChar);
-
-    if (uri.contains(File.separator + DOT) ||
-        uri.contains(DOT + File.separator) ||
-        uri.charAt(0) == DOT || uri.charAt(uri.length() - 1) == DOT ||
-        INSECURE_URI.matcher(uri).matches()) {
-      return null;
-    }
-
-    if (uri.startsWith(urlUpload)) {
-      String uploadDir = Configurator.getInstance().getConfig().getString(CFG_UPLOAD_DIR) + File.separator;
-      return new File(uploadDir + uri.substring(urlUpload.length()));
-    }
-
-    URL fileURL = getClass().getResource(PATH_THEME + uri);
-    if (null == fileURL) {
-      return null;
-    }
-    return new File(fileURL.getFile());
+    return uri;
   }
 
   private ResponseWrapper handleRequest(RequestWrapper requestWrapper, ResponseTranslator translator) {
@@ -233,13 +300,19 @@ public class DefaultRequestProcessor implements RequestProcessor {
     preProcess(requestWrapper, ctx);
 
     try {
-      RequestMapping mapping = MappingConfig.getInstance().getMapping(
+      MappingConfig mappingConfig = MappingConfig.getInstance();
+      RequestMapping mapping = mappingConfig.getMapping(
           requestWrapper.getPath(),
           getHttpMethod(requestWrapper.getHttpMethod())
       );
 
-      if (PATH_404.equals(mapping.getUriPattern()) && null != getFile(requestWrapper.getPath())) {
-        return handleStaticFileRequest(requestWrapper, translator.getMediaType());
+      if (null == mapping) {
+        ResponseWrapper responseWrapper = handleStaticFileRequest(requestWrapper, mediaType, null);
+        if (NOT_FOUND != responseWrapper.getStatus()) {
+          return responseWrapper;
+        }
+
+        mapping = mappingConfig._404();
       }
 
       String permanentRedirectTo = mapping.getRedirectTo();

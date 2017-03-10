@@ -59,10 +59,10 @@ public class MappingConfig {
       return handler;
     }
 
-    return _404();
+    return null;
   }
 
-  private RequestMapping _404() {
+  public RequestMapping _404() {
     return staticMappings.get(MAPPING_404);
   }
 

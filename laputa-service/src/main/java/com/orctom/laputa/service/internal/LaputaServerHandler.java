@@ -134,6 +134,13 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     response(ctx, req, responseWrapper);
   }
 
+  private void sendError(ChannelHandlerContext ctx, FullHttpRequest req, ResponseWrapper responseWrapper) {
+    FullHttpResponse res = getHttpResponse(responseWrapper);
+    res.headers().set(HttpHeaderNames.CONTENT_TYPE, MediaType.TEXT_PLAIN.getValue());
+    setNoCacheHeader(res);
+    writeResponse(ctx, req, res);
+  }
+
   private boolean isRedirectionResponse(ResponseWrapper responseWrapper) {
     String redirectTo = responseWrapper.getRedirectTo();
     return null != redirectTo && redirectTo.trim().length() > 0;
@@ -143,8 +150,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     HttpResponseStatus status = responseWrapper.isPermanentRedirect() ? MOVED_PERMANENTLY : FOUND;
     FullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, status);
     res.headers().set(LOCATION, responseWrapper.getRedirectTo());
-    res.headers().set(CACHE_CONTROL, HEADER_CACHE_CONTROL_NO_CACHE);
-    res.headers().set(EXPIRES, HEADER_EXPIRE_NOW);
+    setNoCacheHeader(res);
     writeResponse(ctx, req, res);
   }
 
@@ -160,7 +166,8 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
       try {
         file = new RandomAccessFile(responseWrapper.getFile(), "r");
       } catch (FileNotFoundException ignore) {
-        sendError(ctx, req, responseWrapper);
+        ignore.printStackTrace();
+        sendError(ctx, req, new ResponseWrapper(MediaType.TEXT_PLAIN.getValue(), NOT_FOUND));
         return;
       }
 
@@ -197,12 +204,17 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     }
   }
 
+  private void setNoCacheHeader(FullHttpResponse res) {
+    res.headers().set(CACHE_CONTROL, HEADER_CACHE_CONTROL_NO_CACHE);
+    res.headers().set(EXPIRES, HEADER_EXPIRE_NOW);
+  }
+
   private void setDateAndCacheHeaders(HttpResponse res, File file) {
     DateTime now = DateTime.now();
     res.headers().set(DATE, now.toString(HTTP_DATE_FORMATTER));
+    res.headers().set(LAST_MODIFIED, new DateTime(file.lastModified()).toString(HTTP_DATE_FORMATTER));
     res.headers().set(EXPIRES, now.plusSeconds(staticFileCache).toString(HTTP_DATE_FORMATTER));
     res.headers().set(CACHE_CONTROL, "public, max-age=" + staticFileCache);
-    res.headers().set(LAST_MODIFIED, new DateTime(file.lastModified()).toString(HTTP_DATE_FORMATTER));
   }
 
   private void response(ChannelHandlerContext ctx, FullHttpRequest req, ResponseWrapper responseWrapper) {
@@ -223,14 +235,10 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     );
   }
 
-  private void sendError(ChannelHandlerContext ctx, FullHttpRequest req, ResponseWrapper responseWrapper) {
-    FullHttpResponse res = getHttpResponse(responseWrapper);
-    res.headers().set(HttpHeaderNames.CONTENT_TYPE, MediaType.TEXT_PLAIN.getValue());
-    writeResponse(ctx, req, res);
-  }
-
   private void writeResponse(ChannelHandlerContext ctx, FullHttpRequest req, FullHttpResponse res) {
-    res.headers().set(DATE, DateTime.now().toString(HTTP_DATE_FORMATTER));
+    String now = DateTime.now().toString(HTTP_DATE_FORMATTER);
+    res.headers().set(DATE, now);
+    res.headers().set(LAST_MODIFIED, now);
     if (!HttpUtil.isContentLengthSet(res)) {
       HttpUtil.setContentLength(res, res.content().readableBytes());
     }
