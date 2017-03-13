@@ -4,7 +4,7 @@ import com.orctom.laputa.exception.IllegalArgException;
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.config.MappingConfig;
 import com.orctom.laputa.service.internal.Bootstrapper;
-import com.orctom.laputa.service.internal.handler.DefaultHandler;
+import com.orctom.laputa.service.controller.DefaultController;
 import com.orctom.laputa.service.lifecycle.PostStart;
 import com.orctom.laputa.service.lifecycle.PreStart;
 import com.orctom.laputa.service.translator.ResponseTranslator;
@@ -76,7 +76,7 @@ public class LaputaService {
 
   private void createApplicationContext(Class<?> configurationClass) {
     applicationContext = new AnnotationConfigApplicationContext(configurationClass);
-    registerBean(DefaultHandler.class, "defaultHandler");
+    registerBean(DefaultController.class, "defaultHandler");
   }
 
   private void loadResponseTranslators() {

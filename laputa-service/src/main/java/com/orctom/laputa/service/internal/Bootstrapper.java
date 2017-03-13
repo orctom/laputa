@@ -50,6 +50,7 @@ public class Bootstrapper extends Thread {
 
   @Override
   public void run() {
+    Config config = Configurator.getInstance().getConfig();
     bossGroup = new NioEventLoopGroup(1);
     workerGroup = new NioEventLoopGroup();
 
@@ -60,7 +61,11 @@ public class Bootstrapper extends Thread {
       b.group(bossGroup, workerGroup)
           .channel(NioServerSocketChannel.class)
           .handler(new LoggingHandler(LogLevel.INFO))
-          .childHandler(new LaputaServerInitializer(sslContext, getCorsConfig()));
+          .childHandler(new LaputaServerInitializer(
+              sslContext,
+              getCorsConfig(config),
+              getWebSocketPath(config)
+          ));
 
       Channel ch = b.bind(port).sync().channel();
 
@@ -104,8 +109,7 @@ public class Bootstrapper extends Thread {
     }
   }
 
-  private CorsConfig getCorsConfig() {
-    Config config = Configurator.getInstance().getConfig();
+  private CorsConfig getCorsConfig(Config config) {
     if (!config.hasPath(CFG_SERVER_CORS_ALLOWS_ORIGINS)) {
       return null;
     }
@@ -135,6 +139,10 @@ public class Bootstrapper extends Thread {
     }
 
     return builder.build();
+  }
+
+  private String getWebSocketPath(Config config) {
+    return config.getString(CFG_WEBSOCKET_PATH);
   }
 
   private void shutdown() {

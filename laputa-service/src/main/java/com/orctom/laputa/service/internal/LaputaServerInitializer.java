@@ -8,6 +8,8 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.cors.CorsConfig;
 import io.netty.handler.codec.http.cors.CorsHandler;
+import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
@@ -18,10 +20,12 @@ class LaputaServerInitializer extends ChannelInitializer<SocketChannel> {
 
   private final SslContext sslContext;
   private final CorsConfig corsConfig;
+  private final String webSocketPath;
 
-  LaputaServerInitializer(SslContext sslContext, CorsConfig corsConfig) {
+  LaputaServerInitializer(SslContext sslContext, CorsConfig corsConfig, String webSocketPath) {
     this.sslContext = sslContext;
     this.corsConfig = corsConfig;
+    this.webSocketPath = webSocketPath;
   }
 
   @Override
@@ -38,6 +42,8 @@ class LaputaServerInitializer extends ChannelInitializer<SocketChannel> {
     if (null != corsConfig) {
       p.addLast(new CorsHandler(corsConfig));
     }
+    p.addLast(new WebSocketServerCompressionHandler());
+    p.addLast(new WebSocketServerProtocolHandler(webSocketPath, null, true));
     p.addLast(new LaputaServerHandler(null != sslContext));
   }
 }

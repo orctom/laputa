@@ -1,32 +1,28 @@
 package com.orctom.laputa.service.internal;
 
 import com.orctom.laputa.service.config.Configurator;
-import com.orctom.laputa.service.exception.RequestProcessingException;
+import com.orctom.laputa.service.handler.ServiceHandler;
 import com.orctom.laputa.service.model.MediaType;
 import com.orctom.laputa.service.model.ResponseWrapper;
-import com.orctom.laputa.service.processor.RequestProcessor;
-import com.orctom.laputa.service.processor.impl.DefaultRequestProcessor;
 import com.typesafe.config.Config;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufHolder;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.multipart.DiskAttribute;
 import io.netty.handler.codec.http.multipart.DiskFileUpload;
 import io.netty.handler.codec.http.websocketx.*;
-import io.netty.handler.ssl.SslHandler;
-import io.netty.handler.stream.ChunkedFile;
 import io.netty.handler.timeout.ReadTimeoutException;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.util.ServiceLoader;
 
 import static com.orctom.laputa.service.Constants.*;
 import static io.netty.handler.codec.http.HttpHeaderNames.*;
@@ -39,12 +35,11 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
   private static final int MAX_FRAME_PAYLOAD_LENGTH = 5 * 1024 * 1024;
 
-  private static RequestProcessor requestProcessor = new DefaultRequestProcessor();
+  private static LaputaRequestProcessor requestProcessor = new LaputaRequestProcessor();
 
   private static boolean isUseSSL = false;
 
-  private static String websocketPath;
-  private static int staticFileCache;
+  private static String webSocketPath;
   private WebSocketServerHandshaker handshaker;
 
   static {
@@ -56,8 +51,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     DiskAttribute.deleteOnExitTemporaryFile = true;
     DiskAttribute.baseDirectory = uploadDir;
 
-    websocketPath = config.getString(CFG_WEBSOCKET_PATH);
-    staticFileCache = config.getInt(CFG_STATIC_FILE_CACHE);
+    webSocketPath = config.getString(CFG_WEBSOCKET_PATH);
   }
 
   public LaputaServerHandler(boolean isUseSSL) {
@@ -101,7 +95,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
       ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
     }
 
-    if (websocketPath.equals(req.uri())) {
+    if (webSocketPath.equals(req.uri())) {
       WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
           getWebSocketLocation(req), null, true, MAX_FRAME_PAYLOAD_LENGTH
       );
@@ -126,9 +120,12 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
       return;
     }
 
-    if (isStaticFileResponse(responseWrapper)) {
-      staticFileResponse(ctx, req, responseWrapper);
-      return;
+    ServiceLoader<ServiceHandler> serviceLoaders = ServiceLoader.load(ServiceHandler.class);
+
+    for (ServiceHandler serviceHandler : serviceLoaders) {
+      if (serviceHandler.handle(ctx, req, responseWrapper)) {
+        return;
+      }
     }
 
     response(ctx, req, responseWrapper);
@@ -154,67 +151,9 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     writeResponse(ctx, req, res, responseWrapper.getStatus());
   }
 
-  private boolean isStaticFileResponse(ResponseWrapper responseWrapper) {
-    return null != responseWrapper.getFile();
-  }
-
-  private void staticFileResponse(ChannelHandlerContext ctx,
-                                  FullHttpRequest req,
-                                  ResponseWrapper responseWrapper) {
-    try {
-      RandomAccessFile file;
-      try {
-        file = new RandomAccessFile(responseWrapper.getFile(), "r");
-      } catch (FileNotFoundException ignore) {
-        ignore.printStackTrace();
-        sendError(ctx, req, new ResponseWrapper(MediaType.TEXT_PLAIN.getValue(), NOT_FOUND));
-        return;
-      }
-
-      HttpResponse res = new DefaultHttpResponse(HTTP_1_1, OK);
-      long contentLength = file.length();
-      res.headers().set(CONTENT_LENGTH, contentLength);
-      res.headers().set(CONTENT_TYPE, responseWrapper.getMediaType());
-      setDateAndCacheHeaders(res, responseWrapper.getFile());
-      boolean keepAlive = HttpUtil.isKeepAlive(req);
-      if (keepAlive) {
-        res.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-      }
-
-      ctx.write(res);
-
-      ChannelFuture lastContentFuture;
-      if (null == ctx.pipeline().get(SslHandler.class)) {
-        ctx.write(new DefaultFileRegion(file.getChannel(), 0, contentLength), ctx.newProgressivePromise());
-        lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-
-      } else {
-        lastContentFuture =
-            ctx.writeAndFlush(
-                new HttpChunkedInput(new ChunkedFile(file, 0, contentLength, 8192)),
-                ctx.newProgressivePromise()
-            );
-      }
-
-      if (!keepAlive) {
-        lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-      }
-    } catch (IOException e) {
-      throw new RequestProcessingException(e.getMessage(), e);
-    }
-  }
-
   private void setNoCacheHeader(FullHttpResponse res) {
     res.headers().set(CACHE_CONTROL, HEADER_CACHE_CONTROL_NO_CACHE);
     res.headers().set(EXPIRES, HEADER_EXPIRE_NOW);
-  }
-
-  private void setDateAndCacheHeaders(HttpResponse res, File file) {
-    DateTime now = DateTime.now();
-    res.headers().set(DATE, now.toString(HTTP_DATE_FORMATTER));
-    res.headers().set(LAST_MODIFIED, new DateTime(file.lastModified()).toString(HTTP_DATE_FORMATTER));
-    res.headers().set(EXPIRES, now.plusSeconds(staticFileCache).toString(HTTP_DATE_FORMATTER));
-    res.headers().set(CACHE_CONTROL, "public, max-age=" + staticFileCache);
   }
 
   private void response(ChannelHandlerContext ctx, FullHttpRequest req, ResponseWrapper responseWrapper) {
@@ -263,7 +202,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
   }
 
   private static String getWebSocketLocation(FullHttpRequest req) {
-    String location = req.headers().get(HttpHeaderNames.HOST) + websocketPath;
+    String location = req.headers().get(HttpHeaderNames.HOST) + webSocketPath;
     if (isUseSSL) {
       return "wss://" + location;
     } else {

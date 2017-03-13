@@ -1,14 +1,14 @@
-package com.orctom.laputa.service.internal.handler;
+package com.orctom.laputa.service.controller;
 
 import com.orctom.laputa.service.annotation.Path;
 
 import static com.orctom.laputa.service.Constants.*;
 
 /**
- * Default handler
+ * Default controller
  * Created by hao on 11/17/15.
  */
-public class DefaultHandler {
+public class DefaultController {
 
   @Path(PATH_FAVICON)
   public String _favicon() {

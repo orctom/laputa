@@ -3,7 +3,7 @@ package com.orctom.laputa.service.config;
 import com.google.common.base.Strings;
 import com.orctom.laputa.exception.IllegalArgException;
 import com.orctom.laputa.service.annotation.*;
-import com.orctom.laputa.service.internal.handler.DefaultHandler;
+import com.orctom.laputa.service.controller.DefaultController;
 import com.orctom.laputa.service.model.HTTPMethod;
 import com.orctom.laputa.service.model.PathTrie;
 import com.orctom.laputa.service.model.RequestMapping;
@@ -130,7 +130,7 @@ public class MappingConfig {
       throw new IllegalArgException("No @Controllers found in Spring context.");
     }
 
-    configureMappings(applicationContext.getBean(DefaultHandler.class), DefaultHandler.class);
+    configureMappings(applicationContext.getBean(DefaultController.class), DefaultController.class);
     controllers.values().forEach(bean -> configureMappings(bean, bean.getClass()));
 
     logMappingInfo();
@@ -204,7 +204,7 @@ public class MappingConfig {
             uri + "/" + httpMethodKey,
             new RequestMapping(uri, instance, clazz, method, httpMethodKey, getRedirectTo(method))
         );
-        if (null != mapping && !(mapping.getTarget() instanceof DefaultHandler)) {
+        if (null != mapping && !(mapping.getTarget() instanceof DefaultController)) {
           throw new IllegalArgumentException("Conflicts found in configured @Path:\n" + uri + ", " + httpMethodKey +
               "\n\t\t" + mapping.getHandlerMethod().toString() + "\n\t\t" + method.toString());
         }

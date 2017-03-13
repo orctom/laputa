@@ -10,7 +10,7 @@
   </parent>
   <groupId>com.orctom.laputa</groupId>
   <artifactId>laputa</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <description>A microservice framework</description>
@@ -39,6 +39,7 @@
     <module>laputa-client</module>
     <module>laputa-service</module>
     <module>laputa-config</module>
+    <module>laputa-service-web</module>
     <module>laputa-service-freemarker</module>
     <module>laputa-service-example</module>
   </modules>
