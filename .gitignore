@@ -18,3 +18,4 @@ target/
 *temp*
 diagrams
 /laputa-service-example/src/main/java/io/netty/
+*.versionsBackup
