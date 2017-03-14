@@ -2,7 +2,6 @@ package com.orctom.laputa.service.internal;
 
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.handler.ServiceHandler;
-import com.orctom.laputa.service.model.MediaType;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.typesafe.config.Config;
 import io.netty.buffer.ByteBuf;
@@ -25,6 +24,8 @@ import java.io.IOException;
 import java.util.ServiceLoader;
 
 import static com.orctom.laputa.service.Constants.*;
+import static com.orctom.laputa.service.model.MediaType.TEXT_HTML;
+import static com.orctom.laputa.service.model.MediaType.TEXT_PLAIN;
 import static io.netty.handler.codec.http.HttpHeaderNames.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -133,7 +134,9 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
   private void sendError(ChannelHandlerContext ctx, FullHttpRequest req, ResponseWrapper responseWrapper) {
     FullHttpResponse res = getHttpResponse(responseWrapper);
-    res.headers().set(HttpHeaderNames.CONTENT_TYPE, MediaType.TEXT_PLAIN.getValue());
+    String mediaType = TEXT_HTML.getValue().equals(responseWrapper.getMediaType()) ?
+        TEXT_HTML.getValue() : TEXT_PLAIN.getValue();
+    res.headers().set(HttpHeaderNames.CONTENT_TYPE, mediaType);
     setNoCacheHeader(res);
     writeResponse(ctx, req, res, responseWrapper.getStatus());
   }
