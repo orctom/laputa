@@ -41,6 +41,7 @@
     <module>laputa-config</module>
     <module>laputa-service-web</module>
     <module>laputa-service-freemarker</module>
+    <module>laputa-service-jade</module>
     <module>laputa-service-example</module>
   </modules>
 
