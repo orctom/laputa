@@ -306,8 +306,8 @@ public class LaputaRequestProcessor {
   private void onValidationError(ResponseTranslator translator, RequestWrapper requestWrapper, Context ctx) {
     if (translator instanceof TemplateResponseTranslator) {
       String referer = (String) ctx.get(KEY_REFERER);
-      if (Strings.isNullOrEmpty(referer)) {
-        ctx.redirectTo(PATH_403);
+      if (Strings.isNullOrEmpty(referer) || requestWrapper.getPath().equals(referer)) {
+        ctx.redirectTo(PATH_400);
         return;
       }
       StringBuilder url = new StringBuilder(referer);

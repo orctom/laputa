@@ -28,7 +28,7 @@ import static com.orctom.laputa.service.Constants.SIGN_DOT;
 public class MappingConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MappingConfig.class);
-  private static final Pattern PATTERN_DOUBLE_SLASHES = Pattern.compile("//");
+  private static final Pattern PATTERN_DOUBLE_SLASHES = Pattern.compile("/+");
   private static final Pattern PATTERN_TAIL_SLASH = Pattern.compile("/$");
   private static final String KEY_PATH_PARAM = "{*}";
   private static final String MAPPING_404 = "/404/@get";
