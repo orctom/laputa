@@ -31,6 +31,8 @@ public class FreemarkerResponseTranslator extends TemplateResponseTranslator {
 
   private static final Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
 
+  private static final boolean isDebugEnabled = Configurator.getInstance().isDebugEnabled();
+
   private static LoadingCache<RequestMapping, freemarker.template.Template> templates = CacheBuilder.newBuilder()
       .build(
           new CacheLoader<RequestMapping, freemarker.template.Template>() {
@@ -46,6 +48,10 @@ public class FreemarkerResponseTranslator extends TemplateResponseTranslator {
     cfg.setDefaultEncoding("UTF-8");
     cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
     cfg.setLogTemplateExceptions(false);
+
+    if (isDebugEnabled) {
+      cfg.setTemplateUpdateDelayMilliseconds(200);
+    }
   }
 
   @Override
@@ -64,7 +70,7 @@ public class FreemarkerResponseTranslator extends TemplateResponseTranslator {
   }
 
   private freemarker.template.Template getTemplate(RequestMapping mapping) throws ExecutionException {
-    if (Configurator.getInstance().isDebugEnabled()) {
+    if (isDebugEnabled) {
       return getTemplate0(mapping);
     }
 

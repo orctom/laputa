@@ -26,6 +26,8 @@ public class JadeResponseTranslator extends TemplateResponseTranslator {
 
   private static final String TEMPLATE_SUFFIX = ".jade";
 
+  private static final boolean isDebugEnabled = Configurator.getInstance().isDebugEnabled();
+
   private static LoadingCache<RequestMapping, JadeTemplate> templates = CacheBuilder.newBuilder()
       .build(
           new CacheLoader<RequestMapping, JadeTemplate>() {
@@ -52,7 +54,7 @@ public class JadeResponseTranslator extends TemplateResponseTranslator {
   }
 
   private JadeTemplate getTemplate(RequestMapping mapping) throws ExecutionException {
-    if (Configurator.getInstance().isDebugEnabled()) {
+    if (isDebugEnabled) {
       return getTemplate0(mapping);
     }
 

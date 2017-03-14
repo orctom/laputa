@@ -24,7 +24,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
 import static com.orctom.laputa.service.Constants.*;
@@ -35,7 +34,9 @@ public class WebRequestProcessor implements RequestProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(WebRequestProcessor.class);
 
-  private static final Config CONFIG = Configurator.getInstance().getConfig();
+  private static final Configurator CONFIGURATOR = Configurator.getInstance();
+  private static final boolean isDebugEnabled = CONFIGURATOR.isDebugEnabled();
+
   private static Map<String, String> staticFileMapping = new HashMap<>();
   private static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
 
@@ -55,9 +56,10 @@ public class WebRequestProcessor implements RequestProcessor {
 
   @SuppressWarnings("unchecked")
   private static void initStaticPaths() {
-    addToStaticFileMapping((List<Config>) CONFIG.getConfigList(CFG_URLS_STATIC_DEFAULT_MAPPINGS));
-    if (CONFIG.hasPath(CFG_URLS_STATIC_MAPPINGS)) {
-      addToStaticFileMapping((List<Config>) CONFIG.getConfigList(CFG_URLS_STATIC_MAPPINGS));
+    Config config = CONFIGURATOR.getConfig();
+    addToStaticFileMapping((List<Config>) config.getConfigList(CFG_URLS_STATIC_DEFAULT_MAPPINGS));
+    if (config.hasPath(CFG_URLS_STATIC_MAPPINGS)) {
+      addToStaticFileMapping((List<Config>) config.getConfigList(CFG_URLS_STATIC_MAPPINGS));
     }
   }
 
@@ -139,7 +141,7 @@ public class WebRequestProcessor implements RequestProcessor {
     }
 
     try {
-      if (Configurator.getInstance().isDebugEnabled()) {
+      if (isDebugEnabled) {
         return new ResponseWrapper(mediaType, getContentAsByteArray(resource));
 
       } else {
