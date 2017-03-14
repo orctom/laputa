@@ -37,6 +37,8 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
   private static LaputaRequestProcessor requestProcessor = new LaputaRequestProcessor();
 
+  private static ServiceLoader<ServiceHandler> serviceLoaders = ServiceLoader.load(ServiceHandler.class);
+
   private static boolean isUseSSL = false;
 
   private static String webSocketPath;
@@ -119,8 +121,6 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
       redirectionResponse(ctx, req, responseWrapper);
       return;
     }
-
-    ServiceLoader<ServiceHandler> serviceLoaders = ServiceLoader.load(ServiceHandler.class);
 
     for (ServiceHandler serviceHandler : serviceLoaders) {
       if (serviceHandler.handle(ctx, req, responseWrapper)) {
