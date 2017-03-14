@@ -6,6 +6,9 @@ import com.orctom.laputa.service.model.RequestMapping;
 
 import java.util.regex.Pattern;
 
+import static com.orctom.laputa.service.Constants.PATH_INDEX;
+import static com.orctom.laputa.service.Constants.PATH_SEPARATOR;
+
 public abstract class TemplateResponseTranslator implements ResponseTranslator {
 
   protected static final String TEMPLATE_PREFIX = "/template";
@@ -29,15 +32,25 @@ public abstract class TemplateResponseTranslator implements ResponseTranslator {
   protected static String getTemplatePath(RequestMapping mapping) {
     Template template = mapping.getHandlerMethod().getJavaMethod().getAnnotation(Template.class);
     if (null != template) {
-      return template.value();
+      return transformIndex(template.value());
     }
 
-    return normalized(mapping.getUriPattern());
+    return transformIndex(normalized(mapping.getUriPattern()));
   }
 
+  /**
+   * Removing brackets
+   */
   private static String normalized(String uriPattern) {
     return BRACE_RIGHT.matcher(
         BRACE_LEFT.matcher(uriPattern).replaceAll(EMPTY_STR)
     ).replaceAll(EMPTY_STR);
+  }
+
+  private static String transformIndex(String template) {
+    if (template.endsWith(PATH_SEPARATOR)) {
+      return template + PATH_INDEX;
+    }
+    return template;
   }
 }

@@ -4,6 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.orctom.laputa.exception.IllegalConfigException;
+import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.exception.TemplateProcessingException;
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestMapping;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Freemarker web page renderer
@@ -34,7 +36,7 @@ public class FreemarkerResponseTranslator extends TemplateResponseTranslator {
           new CacheLoader<RequestMapping, freemarker.template.Template>() {
             @Override
             public freemarker.template.Template load(RequestMapping mapping) throws Exception {
-              return getTemplate(mapping);
+              return getTemplate0(mapping);
             }
           }
       );
@@ -49,7 +51,7 @@ public class FreemarkerResponseTranslator extends TemplateResponseTranslator {
   @Override
   public byte[] translate(RequestMapping mapping, Object data, Context ctx) throws IOException {
     try {
-      freemarker.template.Template template = templates.get(mapping);
+      freemarker.template.Template template = getTemplate(mapping);
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       Writer writer = new BufferedWriter(new OutputStreamWriter(out));
       Map<String, Object> model = new HashMap<>(ctx.getData());
@@ -61,7 +63,15 @@ public class FreemarkerResponseTranslator extends TemplateResponseTranslator {
     }
   }
 
-  private static freemarker.template.Template getTemplate(RequestMapping mapping) {
+  private freemarker.template.Template getTemplate(RequestMapping mapping) throws ExecutionException {
+    if (Configurator.getInstance().isDebugEnabled()) {
+      return getTemplate0(mapping);
+    }
+
+    return templates.get(mapping);
+  }
+
+  private static freemarker.template.Template getTemplate0(RequestMapping mapping) {
     try {
       String templatePath = getTemplatePath(mapping) + TEMPLATE_SUFFIX;
       LOGGER.debug("Template Path: {} for url: {}", templatePath, mapping.getUriPattern());

@@ -9,7 +9,7 @@ public class Constants {
   public static final DateTimeFormatter HTTP_DATE_FORMATTER = DateTimeFormat.forPattern(HTTP_DATE_FORMAT);
 
   public static final String CFG_APP_ROOT = "app.root";
-  public static final String CFG_DEBUG = "debug.enabled";
+  public static final String CFG_DEBUG = "debug";
   public static final String CFG_DATE_PATTERN = "date.pattern";
   public static final String CFG_CHARSET = "charset";
   public static final String CFG_URLS_STATIC_DEFAULT_MAPPINGS = "urls.static.default.mappings";
@@ -33,7 +33,8 @@ public class Constants {
   public static final String PATH_404 = "/404";
   public static final String PATH_500 = "/500";
   public static final String PATH_THEME = "/theme";
-  public static final String PATH_INDEX = "index.html";
+  public static final String PATH_INDEX = "index";
+  public static final String PATH_INDEX_HTML = "index.html";
 
   public static final String PREFIX_CLASSPATH = "classpath:";
   public static final int PREFIX_CLASSPATH_LEN = PREFIX_CLASSPATH.length();

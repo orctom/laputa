@@ -35,6 +35,7 @@ public class WebRequestProcessor implements RequestProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(WebRequestProcessor.class);
 
+  private static final Config CONFIG = Configurator.getInstance().getConfig();
   private static Map<String, String> staticFileMapping = new HashMap<>();
   private static final Pattern INSECURE_URI = Pattern.compile(".*[<>&\"].*");
 
@@ -54,11 +55,9 @@ public class WebRequestProcessor implements RequestProcessor {
 
   @SuppressWarnings("unchecked")
   private static void initStaticPaths() {
-    Config config = Configurator.getInstance().getConfig();
-
-    addToStaticFileMapping((List<Config>) config.getConfigList(CFG_URLS_STATIC_DEFAULT_MAPPINGS));
-    if (config.hasPath(CFG_URLS_STATIC_MAPPINGS)) {
-      addToStaticFileMapping((List<Config>) config.getConfigList(CFG_URLS_STATIC_MAPPINGS));
+    addToStaticFileMapping((List<Config>) CONFIG.getConfigList(CFG_URLS_STATIC_DEFAULT_MAPPINGS));
+    if (CONFIG.hasPath(CFG_URLS_STATIC_MAPPINGS)) {
+      addToStaticFileMapping((List<Config>) CONFIG.getConfigList(CFG_URLS_STATIC_MAPPINGS));
     }
   }
 
@@ -110,7 +109,7 @@ public class WebRequestProcessor implements RequestProcessor {
     String uri = requestWrapper.getPath();
 
     if (uri.endsWith(PATH_SEPARATOR)) {
-      uri += PATH_INDEX;
+      uri += PATH_INDEX_HTML;
     }
 
     if (Strings.isNullOrEmpty(staticFilePath)) {
@@ -140,9 +139,13 @@ public class WebRequestProcessor implements RequestProcessor {
     }
 
     try {
-      byte[] content = classpathStaticFileContentCache.get(resource);
-      return new ResponseWrapper(mediaType, content);
-    } catch (ExecutionException e) {
+      if (Configurator.getInstance().isDebugEnabled()) {
+        return new ResponseWrapper(mediaType, getContentAsByteArray(resource));
+
+      } else {
+        return new ResponseWrapper(mediaType, classpathStaticFileContentCache.get(resource));
+      }
+    } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
       return new ResponseWrapper(MediaType.TEXT_PLAIN.getValue(), INTERNAL_SERVER_ERROR);
     }

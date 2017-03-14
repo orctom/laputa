@@ -4,6 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.orctom.laputa.exception.IllegalConfigException;
+import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.exception.TemplateProcessingException;
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestMapping;
@@ -30,7 +31,7 @@ public class JadeResponseTranslator extends TemplateResponseTranslator {
           new CacheLoader<RequestMapping, JadeTemplate>() {
             @Override
             public JadeTemplate load(RequestMapping mapping) throws Exception {
-              return getTemplate(mapping);
+              return getTemplate0(mapping);
             }
           }
       );
@@ -38,7 +39,7 @@ public class JadeResponseTranslator extends TemplateResponseTranslator {
   @Override
   public byte[] translate(RequestMapping mapping, Object data, Context ctx) throws IOException {
     try {
-      JadeTemplate template = templates.get(mapping);
+      JadeTemplate template = getTemplate(mapping);
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       Writer writer = new BufferedWriter(new OutputStreamWriter(out));
       Map<String, Object> model = new HashMap<>(ctx.getData());
@@ -50,8 +51,15 @@ public class JadeResponseTranslator extends TemplateResponseTranslator {
     }
   }
 
+  private JadeTemplate getTemplate(RequestMapping mapping) throws ExecutionException {
+    if (Configurator.getInstance().isDebugEnabled()) {
+      return getTemplate0(mapping);
+    }
 
-  private static JadeTemplate getTemplate(RequestMapping mapping) {
+    return templates.get(mapping);
+  }
+
+  private static JadeTemplate getTemplate0(RequestMapping mapping) {
     try {
       String templatePath = getTemplatePath(mapping) + TEMPLATE_SUFFIX;
       LOGGER.debug("Template Path: {} for url: {}", templatePath, mapping.getUriPattern());

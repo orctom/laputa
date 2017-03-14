@@ -33,6 +33,7 @@ public class MappingConfig {
   private static final String KEY_PATH_PARAM = "{*}";
   private static final String MAPPING_404 = "/404/@get";
   private static final MappingConfig INSTANCE = new MappingConfig();
+  private static final String INDEX = "index";
   private Map<String, RequestMapping> staticMappings = new HashMap<>();
   private PathTrie wildcardMappings = new PathTrie();
 
@@ -54,9 +55,25 @@ public class MappingConfig {
       return handler;
     }
 
+    boolean isPathEndWithSlash = path.endsWith(PATH_SEPARATOR);
+
+    if (isPathEndWithSlash) {
+      handler = staticMappings.get(path + PATH_SEPARATOR + INDEX + httpMethod.getKey());
+      if (null != handler) {
+        return handler;
+      }
+    }
+
     handler = getHandlerForWildcardUri(path, httpMethod);
     if (null != handler) {
       return handler;
+    }
+
+    if (isPathEndWithSlash) {
+      handler = getHandlerForWildcardUri(path + PATH_SEPARATOR + INDEX, httpMethod);
+      if (null != handler) {
+        return handler;
+      }
     }
 
     return null;
