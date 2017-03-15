@@ -43,6 +43,7 @@ public class Constants {
   public static final String KEY_REFERER = "referer";
 
   public static final char DOT = '.';
+  public static final String EMPTY = "";
   public static final String SIGN_DOT = ".";
   public static final String SIGN_COMMA = ",";
   public static final String SIGN_SEMI_COLON = ";";
@@ -51,6 +52,7 @@ public class Constants {
   public static final String SIGN_QUESTION = "?";
   public static final String SIGN_AND = "&";
   public static final String SIGN_STAR = "*";
+  public static final String SIGN_EQUAL = "=";
 
   public static final int DEFAULT_HTTP_PORT = 7000;
   public static final String UTF_8 = "UTF-8";

@@ -1,5 +1,6 @@
 package com.orctom.laputa.service.translator;
 
+import com.google.common.base.Strings;
 import com.orctom.laputa.service.annotation.Template;
 import com.orctom.laputa.service.model.MediaType;
 import com.orctom.laputa.service.model.RequestMapping;
@@ -48,6 +49,9 @@ public abstract class TemplateResponseTranslator implements ResponseTranslator {
   }
 
   private static String transformIndex(String template) {
+    if (Strings.isNullOrEmpty(template)) {
+      return PATH_INDEX;
+    }
     if (template.endsWith(PATH_SEPARATOR)) {
       return template + PATH_INDEX;
     }

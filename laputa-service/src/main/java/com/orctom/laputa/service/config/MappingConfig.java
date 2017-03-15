@@ -46,19 +46,22 @@ public class MappingConfig {
 
   public RequestMapping getMapping(String uri, HTTPMethod httpMethod) {
     String path = uri;
+
     int dotIndex = path.lastIndexOf(SIGN_DOT);
     if (dotIndex > 0) {
       path = path.substring(0, dotIndex);
     }
-    RequestMapping handler = staticMappings.get(path + PATH_SEPARATOR + httpMethod.getKey());
+
+    boolean isPathEndWithSlash = path.endsWith(PATH_SEPARATOR);
+    String key = isPathEndWithSlash ? path + httpMethod.getKey() : path + PATH_SEPARATOR + httpMethod.getKey();
+
+    RequestMapping handler = staticMappings.get(key);
     if (null != handler) {
       return handler;
     }
 
-    boolean isPathEndWithSlash = path.endsWith(PATH_SEPARATOR);
-
     if (isPathEndWithSlash) {
-      handler = staticMappings.get(path + PATH_SEPARATOR + INDEX + httpMethod.getKey());
+      handler = staticMappings.get(path + INDEX + httpMethod.getKey());
       if (null != handler) {
         return handler;
       }
@@ -70,7 +73,7 @@ public class MappingConfig {
     }
 
     if (isPathEndWithSlash) {
-      handler = getHandlerForWildcardUri(path + PATH_SEPARATOR + INDEX, httpMethod);
+      handler = getHandlerForWildcardUri(path + INDEX, httpMethod);
       if (null != handler) {
         return handler;
       }

@@ -48,6 +48,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import static com.orctom.laputa.service.Constants.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
@@ -306,12 +307,13 @@ public class LaputaRequestProcessor {
   private void onValidationError(ResponseTranslator translator, RequestWrapper requestWrapper, Context ctx) {
     if (translator instanceof TemplateResponseTranslator) {
       String referer = (String) ctx.get(KEY_REFERER);
-      if (Strings.isNullOrEmpty(referer) || requestWrapper.getPath().equals(referer)) {
+      if (Strings.isNullOrEmpty(referer) || isRefererSameAsRequestUrl(requestWrapper, referer)) {
         ctx.redirectTo(PATH_400);
         return;
       }
+      referer = removeErrorParam(referer);
       StringBuilder url = new StringBuilder(referer);
-      if (referer.contains(SIGN_QUESTION)) {
+      if (referer.contains(SIGN_QUESTION) && referer.contains(SIGN_EQUAL)) {
         url.append(SIGN_AND);
       } else {
         url.append(SIGN_QUESTION);
@@ -319,6 +321,22 @@ public class LaputaRequestProcessor {
       url.append("error=").append(ctx.get("error"));
       ctx.redirectTo(url.toString());
     }
+  }
+
+  private boolean isRefererSameAsRequestUrl(RequestWrapper requestWrapper, String referer) {
+    return requestWrapper.getPath().equals(referer.substring(referer.indexOf(PATH_SEPARATOR, 4)));
+  }
+
+  private String removeErrorParam(String referer) {
+    Pattern PATTERN_PARAM_ERROR = Pattern.compile("error=[^&]+");
+    Pattern PATTERN_DOUBLE_AND = Pattern.compile("&&");
+    String url = PATTERN_DOUBLE_AND.matcher(
+      PATTERN_PARAM_ERROR.matcher(referer).replaceFirst(EMPTY)
+    ).replaceFirst(SIGN_AND);
+    if (url.endsWith(SIGN_QUESTION)) {
+      return url.substring(0, url.length() - 2);
+    }
+    return url;
   }
 
   private <T> Collection<T> getBeansOfType(Class<T> type) {
