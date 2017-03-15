@@ -32,6 +32,7 @@ public class Constants {
   public static final String PATH_400 = "/400";
   public static final String PATH_404 = "/404";
   public static final String PATH_500 = "/500";
+  public static final String PATH_ERROR = "/error";
   public static final String PATH_THEME = "/theme";
   public static final String PATH_INDEX = "index";
   public static final String PATH_INDEX_HTML = "index.html";

@@ -48,7 +48,6 @@ import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import static com.orctom.laputa.service.Constants.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
@@ -176,14 +175,14 @@ public class LaputaRequestProcessor {
       } catch (ParameterValidationException e) {
         data = new ValidationError(e.getMessages());
         ctx.put("error", e.getMessage());
-        onValidationError(translator, requestWrapper, ctx);
+        markRedirectToErrorPage(translator, requestWrapper, ctx);
+      } catch (Exception e) {
+        data = new Response(INTERNAL_SERVER_ERROR.code(), Lists.newArrayList(INTERNAL_SERVER_ERROR.reasonPhrase()));
+        ctx.put("error", INTERNAL_SERVER_ERROR.reasonPhrase());
       }
 
       String redirectTo = ctx.getRedirectTo();
       if (!Strings.isNullOrEmpty(redirectTo)) {
-        if (null != data) {
-          LOGGER.warn("`return null;` probably is missing after `context.redirectTo(...`");
-        }
         return new ResponseWrapper(redirectTo, false);
       }
 
@@ -206,6 +205,12 @@ public class LaputaRequestProcessor {
     } catch (Throwable e) {
       LOGGER.error(e.getMessage(), e);
       return new ResponseWrapper(mediaType, ERROR_CONTENT, INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  private void markRedirectToErrorPage(ResponseTranslator translator, RequestWrapper requestWrapper, Context ctx) {
+    if (translator instanceof TemplateResponseTranslator) {
+      ctx.redirectTo(PATH_ERROR + SIGN_QUESTION + KEY_ERROR + SIGN_EQUAL + ctx.get(KEY_ERROR));
     }
   }
 
@@ -304,41 +309,6 @@ public class LaputaRequestProcessor {
     return request.content().toString(CharsetUtil.UTF_8);
   }
 
-  private void onValidationError(ResponseTranslator translator, RequestWrapper requestWrapper, Context ctx) {
-    if (translator instanceof TemplateResponseTranslator) {
-      String referer = (String) ctx.get(KEY_REFERER);
-      if (Strings.isNullOrEmpty(referer) || isRefererSameAsRequestUrl(requestWrapper, referer)) {
-        ctx.redirectTo(PATH_400);
-        return;
-      }
-      referer = removeErrorParam(referer);
-      StringBuilder url = new StringBuilder(referer);
-      if (referer.contains(SIGN_QUESTION) && referer.contains(SIGN_EQUAL)) {
-        url.append(SIGN_AND);
-      } else {
-        url.append(SIGN_QUESTION);
-      }
-      url.append(KEY_ERROR).append(SIGN_EQUAL).append(ctx.get(KEY_ERROR));
-      ctx.redirectTo(url.toString());
-    }
-  }
-
-  private boolean isRefererSameAsRequestUrl(RequestWrapper requestWrapper, String referer) {
-    return requestWrapper.getPath().equals(referer.substring(referer.indexOf(PATH_SEPARATOR, 4)));
-  }
-
-  private String removeErrorParam(String referer) {
-    Pattern PATTERN_PARAM_ERROR = Pattern.compile("error=[^&]+");
-    Pattern PATTERN_DOUBLE_AND = Pattern.compile("&&");
-    String url = PATTERN_DOUBLE_AND.matcher(
-      PATTERN_PARAM_ERROR.matcher(referer).replaceFirst(EMPTY)
-    ).replaceFirst(SIGN_AND);
-    if (url.endsWith(SIGN_QUESTION)) {
-      return url.substring(0, url.length() - 2);
-    }
-    return url;
-  }
-
   private <T> Collection<T> getBeansOfType(Class<T> type) {
     return LaputaService.getInstance().getApplicationContext().getBeansOfType(type).values();
   }
@@ -425,8 +395,11 @@ public class LaputaRequestProcessor {
     try {
       return handlerMethod.invoke(target, args);
     } catch (InvocationTargetException e) {
-      LOGGER.error("Some parameter is missing while invoking " + handlerMethod.getJavaMethod());
-      throw new ParameterValidationException("Some parameter is missing, please check the API doc.");
+      LOGGER.error(e.getMessage(), e);
+      throw new RequestProcessingException(e.getTargetException().getMessage());
+    } catch (Exception e) {
+      LOGGER.error(e.getMessage(), e);
+      throw new RequestProcessingException(e.getMessage());
     }
   }
 

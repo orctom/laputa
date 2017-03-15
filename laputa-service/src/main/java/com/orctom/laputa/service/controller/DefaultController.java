@@ -24,4 +24,9 @@ public class DefaultController {
   public String _500() {
     return "The server can not process your last request, please try again later.";
   }
+
+  @Path(PATH_ERROR)
+  public String error() {
+    return "Please verify your request and try again later.";
+  }
 }
