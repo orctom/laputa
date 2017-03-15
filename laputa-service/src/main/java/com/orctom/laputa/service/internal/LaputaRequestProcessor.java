@@ -318,7 +318,7 @@ public class LaputaRequestProcessor {
       } else {
         url.append(SIGN_QUESTION);
       }
-      url.append("error=").append(ctx.get("error"));
+      url.append(KEY_ERROR).append(SIGN_EQUAL).append(ctx.get(KEY_ERROR));
       ctx.redirectTo(url.toString());
     }
   }

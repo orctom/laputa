@@ -41,6 +41,7 @@ public class Constants {
 
   public static final String KEY_URL = "url";
   public static final String KEY_REFERER = "referer";
+  public static final String KEY_ERROR = "error";
 
   public static final char DOT = '.';
   public static final String EMPTY = "";
