@@ -176,9 +176,16 @@ public class LaputaRequestProcessor {
         data = new ValidationError(e.getMessages());
         ctx.put("error", e.getMessage());
         markRedirectToErrorPage(translator, requestWrapper, ctx);
+
+      } catch (IllegalArgumentException e) {
+        data = new Response(BAD_REQUEST.code(), Lists.newArrayList(BAD_REQUEST.reasonPhrase()));
+        ctx.put("error", BAD_REQUEST.reasonPhrase());
+        LOGGER.error(e.getMessage(), e);
+
       } catch (Exception e) {
         data = new Response(INTERNAL_SERVER_ERROR.code(), Lists.newArrayList(INTERNAL_SERVER_ERROR.reasonPhrase()));
         ctx.put("error", INTERNAL_SERVER_ERROR.reasonPhrase());
+        LOGGER.error(e.getMessage(), e);
       }
 
       String redirectTo = ctx.getRedirectTo();

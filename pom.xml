@@ -30,7 +30,7 @@
 
   <properties>
     <java.version>1.8</java.version>
-    <netty.version>4.1.5.Final</netty.version>
+    <netty.version>4.1.9.Final</netty.version>
     <guava.version>19.0</guava.version>
   </properties>
 

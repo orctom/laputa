@@ -56,6 +56,7 @@ public class RequestMapping {
       }
 
       if (Context.class.isAssignableFrom(paramType)) {
+        _paramTypes.put(null, paramType);
         continue;
       }
 
