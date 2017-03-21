@@ -36,6 +36,7 @@
 
   <modules>
     <module>laputa-utils</module>
+    <module>laputa-http-client</module>
     <module>laputa-client</module>
     <module>laputa-service</module>
     <module>laputa-config</module>
