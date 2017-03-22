@@ -13,20 +13,15 @@ public class HttpClientHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) {
-    LOGGER.trace("------------------------");
-    LOGGER.trace(msg.getClass().getName());
-    LOGGER.trace("------------------------");
-
-    if (msg instanceof DefaultHttpResponse) {
-      DefaultHttpResponse response = (DefaultHttpResponse) msg;
+    if (msg instanceof HttpResponse) {
+      HttpResponse response = (HttpResponse) msg;
       LOGGER.trace("CONTENT_TYPE: {}", response.headers().get(HttpHeaderNames.CONTENT_TYPE));
     }
 
-    if (msg instanceof DefaultLastHttpContent) {
+    if (msg instanceof HttpContent) {
       try {
-        DefaultLastHttpContent content = (DefaultLastHttpContent) msg;
+        HttpContent content = (HttpContent) msg;
         ByteBuf buf = content.content();
-        LOGGER.trace(".....................");
         LOGGER.trace(buf.toString(io.netty.util.CharsetUtil.UTF_8));
         buf.release();
       } finally {
@@ -37,7 +32,7 @@ public class HttpClientHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-    cause.printStackTrace();
+    LOGGER.error(cause.getMessage(), cause);
     ctx.close();
   }
 }

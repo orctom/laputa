@@ -14,14 +14,15 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 public class HttpClient implements Closeable {
 
-  private Bootstrap b;
-  private EventLoopGroup group;
+  private static EventLoopGroup group;
 
-  public HttpClient() {
+  public static HttpClient get() {
     group = new NioEventLoopGroup();
-    b = new Bootstrap();
+    Bootstrap b = new Bootstrap();
     b.group(group);
     b.channel(NioSocketChannel.class);
     b.handler(new ChannelInitializer<SocketChannel>() {
@@ -66,7 +67,11 @@ public class HttpClient implements Closeable {
 
   @Override
   public void close() throws IOException {
-    b.clone();
-    group.shutdownGracefully();
+    if (group != null) {
+      group.shutdownGracefully(0, 10, SECONDS);
+      if (!group.isTerminated()) {
+        group.shutdownNow();
+      }
+    }
   }
 }
