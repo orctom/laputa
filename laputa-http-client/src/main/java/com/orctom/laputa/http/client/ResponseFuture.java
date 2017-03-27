@@ -1,34 +1,19 @@
 package com.orctom.laputa.http.client;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import com.orctom.laputa.http.client.handler.AsyncHandler;
+import com.orctom.laputa.http.client.handler.DefaultAsyncHandler;
 
-public class ResponseFuture implements Future<Response> {
+import java.util.concurrent.CompletableFuture;
 
-  @Override
-  public boolean cancel(boolean mayInterruptIfRunning) {
-    return false;
+public class ResponseFuture extends CompletableFuture<Response> {
+
+  private AsyncHandler handler;
+
+  ResponseFuture() {
+    this.handler = new DefaultAsyncHandler(this);
   }
 
-  @Override
-  public boolean isCancelled() {
-    return false;
-  }
-
-  @Override
-  public boolean isDone() {
-    return false;
-  }
-
-  @Override
-  public Response get() throws InterruptedException, ExecutionException {
-    return null;
-  }
-
-  @Override
-  public Response get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-    return null;
+  public AsyncHandler getHandler() {
+    return handler;
   }
 }

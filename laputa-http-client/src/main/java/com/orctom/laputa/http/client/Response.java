@@ -1,5 +1,8 @@
 package com.orctom.laputa.http.client;
 
+import com.google.common.primitives.Bytes;
+
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,5 +25,14 @@ public class Response {
 
   public void setContent(byte[] content) {
     this.content = content;
+  }
+
+  public void appendContent(byte[] appends) {
+    if (null == content) {
+      content = appends;
+    } else {
+      content = new byte[content.length + appends.length];
+      content = Bytes.concat(content, appends);
+    }
   }
 }

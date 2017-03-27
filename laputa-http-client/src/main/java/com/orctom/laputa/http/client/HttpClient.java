@@ -1,5 +1,6 @@
 package com.orctom.laputa.http.client;
 
+import com.orctom.laputa.http.client.handler.DefaultAsyncHandler;
 import com.orctom.laputa.http.client.handler.ResponseHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -63,10 +64,10 @@ public class HttpClient {
     return new HttpClient(httpClientConfig);
   }
 
-  public void request(HttpMethod httpMethod,
-                      URI uri,
-                      Map<String, ?> headers,
-                      Map<String, String> cookies) {
+  public ResponseFuture request(HttpMethod httpMethod,
+                                URI uri,
+                                Map<String, ?> headers,
+                                Map<String, String> cookies) {
     b.handler(new ChannelInitializer<SocketChannel>() {
       @Override
       protected void initChannel(SocketChannel ch) throws Exception {
@@ -81,6 +82,7 @@ public class HttpClient {
     try {
       ChannelFuture channelFuture = b.connect(uri.getHost(), uri.getPort());
       channelFuture.addListener(new SimpleChannelFutureListener());
+
       HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, httpMethod, uri.getRawPath());
       request.headers().set(HOST, uri.getHost());
       request.headers().set(CONNECTION, HttpHeaderValues.CLOSE);
@@ -90,10 +92,14 @@ public class HttpClient {
       setCookies(request, cookies);
 
       Channel ch = channelFuture.sync().channel();
+      ResponseFuture responseFuture = new ResponseFuture();
+      Channels.setFutureAttribute(ch, responseFuture);
       ch.writeAndFlush(request);
       ch.closeFuture().sync();
+      return responseFuture;
     } catch (Exception e) {
       e.printStackTrace();
+      return null;
     }
   }
 
@@ -121,9 +127,6 @@ public class HttpClient {
   public void shutdown() {
     if (group != null) {
       group.shutdownGracefully(0, 10, TimeUnit.SECONDS);
-      if (!group.isTerminated()) {
-        group.shutdownNow();
-      }
     }
   }
 }
