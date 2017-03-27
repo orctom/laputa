@@ -52,6 +52,7 @@ public class Configurator {
 
   private void initConfig() {
     String appRootDir = Paths.get(SIGN_DOT).toAbsolutePath().toString();
+    LOGGER.info("Set `{}` to: {}", CFG_APP_ROOT, appRootDir);
 
     System.setProperty(CFG_APP_ROOT, appRootDir);
 
