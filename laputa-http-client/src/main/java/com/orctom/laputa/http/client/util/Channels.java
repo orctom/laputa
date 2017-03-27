@@ -1,5 +1,6 @@
-package com.orctom.laputa.http.client;
+package com.orctom.laputa.http.client.util;
 
+import com.orctom.laputa.http.client.ResponseFuture;
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
 

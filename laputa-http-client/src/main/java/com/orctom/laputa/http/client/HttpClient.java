@@ -1,7 +1,7 @@
 package com.orctom.laputa.http.client;
 
-import com.orctom.laputa.http.client.handler.DefaultAsyncHandler;
 import com.orctom.laputa.http.client.handler.ResponseHandler;
+import com.orctom.laputa.http.client.util.Channels;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;

@@ -8,7 +8,7 @@ public class HttpClientThreadFactory implements ThreadFactory {
 
   @Override
   public Thread newThread(Runnable r) {
-    Thread t = new Thread(r, "HttpClient " + ++counter);
+    Thread t = new Thread(r, "HttpClient#" + ++counter);
     t.setDaemon(true);
     return t;
   }
