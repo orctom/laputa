@@ -9,7 +9,7 @@ public class ResponseFuture extends CompletableFuture<Response> {
 
   private AsyncHandler handler;
 
-  ResponseFuture() {
+  public ResponseFuture() {
     this.handler = new DefaultAsyncHandler(this);
   }
 

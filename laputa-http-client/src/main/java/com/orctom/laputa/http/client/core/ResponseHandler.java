@@ -1,7 +1,8 @@
-package com.orctom.laputa.http.client.handler;
+package com.orctom.laputa.http.client.core;
 
-import com.orctom.laputa.http.client.util.Channels;
 import com.orctom.laputa.http.client.ResponseFuture;
+import com.orctom.laputa.http.client.handler.AsyncHandler;
+import com.orctom.laputa.http.client.util.Channels;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;

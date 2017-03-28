@@ -1,4 +1,4 @@
-package com.orctom.laputa.http.client;
+package com.orctom.laputa.http.client.core;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -14,17 +14,22 @@ public class SimpleChannelFutureListener implements ChannelFutureListener {
   public void operationComplete(ChannelFuture future) throws Exception {
     Channel channel = future.channel();
     if (future.isSuccess()) {
-      onSuccess(channel);
+      channel.closeFuture().addListener((ChannelFutureListener) this::onDisconnected);
+      onConnected(channel);
     } else {
       onFailure(channel, future.cause());
     }
   }
 
-  protected void onSuccess(Channel channel) {
+  protected void onConnected(Channel channel) {
     LOGGER.trace("Connected.");
   }
 
   protected void onFailure(Channel channel, Throwable t) {
     LOGGER.error(t.getMessage(), t);
+  }
+
+  protected void onDisconnected(ChannelFuture future) {
+    LOGGER.trace("Disconnected.");
   }
 }

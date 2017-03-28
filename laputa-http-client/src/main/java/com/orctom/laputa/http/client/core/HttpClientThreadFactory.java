@@ -1,4 +1,4 @@
-package com.orctom.laputa.http.client;
+package com.orctom.laputa.http.client.core;
 
 import java.util.concurrent.ThreadFactory;
 

@@ -54,6 +54,7 @@ public class Product {
   }
 
   // http://localhost:7000/product/sku/new?sku=sku&desc=desc&category=cate&stock=100
+  // curl -X POST -d "sku=sku&desc=desc&category=cate&stock=100" ttp://localhost:7000/product/sku/new
   @Path("/sku/new")
   @GET @POST
   public SKU addSKU(@Param("sku") SKU sku) {
