@@ -10,7 +10,7 @@
   </parent>
   <groupId>com.orctom.laputa</groupId>
   <artifactId>laputa</artifactId>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.3-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <description>A microservice framework</description>
