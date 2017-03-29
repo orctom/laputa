@@ -3,6 +3,7 @@ package com.orctom.laputa.service.model;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * Encoded response
@@ -16,6 +17,7 @@ public class ResponseWrapper {
   private HttpResponseStatus status = HttpResponseStatus.OK;
   private String redirectTo;
   private boolean permanentRedirect;
+  private Set<ResponseCookie> cookies;
 
   public ResponseWrapper(String mediaType, byte[] content) {
     this.content = content;
@@ -38,9 +40,22 @@ public class ResponseWrapper {
     this.status = status;
   }
 
+  public ResponseWrapper(String mediaType, byte[] content, HttpResponseStatus status, Set<ResponseCookie> cookies) {
+    this.content = content;
+    this.mediaType = mediaType;
+    this.status = status;
+    this.cookies = cookies;
+  }
+
   public ResponseWrapper(String redirectTo, boolean permanentRedirect) {
     this.redirectTo = redirectTo;
     this.permanentRedirect = permanentRedirect;
+  }
+
+  public ResponseWrapper(String redirectTo, boolean permanentRedirect, Set<ResponseCookie> cookies) {
+    this.redirectTo = redirectTo;
+    this.permanentRedirect = permanentRedirect;
+    this.cookies = cookies;
   }
 
   public byte[] getContent() {
@@ -65,5 +80,9 @@ public class ResponseWrapper {
 
   public boolean isPermanentRedirect() {
     return permanentRedirect;
+  }
+
+  public Set<ResponseCookie> getCookies() {
+    return cookies;
   }
 }

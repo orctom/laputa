@@ -13,14 +13,7 @@ import com.orctom.laputa.service.exception.FileUploadException;
 import com.orctom.laputa.service.exception.ParameterValidationException;
 import com.orctom.laputa.service.exception.RequestProcessingException;
 import com.orctom.laputa.service.exception.TemplateProcessingException;
-import com.orctom.laputa.service.model.Context;
-import com.orctom.laputa.service.model.HTTPMethod;
-import com.orctom.laputa.service.model.MediaType;
-import com.orctom.laputa.service.model.RequestMapping;
-import com.orctom.laputa.service.model.RequestWrapper;
-import com.orctom.laputa.service.model.Response;
-import com.orctom.laputa.service.model.ResponseWrapper;
-import com.orctom.laputa.service.model.ValidationError;
+import com.orctom.laputa.service.model.*;
 import com.orctom.laputa.service.processor.PostProcessor;
 import com.orctom.laputa.service.processor.PreProcessor;
 import com.orctom.laputa.service.processor.RequestProcessor;
@@ -33,7 +26,6 @@ import com.orctom.laputa.utils.ClassUtils;
 import com.orctom.laputa.utils.SimpleMeter;
 import com.orctom.laputa.utils.SimpleMetrics;
 import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.multipart.Attribute;
@@ -218,23 +210,23 @@ public class LaputaRequestProcessor {
         data = processRequest(requestWrapper, ctx, mapping);
       } catch (ParameterValidationException e) {
         data = new ValidationError(e.getMessages());
-        ctx.put("error", e.getMessage());
+        ctx.setData("error", e.getMessage());
         markRedirectToErrorPage(translator, requestWrapper, ctx);
 
       } catch (IllegalArgumentException e) {
         data = new Response(BAD_REQUEST.code(), Lists.newArrayList(BAD_REQUEST.reasonPhrase()));
-        ctx.put("error", BAD_REQUEST.reasonPhrase());
+        ctx.setData("error", BAD_REQUEST.reasonPhrase());
         LOGGER.error(e.getMessage(), e);
 
       } catch (Exception e) {
         data = new Response(INTERNAL_SERVER_ERROR.code(), Lists.newArrayList(INTERNAL_SERVER_ERROR.reasonPhrase()));
-        ctx.put("error", INTERNAL_SERVER_ERROR.reasonPhrase());
+        ctx.setData("error", INTERNAL_SERVER_ERROR.reasonPhrase());
         LOGGER.error(e.getMessage(), e);
       }
 
       String redirectTo = ctx.getRedirectTo();
       if (!Strings.isNullOrEmpty(redirectTo)) {
-        return new ResponseWrapper(redirectTo, false);
+        return new ResponseWrapper(redirectTo, false, ctx.getCookies());
       }
 
       // post-processors
@@ -247,21 +239,21 @@ public class LaputaRequestProcessor {
 
       byte[] content = translator.translate(mapping, processed, ctx);
       boolean is404 = PATH_404.equals(mapping.getUriPattern());
-      return new ResponseWrapper(mediaType, content, is404 ? NOT_FOUND : OK);
+      return new ResponseWrapper(mediaType, content, is404 ? NOT_FOUND : OK, ctx.getCookies());
     } catch (ParameterValidationException e) {
-      return new ResponseWrapper(mediaType, e.getMessage().getBytes(UTF8), BAD_REQUEST);
+      return new ResponseWrapper(mediaType, e.getMessage().getBytes(UTF8), BAD_REQUEST, ctx.getCookies());
     } catch (IllegalConfigException | TemplateProcessingException e) {
       LOGGER.error(e.getMessage());
-      return new ResponseWrapper(mediaType, ERROR_CONTENT, INTERNAL_SERVER_ERROR);
+      return new ResponseWrapper(mediaType, ERROR_CONTENT, INTERNAL_SERVER_ERROR, ctx.getCookies());
     } catch (Throwable e) {
       LOGGER.error(e.getMessage(), e);
-      return new ResponseWrapper(mediaType, ERROR_CONTENT, INTERNAL_SERVER_ERROR);
+      return new ResponseWrapper(mediaType, ERROR_CONTENT, INTERNAL_SERVER_ERROR, ctx.getCookies());
     }
   }
 
   private void markRedirectToErrorPage(ResponseTranslator translator, RequestWrapper requestWrapper, Context ctx) {
     if (translator instanceof TemplateResponseTranslator) {
-      ctx.redirectTo(PATH_ERROR + SIGN_QUESTION + KEY_ERROR + SIGN_EQUAL + ctx.get(KEY_ERROR));
+      ctx.setRedirectTo(PATH_ERROR + SIGN_QUESTION + KEY_ERROR + SIGN_EQUAL + ctx.getData().get(KEY_ERROR));
     }
   }
 
@@ -279,10 +271,7 @@ public class LaputaRequestProcessor {
   }
 
   private Context getContext(RequestWrapper requestWrapper) {
-    Context ctx = new Context();
-    ctx.put(KEY_URL, requestWrapper.getPath());
-    ctx.put(KEY_REFERER, requestWrapper.getHeaders().get(HttpHeaderNames.REFERER));
-    return ctx;
+    return new Context(requestWrapper.getPath());
   }
 
   private RequestWrapper wrapPostRequest(FullHttpRequest request) {
@@ -427,14 +416,14 @@ public class LaputaRequestProcessor {
       }
     }
 
-    Map<String, Class<?>> paramTypes = mapping.getParamTypes();
-    if (paramTypes.isEmpty()) {
+    Map<String, ParamInfo> parameters = mapping.getHandlerParameters();
+    if (parameters.isEmpty()) {
       return handlerMethod.invoke(target, null);
     }
 
     Map<String, String> params = ParamResolver.extractParams(mapping, requestWrapper);
 
-    Object[] args = ArgsResolver.resolveArgs(params, paramTypes, ctx);
+    Object[] args = ArgsResolver.resolveArgs(params, parameters, requestWrapper, ctx);
 
     validate(target, handlerMethod.getJavaMethod(), args);
 

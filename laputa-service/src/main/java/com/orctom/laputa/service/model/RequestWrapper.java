@@ -1,12 +1,18 @@
 package com.orctom.laputa.service.model;
 
+import com.google.common.base.Strings;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.orctom.laputa.service.Constants.UTF_8;
 
@@ -21,6 +27,7 @@ public class RequestWrapper {
   private String path;
   private Map<String, List<String>> params;
   private String data;
+  private Map<String, String> cookies;
 
   public RequestWrapper(
       HttpMethod httpMethod,
@@ -33,6 +40,7 @@ public class RequestWrapper {
     this.path = decode(path);
     this.params = params;
     this.data = decode(data);
+    initCookies();
   }
 
   private String decode(String raw) {
@@ -41,6 +49,18 @@ public class RequestWrapper {
     } catch (UnsupportedEncodingException e) {
       return raw;
     }
+  }
+
+  private void initCookies() {
+    if (null == headers || headers.isEmpty()) {
+      return;
+    }
+    String value = headers.get(HttpHeaderNames.COOKIE);
+    if (Strings.isNullOrEmpty(value)) {
+      return;
+    }
+    Set<Cookie> cookieSet = ServerCookieDecoder.STRICT.decode(value);
+    this.cookies = cookieSet.stream().collect(Collectors.toMap(Cookie::name, Cookie::value));
   }
 
   public HttpMethod getHttpMethod() {
@@ -77,6 +97,10 @@ public class RequestWrapper {
 
   public void setData(String data) {
     this.data = data;
+  }
+
+  public Map<String, String> getCookies() {
+    return cookies;
   }
 
   @Override

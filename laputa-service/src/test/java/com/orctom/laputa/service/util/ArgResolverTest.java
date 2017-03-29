@@ -1,22 +1,29 @@
 package com.orctom.laputa.service.util;
 
 import com.google.common.collect.Lists;
-import com.orctom.laputa.exception.IllegalConfigException;
+import com.orctom.laputa.service.annotation.Data;
 import com.orctom.laputa.service.annotation.Param;
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.domain.Categories;
 import com.orctom.laputa.service.domain.Category;
 import com.orctom.laputa.service.domain.SKU;
 import com.orctom.laputa.service.model.Context;
+import com.orctom.laputa.service.model.ParamInfo;
+import com.orctom.laputa.service.model.RequestWrapper;
+import io.netty.handler.codec.http.HttpMethod;
 import org.joda.time.DateTime;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.orctom.laputa.service.util.ParamResolver.getDefaultValue;
+import static com.orctom.laputa.service.util.ParamResolver.getParamName;
 import static org.junit.Assert.assertArrayEquals;
 
 public class ArgResolverTest {
@@ -47,6 +54,14 @@ public class ArgResolverTest {
     }
   }
 
+  private RequestWrapper requestMapper = new RequestWrapper(
+      HttpMethod.GET,
+      null,
+      "/",
+      Collections.emptyMap(),
+      ""
+  );
+
   @Test
   public void testSimpleTypes() throws Exception {
     Method method = Dummy.class.getDeclaredMethod("simple", String.class, String.class, String.class);
@@ -56,7 +71,7 @@ public class ArgResolverTest {
     paramValues.put("c", "ccc");
 
     Object[] expected = new Object[]{"aaa", "bbb", "ccc"};
-    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParamTypes(method), new Context());
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Context("/"));
     assertArrayEquals(expected, actual);
   }
 
@@ -68,7 +83,7 @@ public class ArgResolverTest {
     paramValues.put("name", "the name");
 
     Object[] expected = new Object[]{new Category(10000L, "the name")};
-    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParamTypes(method), new Context());
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Context("/"));
     assertArrayEquals(expected, actual);
   }
 
@@ -80,7 +95,7 @@ public class ArgResolverTest {
     paramValues.put("category.name", "the name");
 
     Object[] expected = new Object[]{new Category(10000L, "the name")};
-    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParamTypes(method), new Context());
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Context("/"));
     assertArrayEquals(expected, actual);
   }
 
@@ -95,7 +110,7 @@ public class ArgResolverTest {
       paramValues.put("category.name", "category name");
 
       Object[] expected = new Object[]{new SKU(1000L, "sku name", new Category(1111L, "category name"))};
-      Object[] actual = ArgsResolver.resolveArgs(paramValues, getParamTypes(method), new Context());
+      Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Context("/"));
       assertArrayEquals(expected, actual);
     } catch (Exception e) {
       e.printStackTrace();
@@ -112,7 +127,7 @@ public class ArgResolverTest {
     paramValues.put("category.name", "category name");
 
     Object[] expected = new Object[]{"aaa", "bbb", new Category(1000L, "category name")};
-    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParamTypes(method), new Context());
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Context("/"));
     assertArrayEquals(expected, actual);
   }
 
@@ -125,7 +140,7 @@ public class ArgResolverTest {
     paramValues.put("date", "2016-09-09");
 
     Object[] expected = new Object[]{new Category(10000L, "the name")};
-    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParamTypes(method), new Context());
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Context("/"));
     assertArrayEquals(expected, actual);
   }
 
@@ -148,23 +163,35 @@ public class ArgResolverTest {
         new Category(10001L, "the other name", DateTime.parse("2016-09-10").toDate())
     ));
     Object[] expected = new Object[] {categories};
-    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParamTypes(method), new Context());
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Context("/"));
     assertArrayEquals(expected, actual);
   }
 
-  private Map<String, Class<?>> getParamTypes(Method handlerMethod) {
-    Map<String, Class<?>> paramTypes = new HashMap<>();
+  private Map<String, ParamInfo> getParams(Method handlerMethod) {
+    Map<String, ParamInfo> handlerParams = new HashMap<>();
     Parameter[] parameters = handlerMethod.getParameters();
+    int paramLength = parameters.length;
+    if (0 == paramLength) {
+      return Collections.emptyMap();
+    }
     for (Parameter parameter : parameters) {
-      Param param = parameter.getAnnotation(Param.class);
-      if (null == param) {
-        throw new IllegalConfigException("Missing @Param annotation at " + handlerMethod.toString());
-      }
-      String paramName = param.value();
+      Class<?> paramType = parameter.getType();
 
-      paramTypes.put(paramName, parameter.getType());
+      if (1 == paramLength && parameter.isAnnotationPresent(Data.class)) {
+        break;
+      }
+
+      if (Context.class.isAssignableFrom(paramType)) {
+        handlerParams.put("_ctx_", new ParamInfo(paramType));
+        continue;
+      }
+
+      String paramName = getParamName(parameter, handlerMethod);
+
+      Annotation[] annotations = parameter.getAnnotations();
+      handlerParams.put(paramName, new ParamInfo(getDefaultValue(parameter), paramType, annotations));
     }
 
-    return paramTypes;
+    return handlerParams;
   }
 }

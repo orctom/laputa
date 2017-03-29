@@ -1,7 +1,13 @@
 package com.orctom.laputa.service.util;
 
+import com.orctom.laputa.service.annotation.Cookie;
+import com.orctom.laputa.service.annotation.Cookies;
+import com.orctom.laputa.service.annotation.HttpHeader;
+import com.orctom.laputa.service.annotation.HttpHeaders;
 import com.orctom.laputa.service.exception.ParameterValidationException;
 import com.orctom.laputa.service.model.Context;
+import com.orctom.laputa.service.model.ParamInfo;
+import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.utils.ClassUtils;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
@@ -21,16 +27,19 @@ public abstract class ArgsResolver {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ArgsResolver.class);
 
-  public static Object[] resolveArgs(Map<String, String> paramValues, Map<String, Class<?>> paramTypes, Context ctx) {
-    if (paramTypes.isEmpty()) {
+  public static Object[] resolveArgs(Map<String, String> paramValues,
+                                     Map<String, ParamInfo> parameters,
+                                     RequestWrapper requestWrapper,
+                                     Context ctx) {
+    if (parameters.isEmpty()) {
       return null;
     }
 
-    int paramLength = paramTypes.size();
+    int paramLength = parameters.size();
     Object[] args = new Object[paramLength];
 
-    Map<Map.Entry<String, Class<?>>, Integer> complexParameters = new HashMap<>();
-    int resolved = resolveSimpleTypeArgs(paramValues, paramTypes, args, complexParameters);
+    Map<Map.Entry<String, ParamInfo>, Integer> complexParameters = new HashMap<>();
+    int resolved = resolveSimpleTypeArgs(paramValues, parameters, requestWrapper, args, complexParameters);
 
     if (paramLength != resolved) { // complex types exist
       resolveComplexTypeArgs(paramValues, args, complexParameters, ctx);
@@ -40,20 +49,53 @@ public abstract class ArgsResolver {
   }
 
   private static int resolveSimpleTypeArgs(Map<String, String> paramValues,
-                                           Map<String, Class<?>> paramTypes,
+                                           Map<String, ParamInfo> parameters,
+                                           RequestWrapper requestWrapper,
                                            Object[] args,
-                                           Map<Map.Entry<String, Class<?>>, Integer> complexParameters) {
+                                           Map<Map.Entry<String, ParamInfo>, Integer> complexParameters) {
     int count = 0, i = 0;
-    for (Map.Entry<String, Class<?>> entry : paramTypes.entrySet()) {
+    for (Map.Entry<String, ParamInfo> entry : parameters.entrySet()) {
       String paramName = entry.getKey();
-      Class<?> type = entry.getValue();
+      ParamInfo paramInfo = entry.getValue();
+
+      Cookies cookies = paramInfo.getAnnotation(Cookies.class);
+      if (null != cookies) {
+        args[i++] = requestWrapper.getCookies();
+        count++;
+        continue;
+      }
+
+      Cookie cookie = paramInfo.getAnnotation(Cookie.class);
+      if (null != cookie) {
+        String cookieValue = requestWrapper.getCookies().get(cookie.value());
+        args[i++] = null == cookieValue ? paramInfo.getDefaultValue() : cookieValue;
+        count++;
+        continue;
+      }
+
+      HttpHeaders httpHeaders = paramInfo.getAnnotation(HttpHeaders.class);
+      if (null != httpHeaders) {
+        args[i++] = requestWrapper.getHeaders().entries().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        count++;
+        continue;
+      }
+
+      HttpHeader httpHeader = paramInfo.getAnnotation(HttpHeader.class);
+      if (null != httpHeader) {
+        String httpHeaderValue = requestWrapper.getHeaders().get(httpHeader.value());
+        args[i++] = null == httpHeaderValue ? paramInfo.getDefaultValue() : httpHeaderValue;
+        count++;
+        continue;
+      }
+
+      Class<?> type = paramInfo.getType();
       if (ClassUtils.isSimpleValueType((type))) {
-        args[i] = resolveSimpleTypeValue(paramValues, paramName, type);
+        args[i++] = resolveSimpleTypeValue(paramValues, paramName, type);
         count++;
       } else {
-        complexParameters.put(entry, i);
+        complexParameters.put(entry, i++);
       }
-      i++;
     }
 
     return count;
@@ -61,12 +103,13 @@ public abstract class ArgsResolver {
 
   private static void resolveComplexTypeArgs(Map<String, String> paramValues,
                                              Object[] args,
-                                             Map<Map.Entry<String, Class<?>>, Integer> complexParameters,
+                                             Map<Map.Entry<String, ParamInfo>, Integer> complexParameters,
                                              Context ctx) {
-    for (Map.Entry<Map.Entry<String, Class<?>>, Integer> entry : complexParameters.entrySet()) {
-      Map.Entry<String, Class<?>> key = entry.getKey();
+    for (Map.Entry<Map.Entry<String, ParamInfo>, Integer> entry : complexParameters.entrySet()) {
+      Map.Entry<String, ParamInfo> key = entry.getKey();
       String paramName = key.getKey();
-      Class<?> type = key.getValue();
+      ParamInfo paramInfo = key.getValue();
+      Class<?> type = paramInfo.getType();
       int index = entry.getValue();
 
       if (Context.class.isAssignableFrom(type)) {
@@ -104,8 +147,9 @@ public abstract class ArgsResolver {
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private static Object resolveSimpleTypeValue(
-      Map<String, String> paramValues, String paramName, Class<?> type) {
+  private static Object resolveSimpleTypeValue(Map<String, String> paramValues,
+                                               String paramName,
+                                               Class<?> type) {
     String value = paramValues.remove(paramName);
     try {
       if (String.class.isAssignableFrom(type)) {

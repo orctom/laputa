@@ -1,12 +1,24 @@
 package com.orctom.laputa.service.util;
 
+import com.orctom.laputa.exception.IllegalConfigException;
+import com.orctom.laputa.service.annotation.Cookie;
+import com.orctom.laputa.service.annotation.Cookies;
+import com.orctom.laputa.service.annotation.Data;
+import com.orctom.laputa.service.annotation.DefaultValue;
+import com.orctom.laputa.service.annotation.HttpHeader;
+import com.orctom.laputa.service.annotation.HttpHeaders;
+import com.orctom.laputa.service.annotation.Param;
 import com.orctom.laputa.service.model.RequestMapping;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.utils.ClassUtils;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.orctom.laputa.service.Constants.PATH_SEPARATOR;
 import static com.orctom.laputa.service.Constants.SIGN_DOT;
@@ -28,7 +40,13 @@ public class ParamResolver {
   }
 
   public static Map<String, String> extractDefaultValues(RequestMapping mapping) {
-    return mapping.getParamDefaultValues();
+    return mapping.getHandlerParameters().entrySet().stream()
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> entry.getValue().getDefaultValue()
+            )
+        );
   }
 
   public static Map<String, String> extractQueryParams(Map<String, List<String>> queryParameters) {
@@ -94,5 +112,46 @@ public class ParamResolver {
       return path;
     }
     return path.substring(0, dotIndex);
+  }
+
+  public static String getDefaultValue(Parameter parameter) {
+    DefaultValue defaultValue = parameter.getAnnotation(DefaultValue.class);
+    if (null != defaultValue && ClassUtils.isSimpleValueType(parameter.getType())) {
+      return defaultValue.value();
+    }
+    return null;
+  }
+
+  public static String getParamName(Parameter parameter, Method handlerMethod) {
+    Param param = parameter.getAnnotation(Param.class);
+    if (null != param) {
+      return param.value();
+    }
+
+    Cookies cookies = parameter.getAnnotation(Cookies.class);
+    if (null != cookies) {
+      return "_cookies_";
+    }
+
+    Cookie cookie = parameter.getAnnotation(Cookie.class);
+    if (null != cookie) {
+      return "_cookie_";
+    }
+
+    HttpHeaders httpHeaders = parameter.getAnnotation(HttpHeaders.class);
+    if (null != httpHeaders) {
+      return "_httpHeaders_";
+    }
+
+    HttpHeader httpHeader = parameter.getAnnotation(HttpHeader.class);
+    if (null != httpHeader) {
+      return "_httpHeader_";
+    }
+
+    if (parameter.isAnnotationPresent(Data.class)) {
+      throw new IllegalConfigException("Only one param is allowed when using @Data annotation, at " + handlerMethod.toString());
+    }
+
+    throw new IllegalConfigException("Missing @Param annotation at " + handlerMethod.toString());
   }
 }

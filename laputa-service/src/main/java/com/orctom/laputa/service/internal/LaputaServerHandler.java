@@ -2,6 +2,7 @@ package com.orctom.laputa.service.internal;
 
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.handler.ServiceHandler;
+import com.orctom.laputa.service.model.ResponseCookie;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.typesafe.config.Config;
 import io.netty.buffer.ByteBuf;
@@ -10,11 +11,24 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.handler.codec.http.multipart.DiskAttribute;
 import io.netty.handler.codec.http.multipart.DiskFileUpload;
-import io.netty.handler.codec.http.websocketx.*;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
+import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import io.netty.handler.timeout.ReadTimeoutException;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -22,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ServiceLoader;
+import java.util.Set;
 
 import static com.orctom.laputa.service.Constants.*;
 import static com.orctom.laputa.service.model.MediaType.TEXT_HTML;
@@ -138,6 +153,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
         TEXT_HTML.getValue() : TEXT_PLAIN.getValue();
     res.headers().set(HttpHeaderNames.CONTENT_TYPE, mediaType);
     setNoCacheHeader(res);
+    setCookies(res, responseWrapper.getCookies());
     writeResponse(ctx, req, res, responseWrapper.getStatus());
   }
 
@@ -151,6 +167,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     FullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, status);
     res.headers().set(LOCATION, responseWrapper.getRedirectTo());
     setNoCacheHeader(res);
+    setCookies(res, responseWrapper.getCookies());
     writeResponse(ctx, req, res, responseWrapper.getStatus());
   }
 
@@ -162,6 +179,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
   private void response(ChannelHandlerContext ctx, FullHttpRequest req, ResponseWrapper responseWrapper) {
     FullHttpResponse res = getHttpResponse(responseWrapper);
     res.headers().set(CONTENT_TYPE, responseWrapper.getMediaType());
+    setCookies(res, responseWrapper.getCookies());
     writeResponse(ctx, req, res, responseWrapper.getStatus());
   }
 
@@ -175,6 +193,15 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
         responseWrapper.getStatus(),
         Unpooled.wrappedBuffer(responseWrapper.getContent())
     );
+  }
+
+  private void setCookies(FullHttpResponse res, Set<ResponseCookie> cookies) {
+    if (null == cookies || cookies.isEmpty()) {
+      return;
+    }
+    for (ResponseCookie cookie : cookies) {
+      res.headers().set(SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
+    }
   }
 
   private void writeResponse(ChannelHandlerContext ctx,

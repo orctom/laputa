@@ -36,7 +36,7 @@ public class Product {
   @Path("/test2/{id}")
   public SKU getSku(@Param("id") String id, Context ctx) {
     if ("test".equals(id)) {
-      ctx.redirectTo("/product/sku");
+      ctx.setRedirectTo("/product/sku");
       return null;
     }
 
