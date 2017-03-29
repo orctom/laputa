@@ -6,6 +6,7 @@ import com.orctom.laputa.http.client.core.HttpRequestFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -114,22 +115,31 @@ public class HttpClient {
   }
 
   private void setBody(DefaultFullHttpRequest request) {
+    if (POST != httpMethod) {
+      return;
+    }
     if (Strings.isNullOrEmpty(body)) {
       return;
     }
 
-    ByteBuf byteBuf = Unpooled.copiedBuffer(body, StandardCharsets.UTF_8);
-    request.content().clear().writeBytes(byteBuf);
+    setRequestContent(request, body);
   }
 
   private void setParams(DefaultFullHttpRequest request, URI uri) {
+    if (POST != httpMethod) {
+      return;
+    }
     String query = uri.getQuery();
     if (Strings.isNullOrEmpty(query)) {
       return;
     }
 
-    ByteBuf byteBuf = Unpooled.copiedBuffer(query, StandardCharsets.UTF_8);
-    request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, byteBuf.readableBytes());
+    setRequestContent(request, query);
+  }
+
+  private void setRequestContent(DefaultFullHttpRequest request, String content) {
+    ByteBuf byteBuf = Unpooled.copiedBuffer(content, StandardCharsets.UTF_8);
+    request.headers().set(HttpHeaderNames.CONTENT_LENGTH, byteBuf.readableBytes());
     request.content().clear().writeBytes(byteBuf);
   }
 
