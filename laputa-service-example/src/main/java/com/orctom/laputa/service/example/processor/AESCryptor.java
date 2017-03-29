@@ -21,6 +21,11 @@ public class AESCryptor implements PreProcessor {
   private static final String UTF8 = "UTF-8";
 
   @Override
+  public int getOrder() {
+    return 0;
+  }
+
+  @Override
   public void process(RequestWrapper requestWrapper, Context ctx) {
     Map<String, List<String>> requestParams = requestWrapper.getParams();
 
@@ -32,9 +37,13 @@ public class AESCryptor implements PreProcessor {
     String decrypted = Base64.getEncoder().encodeToString(AES.decrypt(encrypted.get(0).getBytes(), KEY));
     try {
       String decoded = URLDecoder.decode(decrypted, UTF8);
-      Splitter.on("&").trimResults().withKeyValueSeparator("=").split(decoded)
-          .entrySet()
-          .forEach(entry -> requestParams.put(entry.getKey(), Lists.newArrayList(entry.getValue())));
+      Splitter
+          .on("&")
+          .omitEmptyStrings()
+          .trimResults()
+          .withKeyValueSeparator("=")
+          .split(decoded)
+          .forEach((key, value) -> requestParams.put(key, Lists.newArrayList(value)));
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e.getMessage(), e);
     }

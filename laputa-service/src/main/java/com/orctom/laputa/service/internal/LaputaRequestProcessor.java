@@ -90,6 +90,9 @@ public class LaputaRequestProcessor {
 
   private static final String CONTENT_TYPE = ".contentType";
 
+  private static List<PreProcessor> preProcessors;
+  private static List<PostProcessor> postProcessors;
+
   private static final HttpDataFactory HTTP_DATA_FACTORY = new DefaultHttpDataFactory(
       Configurator.getInstance().getPostDataUseDiskThreshold(),
       Configurator.getInstance().getCharset()
@@ -122,6 +125,28 @@ public class LaputaRequestProcessor {
     }
 
     rateLimiter = RateLimiter.create(maxRequestsPerSecond);
+
+    loadPreProcessors();
+    loadPostProcessors();
+  }
+
+  private void loadPreProcessors() {
+    Collection<PreProcessor> processors = getBeansOfType(PreProcessor.class);
+    if (processors.isEmpty()) {
+      return;
+    }
+
+    preProcessors = new ArrayList<>(processors);
+    preProcessors.sort(Comparator.comparingInt(PreProcessor::getOrder));
+  }
+
+  private void loadPostProcessors() {
+    Collection<PostProcessor> processors = getBeansOfType(PostProcessor.class);
+    if (processors.isEmpty()) {
+      return;
+    }
+    postProcessors = new ArrayList<>(processors);
+    postProcessors.sort(Comparator.comparingInt(PostProcessor::getOrder));
   }
 
   ResponseWrapper handleRequest(FullHttpRequest request) {
@@ -340,12 +365,12 @@ public class LaputaRequestProcessor {
   }
 
   private void preProcess(RequestWrapper requestWrapper, Context ctx) {
-    Collection<PreProcessor> preProcessors = getBeansOfType(PreProcessor.class);
-    if (preProcessors.isEmpty()) {
+    if (null == preProcessors || preProcessors.isEmpty()) {
       return;
     }
 
     for (PreProcessor processor : preProcessors) {
+      LOGGER.debug("pre-processor: {}", processor.getClass());
       processor.process(requestWrapper, ctx);
     }
 
@@ -355,18 +380,13 @@ public class LaputaRequestProcessor {
   }
 
   private Object postProcess(Object data) {
-    Collection<PostProcessor> postProcessors = getBeansOfType(PostProcessor.class);
-    if (postProcessors.isEmpty()) {
+    if (null == postProcessors || postProcessors.isEmpty()) {
       return data;
     }
 
-    List<PostProcessor> processors = new ArrayList<>(postProcessors);
     Object processed = data;
-    if (processors.size() > 1) {
-      processors.sort(Comparator.comparingInt(PostProcessor::getOrder));
-    }
-    for (PostProcessor processor : processors) {
-      LOGGER.debug("processing post-processor: #{}", processor.getOrder());
+    for (PostProcessor processor : postProcessors) {
+      LOGGER.debug("post-processor: {}", processor.getClass());
       processed = processor.process(processed);
     }
 
