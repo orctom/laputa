@@ -22,7 +22,7 @@ public class AESCryptor implements PreProcessor {
 
   @Override
   public int getOrder() {
-    return 0;
+    return 1;
   }
 
   @Override

@@ -99,9 +99,7 @@ public class LaputaRequestProcessor {
   );
 
   private static final MimetypesFileTypeMap MIMETYPES_FILE_TYPE_MAP = new MimetypesFileTypeMap();
-
-  private static final SecurityConfig SECURITY_CONFIG = Configurator.getInstance().getSecurityConfig();
-
+  
   private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
   private static ServiceLoader<RequestProcessor> requestProcessors = ServiceLoader.load(RequestProcessor.class);
