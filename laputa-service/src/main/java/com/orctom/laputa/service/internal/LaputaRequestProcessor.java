@@ -22,9 +22,11 @@ import com.orctom.laputa.service.translator.ResponseTranslators;
 import com.orctom.laputa.service.translator.TemplateResponseTranslator;
 import com.orctom.laputa.service.util.ArgsResolver;
 import com.orctom.laputa.service.util.ParamResolver;
+import com.orctom.laputa.utils.AntPathMatcher;
 import com.orctom.laputa.utils.ClassUtils;
 import com.orctom.laputa.utils.SimpleMeter;
 import com.orctom.laputa.utils.SimpleMetrics;
+import com.typesafe.config.Config;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.QueryStringDecoder;
@@ -100,6 +102,8 @@ public class LaputaRequestProcessor {
 
   private static final MimetypesFileTypeMap MIMETYPES_FILE_TYPE_MAP = new MimetypesFileTypeMap();
 
+  private static final List<String> SECURITY_RESOURCES = Configurator.getInstance().getSecurityResources();
+
   private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
   private static ServiceLoader<RequestProcessor> requestProcessors = ServiceLoader.load(RequestProcessor.class);
@@ -153,6 +157,19 @@ public class LaputaRequestProcessor {
 
       if (null != rateLimiter && !rateLimiter.tryAcquire(200, TimeUnit.MILLISECONDS)) {
         return new ResponseWrapper(mediaType, TOO_MANY_REQUESTS);
+      }
+
+      if (!SECURITY_RESOURCES.isEmpty()) {
+        Config config = Configurator.getInstance().getConfig();
+        String loginPage = config.getString(CFG_SECURITY_LOGIN_PAGE);
+        String loginCheck = config.getString(CFG_SECURITY_LOGIN_CHECK);
+
+        String path = requestWrapper.getPath();
+        for (String pattern : SECURITY_RESOURCES) {
+          if (AntPathMatcher.isMatch(pattern, path)) {
+            return new ResponseWrapper();
+          }
+        }
       }
 
       for (RequestProcessor requestProcessor : requestProcessors) {

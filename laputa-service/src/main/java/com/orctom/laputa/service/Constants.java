@@ -25,6 +25,9 @@ public class Constants {
   public static final String CFG_WEBSOCKET_PATH = "server.websocket.path";
   public static final String CFG_THROTTLE = "server.throttle";
   public static final String CFG_POSTDATA_USEDISK_THRESHOLD = "server.postData.useDisk.threshold";
+  public static final String CFG_SECURITY_RESOURCES = "security.resources";
+  public static final String CFG_SECURITY_LOGIN_PAGE = "security.login-page";
+  public static final String CFG_SECURITY_LOGIN_CHECK = "security.login-check";
 
   public static final char SLASH = '/';
   public static final String PATH_SEPARATOR = "/";
