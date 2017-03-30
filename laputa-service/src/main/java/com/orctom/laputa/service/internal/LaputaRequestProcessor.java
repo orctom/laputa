@@ -102,7 +102,7 @@ public class LaputaRequestProcessor {
 
   private static final MimetypesFileTypeMap MIMETYPES_FILE_TYPE_MAP = new MimetypesFileTypeMap();
 
-  private static final List<String> SECURITY_RESOURCES = Configurator.getInstance().getSecurityResources();
+  private static final SecurityConfig SECURITY_CONFIG = Configurator.getInstance().getSecurityConfig();
 
   private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
@@ -159,18 +159,13 @@ public class LaputaRequestProcessor {
         return new ResponseWrapper(mediaType, TOO_MANY_REQUESTS);
       }
 
-      if (!SECURITY_RESOURCES.isEmpty()) {
-        Config config = Configurator.getInstance().getConfig();
-        String loginPage = config.getString(CFG_SECURITY_LOGIN_PAGE);
-        String loginCheck = config.getString(CFG_SECURITY_LOGIN_CHECK);
-
-        String path = requestWrapper.getPath();
-        for (String pattern : SECURITY_RESOURCES) {
-          if (AntPathMatcher.isMatch(pattern, path)) {
-            return new ResponseWrapper();
-          }
-        }
-      }
+//      if (null != SECURITY_CONFIG) {
+//        String path = requestWrapper.getPath();
+//        for (String pattern : SECURITY_CONFIG.getResources()) {
+//          if (AntPathMatcher.matches(pattern, path)) {
+//          }
+//        }
+//      }
 
       for (RequestProcessor requestProcessor : requestProcessors) {
         if (requestProcessor.canHandleRequest(requestWrapper)) {
