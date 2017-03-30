@@ -22,11 +22,9 @@ import com.orctom.laputa.service.translator.ResponseTranslators;
 import com.orctom.laputa.service.translator.TemplateResponseTranslator;
 import com.orctom.laputa.service.util.ArgsResolver;
 import com.orctom.laputa.service.util.ParamResolver;
-import com.orctom.laputa.utils.AntPathMatcher;
 import com.orctom.laputa.utils.ClassUtils;
 import com.orctom.laputa.utils.SimpleMeter;
 import com.orctom.laputa.utils.SimpleMetrics;
-import com.typesafe.config.Config;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.QueryStringDecoder;
@@ -159,23 +157,6 @@ public class LaputaRequestProcessor {
         return new ResponseWrapper(mediaType, TOO_MANY_REQUESTS);
       }
 
-//      if (null != SECURITY_CONFIG) {
-//        String path = requestWrapper.getPath();
-//        for (String pattern : SECURITY_CONFIG.getResources()) {
-//          if (AntPathMatcher.matches(pattern, path)) {
-//          }
-//        }
-//      }
-
-      for (RequestProcessor requestProcessor : requestProcessors) {
-        if (requestProcessor.canHandleRequest(requestWrapper)) {
-          ResponseWrapper responseWrapper = requestProcessor.handleRequest(requestWrapper, mediaType);
-          if (null != responseWrapper) {
-            return responseWrapper;
-          }
-        }
-      }
-
       ResponseTranslator translator = ResponseTranslators.getTranslator(requestWrapper);
       return handleRequest(requestWrapper, translator);
 
@@ -186,13 +167,26 @@ public class LaputaRequestProcessor {
   }
 
   private ResponseWrapper handleRequest(RequestWrapper requestWrapper, ResponseTranslator translator) {
+    long start = System.currentTimeMillis();
+
     Context ctx = getContext(requestWrapper);
+
+    // pre-processors
+    preProcess(requestWrapper, ctx);
+    if (hasRedirect(ctx)) {
+      return redirect(ctx);
+    }
 
     String mediaType = translator.getMediaType();
 
-    long start = System.currentTimeMillis();
-    // pre-processors
-    preProcess(requestWrapper, ctx);
+    for (RequestProcessor requestProcessor : requestProcessors) {
+      if (requestProcessor.canHandleRequest(requestWrapper)) {
+        ResponseWrapper responseWrapper = requestProcessor.handleRequest(requestWrapper, mediaType);
+        if (null != responseWrapper) {
+          return responseWrapper;
+        }
+      }
+    }
 
     try {
       MappingConfig mappingConfig = MappingConfig.getInstance();
@@ -236,9 +230,8 @@ public class LaputaRequestProcessor {
         LOGGER.error(e.getMessage(), e);
       }
 
-      String redirectTo = ctx.getRedirectTo();
-      if (!Strings.isNullOrEmpty(redirectTo)) {
-        return new ResponseWrapper(redirectTo, false, ctx.getCookies());
+      if (hasRedirect(ctx)) {
+        return redirect(ctx);
       }
 
       // post-processors
@@ -261,6 +254,14 @@ public class LaputaRequestProcessor {
       LOGGER.error(e.getMessage(), e);
       return new ResponseWrapper(mediaType, ERROR_CONTENT, INTERNAL_SERVER_ERROR, ctx.getCookies());
     }
+  }
+
+  private boolean hasRedirect(Context ctx) {
+    return !Strings.isNullOrEmpty(ctx.getRedirectTo());
+  }
+
+  private ResponseWrapper redirect(Context ctx) {
+    return new ResponseWrapper(ctx.getRedirectTo(), false, ctx.getCookies());
   }
 
   private void markRedirectToErrorPage(ResponseTranslator translator, RequestWrapper requestWrapper, Context ctx) {
