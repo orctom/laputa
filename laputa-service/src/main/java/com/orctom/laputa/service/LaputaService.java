@@ -77,6 +77,7 @@ public class LaputaService {
   private void createApplicationContext(Class<?> configurationClass) {
     applicationContext = new AnnotationConfigApplicationContext(configurationClass);
     registerBean(DefaultController.class, "defaultHandler");
+    applicationContext.scan("com.orctom.laputa.service");
   }
 
   private void loadResponseTranslators() {

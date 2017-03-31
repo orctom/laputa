@@ -9,7 +9,7 @@
     <version>0.3-SNAPSHOT</version>
   </parent>
 
-  <artifactId>laputa-service-freemarker</artifactId>
+  <artifactId>laputa-service-web-shiro</artifactId>
 
   <dependencies>
     <dependency>
@@ -18,9 +18,15 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.freemarker</groupId>
-      <artifactId>freemarker</artifactId>
-      <version>2.3.25-incubating</version>
+      <groupId>org.apache.shiro</groupId>
+      <artifactId>shiro-core</artifactId>
+      <version>1.2.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>${spring.version}</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>

@@ -112,11 +112,9 @@ public class LaputaRequestProcessor {
     }
 
     Integer maxRequestsPerSecond = Configurator.getInstance().getThrottle();
-    if (null == maxRequestsPerSecond) {
-      return;
+    if (null != maxRequestsPerSecond) {
+      rateLimiter = RateLimiter.create(maxRequestsPerSecond);
     }
-
-    rateLimiter = RateLimiter.create(maxRequestsPerSecond);
 
     loadPreProcessors();
     loadPostProcessors();

@@ -32,6 +32,7 @@
     <java.version>1.8</java.version>
     <netty.version>4.1.9.Final</netty.version>
     <guava.version>19.0</guava.version>
+    <spring.version>4.2.6.RELEASE</spring.version>
   </properties>
 
   <modules>
@@ -41,6 +42,7 @@
     <module>laputa-service</module>
     <module>laputa-config</module>
     <module>laputa-service-web</module>
+    <module>laputa-service-web-shiro</module>
     <module>laputa-service-freemarker</module>
     <module>laputa-service-jade</module>
     <module>laputa-service-example</module>
