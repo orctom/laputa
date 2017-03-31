@@ -2,7 +2,6 @@ package com.orctom.laputa.service.config;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.orctom.laputa.service.model.SecurityConfig;
 import com.orctom.laputa.utils.HostUtils;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -37,7 +36,6 @@ public class Configurator {
   private Charset charset;
   private Integer throttle;
   private long postDataUseDiskThreshold = DefaultHttpDataFactory.MINSIZE;
-  private SecurityConfig securityConfig;
 
   private Configurator() {
     initConfig();
@@ -46,7 +44,6 @@ public class Configurator {
     loadCharset();
     loadPostDataUseDiskThreshold();
     loadThrottle();
-    loadSecurityConfig();
   }
 
   public static Configurator getInstance() {
@@ -109,20 +106,6 @@ public class Configurator {
     }
   }
 
-  private void loadSecurityConfig() {
-    if (!config.hasPath(CFG_SECURITY_RESOURCES)) {
-      return;
-    }
-
-    List<String> resources = config.getStringList(CFG_SECURITY_RESOURCES);
-    if (config.hasPath(CFG_SECURITY_NON_RESOURCES)) {
-      List<String> nonResources = config.getStringList(CFG_SECURITY_NON_RESOURCES);
-      securityConfig = new SecurityConfig(resources, nonResources);
-    } else {
-      securityConfig = new SecurityConfig(resources);
-    }
-  }
-
   public Config getConfig() {
     return config;
   }
@@ -141,9 +124,5 @@ public class Configurator {
 
   public long getPostDataUseDiskThreshold() {
     return postDataUseDiskThreshold;
-  }
-
-  public SecurityConfig getSecurityConfig() {
-    return securityConfig;
   }
 }
