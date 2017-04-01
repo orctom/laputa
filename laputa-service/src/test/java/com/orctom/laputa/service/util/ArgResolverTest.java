@@ -58,6 +58,7 @@ public class ArgResolverTest {
       HttpMethod.GET,
       null,
       "/",
+      "/",
       Collections.emptyMap(),
       ""
   );

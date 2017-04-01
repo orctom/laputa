@@ -24,6 +24,7 @@ public class RequestWrapper {
 
   private HttpMethod httpMethod;
   private HttpHeaders headers;
+  private String uri;
   private String path;
   private Map<String, List<String>> params;
   private String data;
@@ -32,11 +33,13 @@ public class RequestWrapper {
   public RequestWrapper(
       HttpMethod httpMethod,
       HttpHeaders headers,
+      String uri,
       String path,
       Map<String, List<String>> params,
       String data) {
     this.httpMethod = httpMethod;
     this.headers = headers;
+    this.uri = decode(uri);
     this.path = decode(path);
     this.params = params;
     this.data = decode(data);
@@ -81,6 +84,14 @@ public class RequestWrapper {
 
   public void setPath(String path) {
     this.path = path;
+  }
+
+  public String getUri() {
+    return uri;
+  }
+
+  public void setUri(String uri) {
+    this.uri = uri;
   }
 
   public Map<String, List<String>> getParams() {

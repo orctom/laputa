@@ -298,6 +298,8 @@ public class LaputaRequestProcessor {
 
     Map<String, List<String>> parameters = new HashMap<>();
 
+    String uri = request.uri();
+
     try {
       for (InterfaceHttpData bodyData : bodyDatas) {
         if (HttpDataType.Attribute == bodyData.getHttpDataType()) {
@@ -310,10 +312,10 @@ public class LaputaRequestProcessor {
         }
       }
 
-      return new RequestWrapper(request.method(), request.headers(), request.uri(), parameters, data);
+      return new RequestWrapper(request.method(), request.headers(), uri, uri, parameters, data);
 
     } catch (HttpPostRequestDecoder.EndOfDataDecoderException e) {
-      return new RequestWrapper(request.method(), request.headers(), request.uri(), parameters, data);
+      return new RequestWrapper(request.method(), request.headers(), uri, uri, parameters, data);
 
     } finally {
       decoder.destroy();
@@ -351,7 +353,7 @@ public class LaputaRequestProcessor {
     String path = queryStringDecoder.path();
     Map<String, List<String>> queryParameters = queryStringDecoder.parameters();
     String data = getRequestData(request);
-    return new RequestWrapper(method, request.headers(), path, queryParameters, data);
+    return new RequestWrapper(method, request.headers(), uri, path, queryParameters, data);
   }
 
   private String getRequestData(FullHttpRequest request) {
