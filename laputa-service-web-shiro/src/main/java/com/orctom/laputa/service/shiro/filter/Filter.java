@@ -3,7 +3,7 @@ package com.orctom.laputa.service.shiro.filter;
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
 
-public abstract class AbstractFilter {
+public abstract class Filter {
 
   protected FilterConfig filterConfig;
 

@@ -1,7 +1,14 @@
 package com.orctom.laputa.service.shiro.filter;
 
-/**
- * Created by chenhao on 3/31/17.
- */
-public class PassThruAuthenticationFilter {
+public class PassThruAuthenticationFilter extends AuthenticationFilter {
+
+  @Override
+  public String getName() {
+    return "passThru";
+  }
+
+  @Override
+  protected boolean isAccessAllowed() {
+    return false;
+  }
 }

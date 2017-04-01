@@ -1,14 +1,13 @@
-package com.orctom.laputa.service.shiro;
+package com.orctom.laputa.service.shiro.filter;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
-import com.orctom.laputa.service.shiro.filter.PathMatchingFilter;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
 
 public abstract class AuthenticationFilter extends PathMatchingFilter {
-  
+
   private String loginUrl = "/login.html";
 
   public String getLoginUrl() {
