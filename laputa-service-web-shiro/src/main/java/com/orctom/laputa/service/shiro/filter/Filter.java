@@ -17,5 +17,9 @@ public abstract class Filter {
     this.filterConfig = filterConfig;
   }
 
+  protected void setRedirect(Context context, String redirectTo) {
+    context.setRedirectTo(redirectTo);
+  }
+
   public abstract void filter(RequestWrapper requestWrapper, Context ctx);
 }

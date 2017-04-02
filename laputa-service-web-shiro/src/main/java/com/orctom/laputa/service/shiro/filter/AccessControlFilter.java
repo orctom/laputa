@@ -18,8 +18,20 @@ public abstract class AccessControlFilter extends PathMatchingFilter {
     this.loginUrl = loginUrl;
   }
 
+  protected Subject getSubject(RequestWrapper requestWrapper) {
+    return SecurityUtils.getSubject();
+  }
+
   protected boolean isLoginRequest(RequestWrapper requestWrapper) {
     return pathsMatch(getLoginUrl(), requestWrapper.getPath());
+  }
+
+  protected abstract boolean isAccessAllowed(RequestWrapper requestWrapper, Context context, Object mappedValue);
+
+  protected abstract boolean onAccessDenied(RequestWrapper requestWrapper, Context context, Object mappedValue);
+
+  public boolean onPreHandle(RequestWrapper requestWrapper, Context context, Object mappedValue) {
+    return isAccessAllowed(requestWrapper, context, mappedValue) || onAccessDenied(requestWrapper, context, mappedValue);
   }
 
   protected void saveRequestAndRedirectToLogin(RequestWrapper requestWrapper, Context context) {
@@ -36,6 +48,4 @@ public abstract class AccessControlFilter extends PathMatchingFilter {
   protected void redirectToLogin(RequestWrapper requestWrapper, Context context) {
     context.setRedirectTo(getLoginUrl());
   }
-
-  protected abstract boolean isAccessAllowed();
 }

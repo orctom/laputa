@@ -2,38 +2,26 @@ package com.orctom.laputa.service.shiro.filter;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
 
-public abstract class AuthenticationFilter extends PathMatchingFilter {
+public abstract class AuthenticationFilter extends AccessControlFilter {
 
-  private String loginUrl = "/login.html";
+  private String successUrl = "/";
 
-  public String getLoginUrl() {
-    return loginUrl;
+  public String getSuccessUrl() {
+    return successUrl;
   }
 
-  public void setLoginUrl(String loginUrl) {
-    this.loginUrl = loginUrl;
+  public void setSuccessUrl(String successUrl) {
+    this.successUrl = successUrl;
   }
 
-  protected boolean isLoginRequest(RequestWrapper requestWrapper) {
-    return pathsMatch(getLoginUrl(), requestWrapper.getPath());
+  protected boolean isAccessAllowed(RequestWrapper requestWrapper, Context context, Object mappedValue) {
+    Subject subject = getSubject(requestWrapper);
+    return subject.isAuthenticated();
   }
 
-  protected void saveRequestAndRedirectToLogin(RequestWrapper requestWrapper, Context context) {
-    saveRequest(requestWrapper);
-    redirectToLogin(requestWrapper, context);
-  }
-
-  protected void saveRequest(RequestWrapper requestWrapper) {
-    Subject subject = SecurityUtils.getSubject();
-    Session session = subject.getSession();
-    session.setAttribute("_redirect_", requestWrapper.getUri());
-  }
-
-  protected void redirectToLogin(RequestWrapper requestWrapper, Context context) {
-    context.setRedirectTo(getLoginUrl());
+  protected void issueSuccessRedirect(RequestWrapper requestWrapper, Context context) {
+    super.setRedirect(context, getSuccessUrl());
   }
 }

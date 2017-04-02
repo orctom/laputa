@@ -11,12 +11,7 @@ public class AnonymousFilter extends PathMatchingFilter {
   }
 
   @Override
-  protected boolean isAccessAllowed() {
-    return false;
-  }
-
-  @Override
-  public void filter(RequestWrapper requestWrapper, Context ctx) {
-    // do nothing
+  protected boolean preHandle(RequestWrapper requestWrapper, Context ctx) {
+    return true;
   }
 }

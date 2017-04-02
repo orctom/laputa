@@ -1,5 +1,8 @@
 package com.orctom.laputa.service.shiro.filter;
 
+import com.orctom.laputa.service.model.Context;
+import com.orctom.laputa.service.model.RequestWrapper;
+
 public class PermissionsAuthorizationFilter extends AuthenticationFilter {
 
   @Override
@@ -8,7 +11,7 @@ public class PermissionsAuthorizationFilter extends AuthenticationFilter {
   }
 
   @Override
-  protected boolean isAccessAllowed() {
+  protected boolean onAccessDenied(RequestWrapper requestWrapper, Context context, Object mappedValue) {
     return false;
   }
 }
