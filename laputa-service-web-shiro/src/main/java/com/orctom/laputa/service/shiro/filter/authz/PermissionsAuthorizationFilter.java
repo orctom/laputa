@@ -1,7 +1,8 @@
-package com.orctom.laputa.service.shiro.filter;
+package com.orctom.laputa.service.shiro.filter.authz;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.shiro.filter.authz.AuthorizationFilter;
 import org.apache.shiro.subject.Subject;
 
 public class PermissionsAuthorizationFilter extends AuthorizationFilter {

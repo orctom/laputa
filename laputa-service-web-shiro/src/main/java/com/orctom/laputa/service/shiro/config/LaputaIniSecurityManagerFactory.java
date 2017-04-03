@@ -1,6 +1,6 @@
 package com.orctom.laputa.service.shiro.config;
 
-import com.orctom.laputa.service.shiro.filter.DefaultFilter;
+import com.orctom.laputa.service.shiro.filter.mgt.DefaultFilter;
 import com.orctom.laputa.service.shiro.filter.Filter;
 import com.orctom.laputa.service.shiro.mgt.LaputaSecurityManager;
 import org.apache.shiro.config.Ini;

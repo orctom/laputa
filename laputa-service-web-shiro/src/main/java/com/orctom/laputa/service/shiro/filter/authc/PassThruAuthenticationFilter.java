@@ -1,4 +1,4 @@
-package com.orctom.laputa.service.shiro.filter;
+package com.orctom.laputa.service.shiro.filter.authc;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
