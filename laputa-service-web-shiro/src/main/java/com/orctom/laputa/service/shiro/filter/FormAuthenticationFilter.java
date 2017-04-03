@@ -32,7 +32,7 @@ public class FormAuthenticationFilter extends AuthenticationFilter {
   }
   @Override
   public String getName() {
-    return null;
+    return "authc";
   }
 
   public String getUsernameParam() {

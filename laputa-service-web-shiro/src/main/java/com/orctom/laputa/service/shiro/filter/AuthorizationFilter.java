@@ -17,7 +17,7 @@ public abstract class AuthorizationFilter extends AccessControlFilter {
     this.unauthorizedUrl = unauthorizedUrl;
   }
 
-  protected boolean onAccessDenied(RequestWrapper requestWrapper, Context context) {
+  protected boolean onAccessDenied(RequestWrapper requestWrapper, Context context, Object mappedValue) {
     Subject subject = SecurityUtils.getSubject();
     // If the subject isn't identified, redirect to login URL
     if (subject.getPrincipal() == null) {

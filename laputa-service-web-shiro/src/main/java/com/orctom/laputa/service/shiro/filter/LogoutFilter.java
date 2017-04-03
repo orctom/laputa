@@ -24,7 +24,7 @@ public class LogoutFilter extends AdviceFilter {
 
   @Override
   public String getName() {
-    return null;
+    return "logout";
   }
 
   @Override
