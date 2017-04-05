@@ -4,6 +4,7 @@ import com.orctom.laputa.service.shiro.filter.mgt.DefaultFilter;
 import com.orctom.laputa.service.shiro.filter.Filter;
 import com.orctom.laputa.service.shiro.mgt.LaputaSecurityManager;
 import org.apache.shiro.config.Ini;
+import org.apache.shiro.config.IniFactorySupport;
 import org.apache.shiro.config.IniSecurityManagerFactory;
 import org.apache.shiro.mgt.SecurityManager;
 
@@ -12,11 +13,7 @@ import java.util.Map;
 public class LaputaIniSecurityManagerFactory extends IniSecurityManagerFactory {
 
   public LaputaIniSecurityManagerFactory() {
-    super();
-  }
-
-  public LaputaIniSecurityManagerFactory(Ini config) {
-    super(config);
+    super(IniFactorySupport.DEFAULT_INI_RESOURCE_PATH);
   }
 
   @Override

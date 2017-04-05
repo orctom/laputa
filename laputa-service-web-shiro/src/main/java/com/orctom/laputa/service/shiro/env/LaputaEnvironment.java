@@ -1,5 +1,6 @@
 package com.orctom.laputa.service.shiro.env;
 
+import com.orctom.laputa.service.shiro.config.LaputaIniSecurityManagerFactory;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.ShiroException;
 import org.apache.shiro.config.IniFactorySupport;
@@ -16,15 +17,16 @@ public class LaputaEnvironment extends DefaultEnvironment implements Initializab
   @Override
   public void init() throws ShiroException {
     this.objects.clear();
-    IniSecurityManagerFactory factory = new IniSecurityManagerFactory(IniFactorySupport.DEFAULT_INI_RESOURCE_PATH);
+    LaputaIniSecurityManagerFactory factory = new LaputaIniSecurityManagerFactory();
+
+    SecurityManager securityManager = factory.getInstance();
+    super.setSecurityManager(securityManager);
 
     Map<String, ?> beans = factory.getBeans();
     if (!CollectionUtils.isEmpty(beans)) {
       this.objects.putAll(beans);
     }
 
-    SecurityManager securityManager = factory.getInstance();
-    super.setSecurityManager(securityManager);
     SecurityUtils.setSecurityManager(securityManager);
   }
 }
