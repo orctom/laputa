@@ -3,8 +3,6 @@ package com.orctom.laputa.service.shiro.env;
 import com.orctom.laputa.service.shiro.config.LaputaIniSecurityManagerFactory;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.ShiroException;
-import org.apache.shiro.config.IniFactorySupport;
-import org.apache.shiro.config.IniSecurityManagerFactory;
 import org.apache.shiro.env.DefaultEnvironment;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.util.CollectionUtils;
