@@ -30,7 +30,8 @@ public interface LaputaSubject extends Subject {
       return new LaputaSubjectContext();
     }
 
-    public LaputaSubject buildLaputaSubject() {
+    @Override
+    public LaputaSubject buildSubject() {
       Subject subject = super.buildSubject();
       if (!(subject instanceof LaputaSubject)) {
         String msg = "Subject implementation returned from the SecurityManager was not a " +

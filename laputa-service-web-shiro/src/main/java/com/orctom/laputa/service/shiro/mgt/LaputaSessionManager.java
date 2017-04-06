@@ -2,8 +2,6 @@ package com.orctom.laputa.service.shiro.mgt;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
-import com.orctom.laputa.service.shiro.model.Cookie;
-import com.orctom.laputa.service.shiro.model.SimpleCookie;
 import org.apache.shiro.session.ExpiredSessionException;
 import org.apache.shiro.session.InvalidSessionException;
 import org.apache.shiro.session.Session;

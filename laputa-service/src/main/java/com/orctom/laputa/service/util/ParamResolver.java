@@ -8,9 +8,11 @@ import com.orctom.laputa.service.annotation.DefaultValue;
 import com.orctom.laputa.service.annotation.HttpHeader;
 import com.orctom.laputa.service.annotation.HttpHeaders;
 import com.orctom.laputa.service.annotation.Param;
+import com.orctom.laputa.service.model.ParamInfo;
 import com.orctom.laputa.service.model.RequestMapping;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.utils.ClassUtils;
+import org.apache.commons.collections.map.HashedMap;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -18,6 +20,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.orctom.laputa.service.Constants.PATH_SEPARATOR;
@@ -40,13 +44,9 @@ public class ParamResolver {
   }
 
   public static Map<String, String> extractDefaultValues(RequestMapping mapping) {
-    return mapping.getHandlerParameters().entrySet().stream()
-        .collect(
-            Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> entry.getValue().getDefaultValue()
-            )
-        );
+    Map<String,  String> defaultValues = new HashMap<>();
+    mapping.getHandlerParameters().forEach((key, value) -> defaultValues.put(key, value.getDefaultValue()));
+    return defaultValues;
   }
 
   public static Map<String, String> extractQueryParams(Map<String, List<String>> queryParameters) {

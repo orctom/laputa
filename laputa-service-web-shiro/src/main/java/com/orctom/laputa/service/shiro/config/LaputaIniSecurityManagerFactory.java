@@ -12,8 +12,8 @@ import java.util.Map;
 
 public class LaputaIniSecurityManagerFactory extends IniSecurityManagerFactory {
 
-  public LaputaIniSecurityManagerFactory() {
-    super(IniFactorySupport.DEFAULT_INI_RESOURCE_PATH);
+  public LaputaIniSecurityManagerFactory(Ini ini) {
+    super(ini);
   }
 
   @Override
