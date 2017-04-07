@@ -1,4 +1,4 @@
-package com.orctom.laputa.service.shiro.config;
+package com.orctom.laputa.service.shiro.mgt;
 
 import com.orctom.laputa.service.shiro.filter.Filter;
 import com.orctom.laputa.service.shiro.mgt.LaputaFilterChainManager;

@@ -29,10 +29,6 @@ public class FormAuthenticationFilter extends AuthenticationFilter {
   public FormAuthenticationFilter() {
     setLoginUrl("/login.html");
   }
-  @Override
-  public String getName() {
-    return "authc";
-  }
 
   public String getUsernameParam() {
     return usernameParam;
@@ -69,32 +65,18 @@ public class FormAuthenticationFilter extends AuthenticationFilter {
   }
 
   @Override
-  protected boolean onAccessDenied(RequestWrapper requestWrapper, Context context, Object mappedValue) {
+  protected void checkAccess(RequestWrapper requestWrapper, Context context, Object mappedValue) {
     if (isLoginRequest(requestWrapper)) {
       if (isLoginSubmission(requestWrapper, context)) {
-        if (LOGGER.isTraceEnabled()) {
-          LOGGER.trace("Login submission detected.  Attempting to execute login.");
-        }
-        return executeLogin(requestWrapper, context);
-      } else {
-        if (LOGGER.isTraceEnabled()) {
-          LOGGER.trace("Login page view.");
-        }
-        //allow them to see the login page ;)
-        return true;
-      }
-    } else {
-      if (LOGGER.isTraceEnabled()) {
-        LOGGER.trace("Attempting to access a path which requires authentication.  Forwarding to the " +
-            "Authentication url [" + getLoginUrl() + "]");
+        executeLogin(requestWrapper, context);
       }
 
+    } else {
       saveRequestAndRedirectToLogin(requestWrapper, context);
-      return false;
     }
   }
 
-  protected boolean executeLogin(RequestWrapper requestWrapper, Context context) {
+  protected void executeLogin(RequestWrapper requestWrapper, Context context) {
     AuthenticationToken token = createToken(requestWrapper, context);
     if (token == null) {
       String msg = "createToken method implementation returned null. A valid non-null AuthenticationToken " +
@@ -104,9 +86,9 @@ public class FormAuthenticationFilter extends AuthenticationFilter {
     try {
       Subject subject = getSubject(requestWrapper);
       subject.login(token);
-      return onLoginSuccess(token, subject, requestWrapper, context);
+      onLoginSuccess(token, subject, requestWrapper, context);
     } catch (AuthenticationException e) {
-      return onLoginFailure(token, e, requestWrapper, context);
+      onLoginFailure(token, e, requestWrapper, context);
     }
   }
 
@@ -134,22 +116,20 @@ public class FormAuthenticationFilter extends AuthenticationFilter {
     return Booleans.isBooleam(values.get(0));
   }
 
-  protected boolean onLoginSuccess(AuthenticationToken token,
+  protected void onLoginSuccess(AuthenticationToken token,
                                    Subject subject,
                                    RequestWrapper requestWrapper,
                                    Context context) {
     issueSuccessRedirect(requestWrapper, context);
-    //we handled the success redirect directly, prevent the chain from continuing:
-    return false;
   }
 
-  protected boolean onLoginFailure(AuthenticationToken token,
+  protected void onLoginFailure(AuthenticationToken token,
                                    AuthenticationException e,
                                    RequestWrapper requestWrapper,
                                    Context context) {
-    return false;
+    context.setRedirectTo(getLoginUrl() + "?error=Login failed.");
+    context.setData("error", e.getMessage());
   }
-
 
   protected String getUsername(RequestWrapper requestWrapper) {
     List<String> values = requestWrapper.getParams().get(getUsernameParam());
@@ -166,6 +146,4 @@ public class FormAuthenticationFilter extends AuthenticationFilter {
     }
     return values.get(0);
   }
-
-
 }

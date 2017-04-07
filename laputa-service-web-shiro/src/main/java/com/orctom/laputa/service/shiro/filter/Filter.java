@@ -7,8 +7,6 @@ public abstract class Filter {
 
   protected FilterConfig filterConfig;
 
-  public abstract String getName();
-
   public FilterConfig getFilterConfig() {
     return filterConfig;
   }

@@ -61,6 +61,10 @@ public class ShiroProcessor implements PreProcessor {
 
   protected void executeChain(RequestWrapper requestWrapper, Context ctx) {
     NamedFilterList chain = getExecutionChain(requestWrapper, ctx);
+    if (null == chain) {
+      return;
+    }
+
     ListIterator<Filter> filters = chain.listIterator();
     while (filters.hasNext()) {
       Filter filter =  filters.next();

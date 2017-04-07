@@ -8,11 +8,6 @@ import org.apache.shiro.subject.Subject;
 public class UserFilter extends AccessControlFilter {
 
   @Override
-  public String getName() {
-    return "user";
-  }
-
-  @Override
   protected boolean isAccessAllowed(RequestWrapper requestWrapper, Context context, Object mappedValue) {
     if (isLoginRequest(requestWrapper)) {
       return true;
@@ -24,8 +19,7 @@ public class UserFilter extends AccessControlFilter {
   }
 
   @Override
-  protected boolean onAccessDenied(RequestWrapper requestWrapper, Context context, Object mappedValue) {
+  protected void checkAccess(RequestWrapper requestWrapper, Context context, Object mappedValue) {
     saveRequestAndRedirectToLogin(requestWrapper, context);
-    return false;
   }
 }

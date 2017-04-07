@@ -1,4 +1,4 @@
-package com.orctom.laputa.service.shiro.mgt;
+package com.orctom.laputa.service.shiro.cookie;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;

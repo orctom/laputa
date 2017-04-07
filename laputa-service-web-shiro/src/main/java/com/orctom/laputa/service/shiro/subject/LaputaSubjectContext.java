@@ -3,6 +3,7 @@ package com.orctom.laputa.service.shiro.subject;
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.shiro.util.RequestPairSource;
+import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
 
 public class LaputaSubjectContext extends DefaultSubjectContext implements RequestPairSource {
@@ -15,7 +16,17 @@ public class LaputaSubjectContext extends DefaultSubjectContext implements Reque
   }
 
   public RequestWrapper getRequestWrapper() {
-    return super.getTypedValue(KEY_REQUEST_WRAPPER, RequestWrapper.class);
+    RequestWrapper requestWrapper = super.getTypedValue(KEY_REQUEST_WRAPPER, RequestWrapper.class);
+    if (null != requestWrapper) {
+      return requestWrapper;
+    }
+
+    Subject existing = getSubject();
+    if (existing instanceof LaputaSubject) {
+      return ((LaputaSubject) existing).getRequestWrapper();
+    }
+
+    return null;
   }
 
   public void setContext(Context context) {
@@ -23,6 +34,16 @@ public class LaputaSubjectContext extends DefaultSubjectContext implements Reque
   }
 
   public Context getContext() {
-    return super.getTypedValue(KEY_CONTEXT, Context.class);
+    Context context = super.getTypedValue(KEY_CONTEXT, Context.class);
+    if (null != context) {
+      return context;
+    }
+
+    Subject existing = getSubject();
+    if (existing instanceof LaputaSubject) {
+      return ((LaputaSubject) existing).getContext();
+    }
+
+    return null;
   }
 }

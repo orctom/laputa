@@ -1,10 +1,9 @@
-package com.orctom.laputa.service.shiro.processor;
+package com.orctom.laputa.service.shiro.subject;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
-import com.orctom.laputa.service.shiro.mgt.DefaultLaputaSessionContext;
+import com.orctom.laputa.service.shiro.session.DefaultLaputaSessionContext;
 import com.orctom.laputa.service.shiro.session.LaputaSessionContext;
-import com.orctom.laputa.service.shiro.subject.LaputaSubject;
 import com.orctom.laputa.service.shiro.util.RequestPairSource;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.session.Session;

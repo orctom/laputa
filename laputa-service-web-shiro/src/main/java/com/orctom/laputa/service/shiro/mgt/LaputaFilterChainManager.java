@@ -8,10 +8,8 @@ import org.apache.shiro.util.CollectionUtils;
 import org.apache.shiro.util.Nameable;
 import org.apache.shiro.util.StringUtils;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class LaputaFilterChainManager {
 

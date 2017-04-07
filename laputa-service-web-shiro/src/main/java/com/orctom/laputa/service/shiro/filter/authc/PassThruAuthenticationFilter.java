@@ -6,17 +6,9 @@ import com.orctom.laputa.service.model.RequestWrapper;
 public class PassThruAuthenticationFilter extends AuthenticationFilter {
 
   @Override
-  public String getName() {
-    return "passThru";
-  }
-
-  @Override
-  protected boolean onAccessDenied(RequestWrapper requestWrapper, Context context, Object mappedValue) {
-    if (isLoginRequest(requestWrapper)) {
-      return true;
-    } else {
+  protected void checkAccess(RequestWrapper requestWrapper, Context context, Object mappedValue) {
+    if (!isLoginRequest(requestWrapper)) {
       saveRequestAndRedirectToLogin(requestWrapper, context);
-      return false;
     }
   }
 }

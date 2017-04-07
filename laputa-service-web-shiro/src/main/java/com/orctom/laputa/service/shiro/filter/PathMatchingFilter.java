@@ -10,7 +10,7 @@ import java.util.Map;
 
 import static org.apache.shiro.util.StringUtils.split;
 
-public abstract class PathMatchingFilter extends AdviceFilter {
+public abstract class PathMatchingFilter extends AbstractFilter {
 
   protected PatternMatcher pathMatcher = new AntPathMatcher();
 
@@ -33,27 +33,20 @@ public abstract class PathMatchingFilter extends AdviceFilter {
   }
 
   @Override
-  protected boolean preHandle(RequestWrapper requestWrapper, Context ctx) {
+  protected void doFilter(RequestWrapper requestWrapper, Context ctx) {
     if (this.appliedPaths == null || this.appliedPaths.isEmpty()) {
-      return true;
+      return;
     }
 
     for (String path : this.appliedPaths.keySet()) {
       if (pathsMatch(path, requestWrapper.getPath())) {
         Object config = this.appliedPaths.get(path);
-        return isFilterChainContinued(requestWrapper, ctx, config);
+        onFilterInternal(requestWrapper, ctx, config);
+        return;
       }
     }
-
-    //no path matched, allow the request to go through:
-    return true;
   }
 
-  private boolean isFilterChainContinued(RequestWrapper requestWrapper, Context ctx, Object pathConfig) {
-    return onPreHandle(requestWrapper, ctx, pathConfig);
-  }
-
-  protected boolean onPreHandle(RequestWrapper requestWrapper, Context ctx, Object mappedValue) {
-    return true;
+  protected void onFilterInternal(RequestWrapper requestWrapper, Context ctx, Object mappedValue) {
   }
 }

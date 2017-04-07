@@ -2,11 +2,12 @@ package com.orctom.laputa.service.shiro.session;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.shiro.util.RequestPairSource;
 import org.apache.shiro.session.mgt.DefaultSessionKey;
 
 import java.io.Serializable;
 
-public class LaputaSessionKey extends DefaultSessionKey {
+public class LaputaSessionKey extends DefaultSessionKey implements RequestPairSource {
 
   private RequestWrapper requestWrapper;
   private Context context;
@@ -25,5 +26,15 @@ public class LaputaSessionKey extends DefaultSessionKey {
   public LaputaSessionKey(Serializable sessionId, RequestWrapper requestWrapper, Context context) {
     this(requestWrapper, context);
     setSessionId(sessionId);
+  }
+
+  @Override
+  public RequestWrapper getRequestWrapper() {
+    return requestWrapper;
+  }
+
+  @Override
+  public Context getContext() {
+    return context;
   }
 }

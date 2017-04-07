@@ -3,6 +3,8 @@ package com.orctom.laputa.service.shiro.filter.authc;
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.shiro.filter.AccessControlFilter;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
 
 public abstract class AuthenticationFilter extends AccessControlFilter {
@@ -23,6 +25,18 @@ public abstract class AuthenticationFilter extends AccessControlFilter {
   }
 
   protected void issueSuccessRedirect(RequestWrapper requestWrapper, Context context) {
-    super.setRedirect(context, getSuccessUrl());
+    String redirectUrl = getSuccessRedirectUrl();
+    super.setRedirect(context, redirectUrl);
+  }
+
+  private String getSuccessRedirectUrl() {
+    Subject subject = SecurityUtils.getSubject();
+    Session session = subject.getSession();
+    Object redirectUrl = session.getAttribute(KEY_REDIRECT_URL);
+    if (null == redirectUrl) {
+      return getSuccessUrl();
+    }
+
+    return (String) redirectUrl;
   }
 }

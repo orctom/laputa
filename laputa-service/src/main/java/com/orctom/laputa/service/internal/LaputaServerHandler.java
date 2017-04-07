@@ -200,7 +200,11 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
       return;
     }
     for (ResponseCookie cookie : cookies) {
-      res.headers().set(SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
+      try {
+        res.headers().set(SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
+      } catch (Exception e) {
+        LOGGER.error(e.getMessage(), e);
+      }
     }
   }
 

@@ -1,8 +1,7 @@
-package com.orctom.laputa.service.shiro.mgt;
+package com.orctom.laputa.service.shiro.session;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
-import com.orctom.laputa.service.shiro.session.LaputaSessionContext;
 import com.orctom.laputa.service.shiro.util.RequestPairSource;
 import org.apache.shiro.session.mgt.DefaultSessionContext;
 

@@ -2,14 +2,14 @@ package com.orctom.laputa.service.shiro.filter.authc;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
-import com.orctom.laputa.service.shiro.filter.AdviceFilter;
+import com.orctom.laputa.service.shiro.filter.AbstractFilter;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.SessionException;
 import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LogoutFilter extends AdviceFilter {
+public class LogoutFilter extends AbstractFilter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LogoutFilter.class);
 
@@ -24,12 +24,7 @@ public class LogoutFilter extends AdviceFilter {
   }
 
   @Override
-  public String getName() {
-    return "logout";
-  }
-
-  @Override
-  protected boolean preHandle(RequestWrapper requestWrapper, Context ctx) {
+  protected void doFilter(RequestWrapper requestWrapper, Context ctx) {
     Subject subject = getSubject(requestWrapper);
     String redirectUrl = getRedirectUrl();
     try {
@@ -38,7 +33,6 @@ public class LogoutFilter extends AdviceFilter {
       LOGGER.debug("Encountered session exception during logout.  This can generally safely be ignored.", ise);
     }
     issueRedirect(requestWrapper, ctx, redirectUrl);
-    return false;
   }
 
   protected Subject getSubject(RequestWrapper requestWrapper) {

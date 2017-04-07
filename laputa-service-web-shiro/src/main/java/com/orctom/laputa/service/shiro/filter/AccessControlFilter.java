@@ -8,6 +8,7 @@ import org.apache.shiro.subject.Subject;
 
 public abstract class AccessControlFilter extends PathMatchingFilter {
 
+  protected static final String KEY_REDIRECT_URL = "_redirect_";
   private String loginUrl = "/login.html";
 
   public String getLoginUrl() {
@@ -28,10 +29,14 @@ public abstract class AccessControlFilter extends PathMatchingFilter {
 
   protected abstract boolean isAccessAllowed(RequestWrapper requestWrapper, Context context, Object mappedValue);
 
-  protected abstract boolean onAccessDenied(RequestWrapper requestWrapper, Context context, Object mappedValue);
+  protected abstract void checkAccess(RequestWrapper requestWrapper, Context context, Object mappedValue);
 
-  public boolean onPreHandle(RequestWrapper requestWrapper, Context context, Object mappedValue) {
-    return isAccessAllowed(requestWrapper, context, mappedValue) || onAccessDenied(requestWrapper, context, mappedValue);
+  public void onFilterInternal(RequestWrapper requestWrapper, Context context, Object mappedValue) {
+    if (isAccessAllowed(requestWrapper, context, mappedValue)) {
+      return;
+    }
+
+    checkAccess(requestWrapper, context, mappedValue);
   }
 
   protected void saveRequestAndRedirectToLogin(RequestWrapper requestWrapper, Context context) {
@@ -42,7 +47,7 @@ public abstract class AccessControlFilter extends PathMatchingFilter {
   protected void saveRequest(RequestWrapper requestWrapper) {
     Subject subject = SecurityUtils.getSubject();
     Session session = subject.getSession();
-    session.setAttribute("_redirect_", requestWrapper.getUri());
+    session.setAttribute(KEY_REDIRECT_URL, requestWrapper.getUri());
   }
 
   protected void redirectToLogin(RequestWrapper requestWrapper, Context context) {

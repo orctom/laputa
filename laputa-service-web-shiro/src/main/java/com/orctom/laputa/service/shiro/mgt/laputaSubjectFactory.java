@@ -2,7 +2,7 @@ package com.orctom.laputa.service.shiro.mgt;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
-import com.orctom.laputa.service.shiro.processor.LaputaDelegatingSubject;
+import com.orctom.laputa.service.shiro.subject.LaputaDelegatingSubject;
 import com.orctom.laputa.service.shiro.subject.LaputaSubjectContext;
 import org.apache.shiro.mgt.DefaultSubjectFactory;
 import org.apache.shiro.mgt.SecurityManager;
@@ -17,6 +17,7 @@ public class laputaSubjectFactory extends DefaultSubjectFactory {
     if (!(subjectContext instanceof LaputaSubjectContext)) {
       return super.createSubject(subjectContext);
     }
+
     LaputaSubjectContext lsc = (LaputaSubjectContext) subjectContext;
     SecurityManager securityManager = lsc.resolveSecurityManager();
     Session session = lsc.resolveSession();
@@ -27,7 +28,15 @@ public class laputaSubjectFactory extends DefaultSubjectFactory {
     RequestWrapper requestWrapper = lsc.getRequestWrapper();
     Context context = lsc.getContext();
 
-    return new LaputaDelegatingSubject(principals, authenticated, host, session, sessionEnabled,
-        requestWrapper, context, securityManager);
+    return new LaputaDelegatingSubject(
+        principals,
+        authenticated,
+        host,
+        session,
+        sessionEnabled,
+        requestWrapper,
+        context,
+        securityManager
+    );
   }
 }

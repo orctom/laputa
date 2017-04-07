@@ -10,11 +10,6 @@ import java.util.Set;
 public class RolesAuthorizationFilter extends AuthorizationFilter {
 
   @Override
-  public String getName() {
-    return "role";
-  }
-
-  @Override
   protected boolean isAccessAllowed(RequestWrapper requestWrapper, Context context, Object mappedValue) {
     Subject subject = getSubject(requestWrapper);
     String[] rolesArray = (String[]) mappedValue;
