@@ -48,6 +48,12 @@ public class Context {
     this.cookies.add(new ResponseCookie(name, value, maxAge, secure, httpOnly));
   }
 
+  public void setCookie(String name, String value, long maxAge, boolean secure, boolean httpOnly, String domain) {
+    ResponseCookie cookie = new ResponseCookie(name, value, maxAge, secure, httpOnly);
+    cookie.setDomain(domain);
+    this.cookies.add(cookie);
+  }
+
   public void setRedirectTo(String location) {
     this.redirectTo = location;
   }
