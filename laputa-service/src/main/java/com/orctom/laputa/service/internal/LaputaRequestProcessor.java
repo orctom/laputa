@@ -157,8 +157,7 @@ public class LaputaRequestProcessor {
       return handleRequest(requestWrapper, translator);
 
     } catch (Exception e) {
-      LOGGER.error(e.getMessage(), e);
-      return new ResponseWrapper(MediaType.TEXT_PLAIN.getValue(), e.getMessage().getBytes(), BAD_REQUEST);
+      LOGGER.error(e.getMessage(), e);return new ResponseWrapper(MediaType.TEXT_PLAIN.getValue(), e.getMessage().getBytes(), BAD_REQUEST);
     }
   }
 
@@ -166,12 +165,6 @@ public class LaputaRequestProcessor {
     long start = System.currentTimeMillis();
 
     Context ctx = getContext(requestWrapper);
-
-    // pre-processors
-    preProcess(requestWrapper, ctx);
-    if (hasRedirect(ctx)) {
-      return redirect(ctx);
-    }
 
     String mediaType = translator.getMediaType();
 
@@ -182,6 +175,12 @@ public class LaputaRequestProcessor {
           return responseWrapper;
         }
       }
+    }
+
+    // pre-processors
+    preProcess(requestWrapper, ctx);
+    if (hasRedirect(ctx)) {
+      return redirect(ctx);
     }
 
     try {
@@ -226,12 +225,12 @@ public class LaputaRequestProcessor {
         LOGGER.error(e.getMessage(), e);
       }
 
+      // post-processors
+      Object processed = postProcess(data, ctx);
+
       if (hasRedirect(ctx)) {
         return redirect(ctx);
       }
-
-      // post-processors
-      Object processed = postProcess(data);
 
       long end = System.currentTimeMillis();
       if (LOGGER.isDebugEnabled()) {
@@ -379,7 +378,7 @@ public class LaputaRequestProcessor {
     }
   }
 
-  private Object postProcess(Object data) {
+  private Object postProcess(Object data, Context ctx) {
     if (null == postProcessors || postProcessors.isEmpty()) {
       return data;
     }
@@ -387,7 +386,7 @@ public class LaputaRequestProcessor {
     Object processed = data;
     for (PostProcessor processor : postProcessors) {
       LOGGER.debug("post-processor: {}", processor.getClass());
-      processed = processor.process(processed);
+      processed = processor.process(processed, ctx);
     }
 
     return processed;
