@@ -5,20 +5,10 @@ import com.orctom.laputa.service.model.RequestWrapper;
 
 public interface Cookie {
 
-  /**
-   * The value of deleted cookie (with the maxAge 0).
-   */
   public static final String DELETED_COOKIE_VALUE = "deleteMe";
 
+  public static final int TWO_WEEKS = 60 * 60 * 24 * 14;
 
-  /**
-   * The number of seconds in one year (= 60 * 60 * 24 * 365).
-   */
-  public static final int ONE_YEAR = 60 * 60 * 24 * 365;
-
-  /**
-   * Root path to use when the path hasn't been set and request context root is empty or null.
-   */
   public static final String ROOT_PATH = "/";
 
   String getName();

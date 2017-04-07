@@ -1,4 +1,4 @@
-package com.orctom.laputa.service.shiro.mgt;
+package com.orctom.laputa.service.shiro.session;
 
 import com.orctom.laputa.service.shiro.subject.LaputaSubject;
 import org.apache.shiro.mgt.DefaultSessionStorageEvaluator;

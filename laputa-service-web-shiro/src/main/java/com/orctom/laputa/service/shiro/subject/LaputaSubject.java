@@ -3,12 +3,16 @@ package com.orctom.laputa.service.shiro.subject;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.shiro.util.RequestPairSource;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.SubjectContext;
 
-public interface LaputaSubject extends Subject {
+public interface LaputaSubject extends Subject, RequestPairSource {
+
+  RequestWrapper getRequestWrapper();
+  Context getContext();
 
   public static class Builder extends Subject.Builder {
 
@@ -23,6 +27,16 @@ public interface LaputaSubject extends Subject {
       super(securityManager);
       this.requestWrapper = requestWrapper;
       this.context = context;
+      setRequestWrapper(requestWrapper);
+      setContext(context);
+    }
+
+    private void setRequestWrapper(RequestWrapper requestWrapper) {
+      ((LaputaSubjectContext) getSubjectContext()).setRequestWrapper(requestWrapper);
+    }
+
+    private void setContext(Context context) {
+      ((LaputaSubjectContext) getSubjectContext()).setContext(context);
     }
 
     @Override
