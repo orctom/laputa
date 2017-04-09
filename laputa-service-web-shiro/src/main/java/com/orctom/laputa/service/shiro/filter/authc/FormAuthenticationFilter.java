@@ -117,16 +117,16 @@ public class FormAuthenticationFilter extends AuthenticationFilter {
   }
 
   protected void onLoginSuccess(AuthenticationToken token,
-                                   Subject subject,
-                                   RequestWrapper requestWrapper,
-                                   Context context) {
+                                Subject subject,
+                                RequestWrapper requestWrapper,
+                                Context context) {
     issueSuccessRedirect(requestWrapper, context);
   }
 
   protected void onLoginFailure(AuthenticationToken token,
-                                   AuthenticationException e,
-                                   RequestWrapper requestWrapper,
-                                   Context context) {
+                                AuthenticationException e,
+                                RequestWrapper requestWrapper,
+                                Context context) {
     context.setRedirectTo(getLoginUrl() + "?error=Login failed.");
     context.setData("error", e.getMessage());
   }

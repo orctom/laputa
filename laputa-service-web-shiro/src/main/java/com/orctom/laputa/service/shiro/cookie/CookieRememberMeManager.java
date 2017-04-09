@@ -72,6 +72,7 @@ public class CookieRememberMeManager extends AbstractRememberMeManager {
       return null;
     }
   }
+
   private String ensurePadding(String base64) {
     int length = base64.length();
     if (length % 4 != 0) {

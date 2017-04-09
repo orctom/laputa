@@ -67,7 +67,7 @@ public class ShiroProcessor implements PreProcessor {
 
     ListIterator<Filter> filters = chain.listIterator();
     while (filters.hasNext()) {
-      Filter filter =  filters.next();
+      Filter filter = filters.next();
       filter.filter(requestWrapper, ctx);
       if (hasRedirection(ctx)) {
         return;

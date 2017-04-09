@@ -1,9 +1,9 @@
 package com.orctom.laputa.service.shiro.env;
 
 import com.orctom.laputa.service.shiro.ShiroContext;
+import com.orctom.laputa.service.shiro.mgt.LaputaFilterChainResolver;
 import com.orctom.laputa.service.shiro.mgt.LaputaFilterChainResolverFactory;
 import com.orctom.laputa.service.shiro.mgt.LaputaIniSecurityManagerFactory;
-import com.orctom.laputa.service.shiro.mgt.LaputaFilterChainResolver;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.ShiroException;
 import org.apache.shiro.config.Ini;

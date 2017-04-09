@@ -12,6 +12,7 @@ import org.apache.shiro.subject.SubjectContext;
 public interface LaputaSubject extends Subject, RequestPairSource {
 
   RequestWrapper getRequestWrapper();
+
   Context getContext();
 
   public static class Builder extends Subject.Builder {
