@@ -142,7 +142,7 @@ public class SimpleCookie implements Cookie {
     boolean secure = isSecure();
     boolean httpOnly = isHttpOnly();
 
-    context.setCookie(name, value, maxAge, secure, httpOnly, domain);
+    addCookieHeader(context, name, value, comment, domain, path, maxAge, version, secure, httpOnly);
   }
 
   private void addCookieHeader(Context context, String name, String value, String comment,

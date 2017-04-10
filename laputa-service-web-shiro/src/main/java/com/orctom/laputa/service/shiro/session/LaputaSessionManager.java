@@ -30,9 +30,16 @@ public class LaputaSessionManager extends DefaultSessionManager {
   public LaputaSessionManager() {
     Cookie cookie = new SimpleCookie(SimpleCookie.DEFAULT_SESSION_ID_NAME);
     cookie.setHttpOnly(true); //more secure, protects against XSS attacks
+    cookie.setMaxAge(getMaxAge());
     this.sessionIdCookie = cookie;
     this.sessionIdCookieEnabled = true;
     this.sessionIdUrlRewritingEnabled = true;
+  }
+
+  private int getMaxAge() {
+    long seconds = getGlobalSessionTimeout() / 1000;
+    long intMaxValue = (long) Integer.MAX_VALUE;
+    return intMaxValue < seconds ? Integer.MAX_VALUE : (int) seconds;
   }
 
   public Cookie getSessionIdCookie() {
@@ -136,8 +143,8 @@ public class LaputaSessionManager extends DefaultSessionManager {
   @Override
   public Serializable getSessionId(SessionKey key) {
     Serializable id = super.getSessionId(key);
-    if (null == id) {
-      return null;
+    if (null != id) {
+      return id;
     }
 
     RequestWrapper requestWrapper = getRequestWrapper(key);

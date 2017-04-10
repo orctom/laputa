@@ -9,10 +9,10 @@ public class ResponseCookie implements Cookie {
   private String value;
   private boolean wrap;
   private String domain;
-  private String path;
+  private String path = "/";
   private long maxAge = UNDEFINED_MAX_AGE;
-  private boolean secure;
-  private boolean httpOnly;
+  private boolean secure = true;
+  private boolean httpOnly = true;
 
   public ResponseCookie(String name, String value) {
     if (Strings.isNullOrEmpty(name)) {
