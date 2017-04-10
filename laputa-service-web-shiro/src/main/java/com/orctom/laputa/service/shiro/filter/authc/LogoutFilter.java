@@ -3,6 +3,7 @@ package com.orctom.laputa.service.shiro.filter.authc;
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.shiro.filter.AbstractFilter;
+import com.orctom.laputa.service.shiro.filter.FilterChain;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.SessionException;
 import org.apache.shiro.subject.Subject;
@@ -24,7 +25,7 @@ public class LogoutFilter extends AbstractFilter {
   }
 
   @Override
-  protected void doFilter(RequestWrapper requestWrapper, Context ctx) {
+  protected void doFilter(RequestWrapper requestWrapper, Context ctx, FilterChain filterChain) {
     Subject subject = getSubject(requestWrapper);
     String redirectUrl = getRedirectUrl();
     try {

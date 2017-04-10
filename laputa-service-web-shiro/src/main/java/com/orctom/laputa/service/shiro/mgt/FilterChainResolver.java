@@ -2,8 +2,9 @@ package com.orctom.laputa.service.shiro.mgt;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.shiro.filter.FilterChain;
 
 public interface FilterChainResolver {
 
-  NamedFilterList getChain(RequestWrapper requestWrapper, Context ctx);
+  FilterChain getChain(RequestWrapper requestWrapper, Context ctx);
 }

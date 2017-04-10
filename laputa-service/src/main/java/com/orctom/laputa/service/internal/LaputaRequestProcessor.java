@@ -211,16 +211,19 @@ public class LaputaRequestProcessor {
         data = processRequest(requestWrapper, ctx, mapping);
       } catch (ParameterValidationException e) {
         data = new ValidationError(e.getMessages());
+        ctx.setRedirectTo(PATH_403);
         ctx.setData("error", e.getMessage());
         markRedirectToErrorPage(translator, requestWrapper, ctx);
 
       } catch (IllegalArgumentException e) {
         data = new Response(BAD_REQUEST.code(), Lists.newArrayList(BAD_REQUEST.reasonPhrase()));
+        ctx.setRedirectTo(PATH_403);
         ctx.setData("error", BAD_REQUEST.reasonPhrase());
         LOGGER.error(e.getMessage(), e);
 
       } catch (Exception e) {
         data = new Response(INTERNAL_SERVER_ERROR.code(), Lists.newArrayList(INTERNAL_SERVER_ERROR.reasonPhrase()));
+        ctx.setRedirectTo(PATH_500);
         ctx.setData("error", INTERNAL_SERVER_ERROR.reasonPhrase());
         LOGGER.error(e.getMessage(), e);
       }

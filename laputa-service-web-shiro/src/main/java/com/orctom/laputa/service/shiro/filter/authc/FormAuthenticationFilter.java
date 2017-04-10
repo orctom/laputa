@@ -2,6 +2,7 @@ package com.orctom.laputa.service.shiro.filter.authc;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.shiro.filter.FilterChain;
 import com.orctom.laputa.utils.Booleans;
 import io.netty.handler.codec.http.HttpMethod;
 import org.apache.shiro.authc.AuthenticationException;
@@ -65,10 +66,15 @@ public class FormAuthenticationFilter extends AuthenticationFilter {
   }
 
   @Override
-  protected void checkAccess(RequestWrapper requestWrapper, Context context, Object mappedValue) {
+  protected void checkAccess(RequestWrapper requestWrapper,
+                             Context context,
+                             Object mappedValue,
+                             FilterChain filterChain) {
     if (isLoginRequest(requestWrapper)) {
       if (isLoginSubmission(requestWrapper, context)) {
         executeLogin(requestWrapper, context);
+      } else {
+        filterChain.doFilter(requestWrapper, context);
       }
 
     } else {

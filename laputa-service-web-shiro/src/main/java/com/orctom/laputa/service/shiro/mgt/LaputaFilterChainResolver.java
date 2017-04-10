@@ -2,6 +2,7 @@ package com.orctom.laputa.service.shiro.mgt;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.shiro.filter.FilterChain;
 import org.apache.shiro.util.AntPathMatcher;
 import org.apache.shiro.util.PatternMatcher;
 
@@ -27,7 +28,7 @@ public class LaputaFilterChainResolver implements FilterChainResolver {
   }
 
   @Override
-  public NamedFilterList getChain(RequestWrapper requestWrapper, Context ctx) {
+  public FilterChain getChain(RequestWrapper requestWrapper, Context ctx) {
     if (!filterChainManager.hasChains()) {
       return null;
     }
@@ -39,7 +40,7 @@ public class LaputaFilterChainResolver implements FilterChainResolver {
       String pathPattern = entry.getKey();
       NamedFilterList filterList = entry.getValue();
       if (pathMatches(pathPattern, path)) {
-        return filterList;
+        return new FilterChain(filterList.getFilters());
       }
     }
 

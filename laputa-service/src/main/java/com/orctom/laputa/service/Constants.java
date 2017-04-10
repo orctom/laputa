@@ -32,6 +32,7 @@ public class Constants {
   public static final String PATH_SEPARATOR = "/";
   public static final String PATH_FAVICON = "/favicon.ico";
   public static final String PATH_400 = "/400";
+  public static final String PATH_403 = "/403";
   public static final String PATH_404 = "/404";
   public static final String PATH_500 = "/500";
   public static final String PATH_ERROR = "/error";

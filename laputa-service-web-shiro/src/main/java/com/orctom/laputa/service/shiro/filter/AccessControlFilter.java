@@ -29,14 +29,21 @@ public abstract class AccessControlFilter extends PathMatchingFilter {
 
   protected abstract boolean isAccessAllowed(RequestWrapper requestWrapper, Context context, Object mappedValue);
 
-  protected abstract void checkAccess(RequestWrapper requestWrapper, Context context, Object mappedValue);
+  protected abstract void checkAccess(RequestWrapper requestWrapper,
+                                      Context context,
+                                      Object mappedValue,
+                                      FilterChain filterChain);
 
-  public void onFilterInternal(RequestWrapper requestWrapper, Context context, Object mappedValue) {
+  @Override
+  public void onFilterInternal(RequestWrapper requestWrapper,
+                               Context context,
+                               Object mappedValue,
+                               FilterChain filterChain) {
     if (isAccessAllowed(requestWrapper, context, mappedValue)) {
       return;
     }
 
-    checkAccess(requestWrapper, context, mappedValue);
+    checkAccess(requestWrapper, context, mappedValue, filterChain);
   }
 
   protected void saveRequestAndRedirectToLogin(RequestWrapper requestWrapper, Context context) {

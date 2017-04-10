@@ -26,7 +26,7 @@ public abstract class AuthenticationFilter extends AccessControlFilter {
 
   protected void issueSuccessRedirect(RequestWrapper requestWrapper, Context context) {
     String redirectUrl = getSuccessRedirectUrl();
-    super.setRedirect(context, redirectUrl);
+    context.setRedirectTo(redirectUrl);
   }
 
   private String getSuccessRedirectUrl() {

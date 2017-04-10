@@ -33,7 +33,7 @@ public abstract class PathMatchingFilter extends AbstractFilter {
   }
 
   @Override
-  protected void doFilter(RequestWrapper requestWrapper, Context ctx) {
+  protected void doFilter(RequestWrapper requestWrapper, Context ctx, FilterChain filterChain) {
     if (this.appliedPaths == null || this.appliedPaths.isEmpty()) {
       return;
     }
@@ -41,12 +41,15 @@ public abstract class PathMatchingFilter extends AbstractFilter {
     for (String path : this.appliedPaths.keySet()) {
       if (pathsMatch(path, requestWrapper.getPath())) {
         Object config = this.appliedPaths.get(path);
-        onFilterInternal(requestWrapper, ctx, config);
+        onFilterInternal(requestWrapper, ctx, config, filterChain);
         return;
       }
     }
   }
 
-  protected void onFilterInternal(RequestWrapper requestWrapper, Context ctx, Object mappedValue) {
+  protected void onFilterInternal(RequestWrapper requestWrapper,
+                                  Context ctx,
+                                  Object mappedValue,
+                                  FilterChain filterChain) {
   }
 }

@@ -4,9 +4,8 @@ import com.google.common.base.Strings;
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.processor.PreProcessor;
-import com.orctom.laputa.service.shiro.filter.Filter;
+import com.orctom.laputa.service.shiro.filter.FilterChain;
 import com.orctom.laputa.service.shiro.mgt.FilterChainResolver;
-import com.orctom.laputa.service.shiro.mgt.NamedFilterList;
 import com.orctom.laputa.service.shiro.subject.LaputaSubject;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.Session;
@@ -14,8 +13,6 @@ import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.ListIterator;
 
 import static com.orctom.laputa.service.shiro.ShiroContext.getFilterChainResolver;
 import static com.orctom.laputa.service.shiro.ShiroContext.getSecurityManager;
@@ -60,22 +57,15 @@ public class ShiroProcessor implements PreProcessor {
   }
 
   protected void executeChain(RequestWrapper requestWrapper, Context ctx) {
-    NamedFilterList chain = getExecutionChain(requestWrapper, ctx);
+    FilterChain chain = getExecutionChain(requestWrapper, ctx);
     if (null == chain) {
       return;
     }
 
-    ListIterator<Filter> filters = chain.listIterator();
-    while (filters.hasNext()) {
-      Filter filter = filters.next();
-      filter.filter(requestWrapper, ctx);
-      if (hasRedirection(ctx)) {
-        return;
-      }
-    }
+    chain.doFilter(requestWrapper, ctx);
   }
 
-  private NamedFilterList getExecutionChain(RequestWrapper requestWrapper, Context ctx) {
+  private FilterChain getExecutionChain(RequestWrapper requestWrapper, Context ctx) {
     FilterChainResolver resolver = getFilterChainResolver();
     return resolver.getChain(requestWrapper, ctx);
   }

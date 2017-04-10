@@ -12,15 +12,15 @@ public abstract class AbstractFilter extends Filter {
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFilter.class);
 
   @Override
-  public final void filter(RequestWrapper requestWrapper, Context ctx) {
+  public final void filter(RequestWrapper requestWrapper, Context ctx, FilterChain filterChain) {
     try {
-      doFilter(requestWrapper, ctx);
+      doFilter(requestWrapper, ctx, filterChain);
     } catch (Exception e) {
       onException(requestWrapper, ctx, e);
     }
   }
 
-  protected void doFilter(RequestWrapper requestWrapper, Context ctx) {
+  protected void doFilter(RequestWrapper requestWrapper, Context ctx, FilterChain filterChain) {
   }
 
   protected void onException(RequestWrapper requestWrapper, Context ctx, Exception e) {
