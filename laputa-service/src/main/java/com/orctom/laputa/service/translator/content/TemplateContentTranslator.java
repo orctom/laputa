@@ -1,4 +1,4 @@
-package com.orctom.laputa.service.translator;
+package com.orctom.laputa.service.translator.content;
 
 import com.google.common.base.Strings;
 import com.orctom.laputa.service.annotation.Template;
@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import static com.orctom.laputa.service.Constants.PATH_INDEX;
 import static com.orctom.laputa.service.Constants.PATH_SEPARATOR;
 
-public abstract class TemplateResponseTranslator implements ResponseTranslator {
+public abstract class TemplateContentTranslator implements ContentTranslator {
 
   protected static final String TEMPLATE_PREFIX = "/template";
 

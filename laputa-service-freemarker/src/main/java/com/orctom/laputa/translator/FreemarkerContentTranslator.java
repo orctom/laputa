@@ -8,7 +8,7 @@ import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.exception.TemplateProcessingException;
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestMapping;
-import com.orctom.laputa.service.translator.TemplateResponseTranslator;
+import com.orctom.laputa.service.translator.content.TemplateContentTranslator;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateExceptionHandler;
 import org.slf4j.Logger;
@@ -23,9 +23,9 @@ import java.util.concurrent.ExecutionException;
  * Freemarker web page renderer
  * Created by hao on 2/19/17.
  */
-public class FreemarkerResponseTranslator extends TemplateResponseTranslator {
+public class FreemarkerContentTranslator extends TemplateContentTranslator {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(FreemarkerResponseTranslator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(FreemarkerContentTranslator.class);
 
   private static final String TEMPLATE_SUFFIX = ".ftl";
 
@@ -43,8 +43,8 @@ public class FreemarkerResponseTranslator extends TemplateResponseTranslator {
           }
       );
 
-  public FreemarkerResponseTranslator() {
-    cfg.setClassForTemplateLoading(FreemarkerResponseTranslator.class, TEMPLATE_PREFIX);
+  public FreemarkerContentTranslator() {
+    cfg.setClassForTemplateLoading(FreemarkerContentTranslator.class, TEMPLATE_PREFIX);
     cfg.setDefaultEncoding("UTF-8");
     cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
     cfg.setLogTemplateExceptions(false);

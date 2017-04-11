@@ -3,12 +3,12 @@ package com.orctom.laputa.service;
 import com.orctom.laputa.exception.IllegalArgException;
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.config.MappingConfig;
-import com.orctom.laputa.service.internal.Bootstrapper;
 import com.orctom.laputa.service.controller.DefaultController;
+import com.orctom.laputa.service.internal.Bootstrapper;
 import com.orctom.laputa.service.lifecycle.PostStart;
 import com.orctom.laputa.service.lifecycle.PreStart;
-import com.orctom.laputa.service.translator.ResponseTranslator;
-import com.orctom.laputa.service.translator.ResponseTranslators;
+import com.orctom.laputa.service.translator.content.ContentTranslator;
+import com.orctom.laputa.service.translator.content.ContentTranslators;
 import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +81,7 @@ public class LaputaService {
   }
 
   private void loadResponseTranslators() {
-    ServiceLoader.load(ResponseTranslator.class).forEach(ResponseTranslators::register);
+    ServiceLoader.load(ContentTranslator.class).forEach(ContentTranslators::register);
   }
 
   private void startup() {

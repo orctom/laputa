@@ -1,6 +1,6 @@
 package com.orctom.laputa.service.shiro.mgt;
 
-import com.orctom.laputa.service.shiro.filter.Filter;
+import com.orctom.laputa.service.filter.Filter;
 import com.orctom.laputa.service.shiro.filter.PathMatchingFilter;
 import com.orctom.laputa.service.shiro.filter.mgt.DefaultFilter;
 import org.apache.shiro.config.ConfigurationException;

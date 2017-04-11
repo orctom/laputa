@@ -3,9 +3,10 @@ package com.orctom.laputa.service.example.processor;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.orctom.laputa.service.example.util.AES;
-import com.orctom.laputa.service.model.Context;
+import com.orctom.laputa.service.filter.Filter;
+import com.orctom.laputa.service.filter.FilterChain;
 import com.orctom.laputa.service.model.RequestWrapper;
-import com.orctom.laputa.service.processor.PreProcessor;
+import com.orctom.laputa.service.model.ResponseWrapper;
 import org.springframework.stereotype.Component;
 
 import java.io.UnsupportedEncodingException;
@@ -15,18 +16,13 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class AESCryptor implements PreProcessor {
+public class AESCryptor implements Filter {
 
   private static final byte[] KEY = "BGNJLEfl4MJaGXwYZc4DosxYHJaKTJmEAV55FaFfES+ecSIHomxK0d2exkxhDm+k".getBytes();
   private static final String UTF8 = "UTF-8";
 
   @Override
-  public int getOrder() {
-    return 1;
-  }
-
-  @Override
-  public void process(RequestWrapper requestWrapper, Context ctx) {
+  public void filter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
     Map<String, List<String>> requestParams = requestWrapper.getParams();
 
     List<String> encrypted = requestParams.remove("data");
@@ -44,6 +40,9 @@ public class AESCryptor implements PreProcessor {
           .withKeyValueSeparator("=")
           .split(decoded)
           .forEach((key, value) -> requestParams.put(key, Lists.newArrayList(value)));
+
+      filterChain.doFilter(requestWrapper, responseWrapper);
+
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e.getMessage(), e);
     }

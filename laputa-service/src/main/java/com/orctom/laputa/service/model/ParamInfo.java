@@ -37,7 +37,7 @@ public class ParamInfo {
     return type;
   }
 
-  public  Map<Class<? extends Annotation>, Annotation> getAnnotations() {
+  public Map<Class<? extends Annotation>, Annotation> getAnnotations() {
     return annotations;
   }
 

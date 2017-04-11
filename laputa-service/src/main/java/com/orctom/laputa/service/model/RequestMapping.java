@@ -1,15 +1,6 @@
 package com.orctom.laputa.service.model;
 
-import com.orctom.laputa.exception.IllegalConfigException;
-import com.orctom.laputa.service.annotation.Cookie;
-import com.orctom.laputa.service.annotation.Cookies;
 import com.orctom.laputa.service.annotation.Data;
-import com.orctom.laputa.service.annotation.DefaultValue;
-import com.orctom.laputa.service.annotation.HttpHeader;
-import com.orctom.laputa.service.annotation.HttpHeaders;
-import com.orctom.laputa.service.annotation.Param;
-import com.orctom.laputa.service.util.ParamResolver;
-import com.orctom.laputa.utils.ClassUtils;
 import org.springframework.cglib.reflect.FastClass;
 import org.springframework.cglib.reflect.FastMethod;
 

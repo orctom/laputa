@@ -1,7 +1,7 @@
 package com.orctom.laputa.service.shiro.cookie;
 
-import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.model.ResponseWrapper;
 import org.apache.shiro.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,8 +130,8 @@ public class SimpleCookie implements Cookie {
     this.httpOnly = httpOnly;
   }
 
-  public void saveTo(RequestWrapper requestWrapper, Context context) {
-
+  @Override
+  public void saveTo(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     String name = getName();
     String value = getValue();
     String comment = getComment();
@@ -142,17 +142,18 @@ public class SimpleCookie implements Cookie {
     boolean secure = isSecure();
     boolean httpOnly = isHttpOnly();
 
-    addCookieHeader(context, name, value, comment, domain, path, maxAge, version, secure, httpOnly);
+    addCookieHeader(responseWrapper, name, value, comment, domain, path, maxAge, version, secure, httpOnly);
   }
 
-  private void addCookieHeader(Context context, String name, String value, String comment,
+  private void addCookieHeader(ResponseWrapper responseWrapper, String name, String value, String comment,
                                String domain, String path, int maxAge, int version,
                                boolean secure, boolean httpOnly) {
 
-    context.setCookie(name, value, maxAge, secure, httpOnly, domain);
+    responseWrapper.setCookie(name, value, maxAge, secure, httpOnly, domain);
   }
 
-  public void removeFrom(RequestWrapper requestWrapper, Context context) {
+  @Override
+  public void removeFrom(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     String name = getName();
     String value = DELETED_COOKIE_VALUE;
     String comment = null; //don't need to add extra size to the response - comments are irrelevant for deletions
@@ -163,12 +164,13 @@ public class SimpleCookie implements Cookie {
     boolean secure = isSecure();
     boolean httpOnly = false; //no need to add the extra text, plus the value 'deleteMe' is not sensitive at all
 
-    addCookieHeader(context, name, value, comment, domain, path, maxAge, version, secure, httpOnly);
+    addCookieHeader(responseWrapper, name, value, comment, domain, path, maxAge, version, secure, httpOnly);
 
     log.trace("Removed '{}' cookie by setting maxAge=0", name);
   }
 
-  public String readValue(RequestWrapper requestWrapper, Context context) {
+  @Override
+  public String readValue(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     String name = getName();
     if (null == requestWrapper.getCookies() || requestWrapper.getCookies().isEmpty()) {
       return null;

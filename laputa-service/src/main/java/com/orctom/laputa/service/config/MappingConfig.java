@@ -2,7 +2,14 @@ package com.orctom.laputa.service.config;
 
 import com.google.common.base.Strings;
 import com.orctom.laputa.exception.IllegalArgException;
-import com.orctom.laputa.service.annotation.*;
+import com.orctom.laputa.service.annotation.DELETE;
+import com.orctom.laputa.service.annotation.GET;
+import com.orctom.laputa.service.annotation.HEAD;
+import com.orctom.laputa.service.annotation.OPTIONS;
+import com.orctom.laputa.service.annotation.POST;
+import com.orctom.laputa.service.annotation.PUT;
+import com.orctom.laputa.service.annotation.Path;
+import com.orctom.laputa.service.annotation.RedirectTo;
 import com.orctom.laputa.service.controller.DefaultController;
 import com.orctom.laputa.service.model.HTTPMethod;
 import com.orctom.laputa.service.model.PathTrie;
@@ -14,7 +21,11 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Controller;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 

@@ -1,15 +1,17 @@
 package com.orctom.laputa.service.shiro.filter.authc;
 
-import com.orctom.laputa.service.model.Context;
+import com.orctom.laputa.service.filter.FilterChain;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.shiro.filter.AccessControlFilter;
-import com.orctom.laputa.service.shiro.filter.FilterChain;
 import org.apache.shiro.subject.Subject;
 
 public class UserFilter extends AccessControlFilter {
 
   @Override
-  protected boolean isAccessAllowed(RequestWrapper requestWrapper, Context context, Object mappedValue) {
+  protected boolean isAccessAllowed(RequestWrapper requestWrapper,
+                                    ResponseWrapper responseWrapper,
+                                    Object mappedValue) {
     if (isLoginRequest(requestWrapper)) {
       return true;
     } else {
@@ -21,9 +23,9 @@ public class UserFilter extends AccessControlFilter {
 
   @Override
   protected void checkAccess(RequestWrapper requestWrapper,
-                             Context context,
+                             ResponseWrapper responseWrapper,
                              Object mappedValue,
                              FilterChain filterChain) {
-    saveRequestAndRedirectToLogin(requestWrapper, context);
+    saveRequestAndRedirectToLogin(requestWrapper, responseWrapper);
   }
 }

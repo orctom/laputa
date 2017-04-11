@@ -1,6 +1,6 @@
 package com.orctom.laputa.service.shiro.filter.mgt;
 
-import com.orctom.laputa.service.shiro.filter.Filter;
+import com.orctom.laputa.service.filter.Filter;
 import com.orctom.laputa.service.shiro.filter.authc.AnonymousFilter;
 import com.orctom.laputa.service.shiro.filter.authc.FormAuthenticationFilter;
 import com.orctom.laputa.service.shiro.filter.authc.LogoutFilter;

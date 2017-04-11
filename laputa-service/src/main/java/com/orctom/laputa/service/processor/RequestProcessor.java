@@ -2,7 +2,6 @@ package com.orctom.laputa.service.processor;
 
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
-import io.netty.handler.codec.http.FullHttpRequest;
 
 /**
  * Request Processor
@@ -10,8 +9,10 @@ import io.netty.handler.codec.http.FullHttpRequest;
  */
 public interface RequestProcessor {
 
-  boolean canHandleRequest(RequestWrapper requestWrapper);
+  default int getOrder() {
+    return 0;
+  }
 
-  ResponseWrapper handleRequest(RequestWrapper requestWrapper, String mediaType);
+  void handleRequest(final RequestWrapper requestWrapper, final ResponseWrapper responseWrapper);
 
 }

@@ -1,9 +1,9 @@
 package com.orctom.laputa.service.shiro.filter.authc;
 
-import com.orctom.laputa.service.model.Context;
+import com.orctom.laputa.service.filter.FilterChain;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.shiro.filter.AbstractFilter;
-import com.orctom.laputa.service.shiro.filter.FilterChain;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.SessionException;
 import org.apache.shiro.subject.Subject;
@@ -25,7 +25,7 @@ public class LogoutFilter extends AbstractFilter {
   }
 
   @Override
-  protected void doFilter(RequestWrapper requestWrapper, Context ctx, FilterChain filterChain) {
+  protected void doFilter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
     Subject subject = getSubject(requestWrapper);
     String redirectUrl = getRedirectUrl();
     try {
@@ -33,14 +33,14 @@ public class LogoutFilter extends AbstractFilter {
     } catch (SessionException ise) {
       LOGGER.debug("Encountered session exception during logout.  This can generally safely be ignored.", ise);
     }
-    issueRedirect(requestWrapper, ctx, redirectUrl);
+    issueRedirect(requestWrapper, responseWrapper, redirectUrl);
   }
 
   protected Subject getSubject(RequestWrapper requestWrapper) {
     return SecurityUtils.getSubject();
   }
 
-  protected void issueRedirect(RequestWrapper requestWrapper, Context ctx, String redirectUrl) {
-    ctx.setRedirectTo(redirectUrl);
+  protected void issueRedirect(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, String redirectUrl) {
+    responseWrapper.setRedirectTo(redirectUrl);
   }
 }

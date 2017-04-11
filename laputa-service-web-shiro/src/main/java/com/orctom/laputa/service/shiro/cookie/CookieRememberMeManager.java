@@ -1,7 +1,7 @@
 package com.orctom.laputa.service.shiro.cookie;
 
-import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.model.ResponseWrapper;
 import org.apache.shiro.codec.Base64;
 import org.apache.shiro.mgt.AbstractRememberMeManager;
 import org.apache.shiro.subject.Subject;
@@ -9,8 +9,8 @@ import org.apache.shiro.subject.SubjectContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.orctom.laputa.service.shiro.util.RequestPairSourceUtils.getContext;
 import static com.orctom.laputa.service.shiro.util.RequestPairSourceUtils.getRequestWrapper;
+import static com.orctom.laputa.service.shiro.util.RequestPairSourceUtils.getResponseWrapper;
 
 public class CookieRememberMeManager extends AbstractRememberMeManager {
 
@@ -37,7 +37,7 @@ public class CookieRememberMeManager extends AbstractRememberMeManager {
 
   protected void rememberSerializedIdentity(Subject subject, byte[] serialized) {
     RequestWrapper requestWrapper = getRequestWrapper(subject);
-    Context context = getContext(subject);
+    ResponseWrapper responseWrapper = getResponseWrapper(subject);
 
     //base 64 encode it and store as a cookie:
     String base64 = Base64.encodeToString(serialized);
@@ -45,14 +45,14 @@ public class CookieRememberMeManager extends AbstractRememberMeManager {
     Cookie template = getCookie(); //the class attribute is really a template for the outgoing cookies
     Cookie cookie = new SimpleCookie(template);
     cookie.setValue(base64);
-    cookie.saveTo(requestWrapper, context);
+    cookie.saveTo(requestWrapper, responseWrapper);
   }
 
   protected byte[] getRememberedSerializedIdentity(SubjectContext subjectContext) {
     RequestWrapper requestWrapper = getRequestWrapper(subjectContext);
-    Context context = getContext(subjectContext);
+    ResponseWrapper responseWrapper = getResponseWrapper(subjectContext);
 
-    String base64 = getCookie().readValue(requestWrapper, context);
+    String base64 = getCookie().readValue(requestWrapper, responseWrapper);
     if (Cookie.DELETED_COOKIE_VALUE.equals(base64)) {
       return null;
     }
@@ -87,18 +87,18 @@ public class CookieRememberMeManager extends AbstractRememberMeManager {
 
   protected void forgetIdentity(Subject subject) {
     RequestWrapper requestWrapper = getRequestWrapper(subject);
-    Context context = getContext(subject);
-    forgetIdentity(requestWrapper, context);
+    ResponseWrapper responseWrapper = getResponseWrapper(subject);
+    forgetIdentity(requestWrapper, responseWrapper);
   }
 
   public void forgetIdentity(SubjectContext subjectContext) {
     RequestWrapper requestWrapper = getRequestWrapper(subjectContext);
-    Context context = getContext(subjectContext);
-    forgetIdentity(requestWrapper, context);
+    ResponseWrapper responseWrapper = getResponseWrapper(subjectContext);
+    forgetIdentity(requestWrapper, responseWrapper);
   }
 
-  private void forgetIdentity(RequestWrapper requestWrapper, Context context) {
-    getCookie().removeFrom(requestWrapper, context);
+  private void forgetIdentity(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
+    getCookie().removeFrom(requestWrapper, responseWrapper);
   }
 }
 

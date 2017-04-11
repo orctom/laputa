@@ -163,7 +163,7 @@ public class ArgResolverTest {
         new Category(10000L, "the name", DateTime.parse("2016-09-09").toDate()),
         new Category(10001L, "the other name", DateTime.parse("2016-09-10").toDate())
     ));
-    Object[] expected = new Object[] {categories};
+    Object[] expected = new Object[]{categories};
     Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Context("/"));
     assertArrayEquals(expected, actual);
   }

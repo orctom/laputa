@@ -1,8 +1,8 @@
 package com.orctom.laputa.service.shiro.filter.authc;
 
-import com.orctom.laputa.service.model.Context;
+import com.orctom.laputa.service.filter.FilterChain;
 import com.orctom.laputa.service.model.RequestWrapper;
-import com.orctom.laputa.service.shiro.filter.FilterChain;
+import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.utils.Booleans;
 import io.netty.handler.codec.http.HttpMethod;
 import org.apache.shiro.authc.AuthenticationException;
@@ -67,23 +67,23 @@ public class FormAuthenticationFilter extends AuthenticationFilter {
 
   @Override
   protected void checkAccess(RequestWrapper requestWrapper,
-                             Context context,
+                             ResponseWrapper responseWrapper,
                              Object mappedValue,
                              FilterChain filterChain) {
     if (isLoginRequest(requestWrapper)) {
-      if (isLoginSubmission(requestWrapper, context)) {
-        executeLogin(requestWrapper, context);
+      if (isLoginSubmission(requestWrapper, responseWrapper)) {
+        executeLogin(requestWrapper, responseWrapper);
       } else {
-        filterChain.doFilter(requestWrapper, context);
+        filterChain.doFilter(requestWrapper, responseWrapper);
       }
 
     } else {
-      saveRequestAndRedirectToLogin(requestWrapper, context);
+      saveRequestAndRedirectToLogin(requestWrapper, responseWrapper);
     }
   }
 
-  protected void executeLogin(RequestWrapper requestWrapper, Context context) {
-    AuthenticationToken token = createToken(requestWrapper, context);
+  protected void executeLogin(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
+    AuthenticationToken token = createToken(requestWrapper, responseWrapper);
     if (token == null) {
       String msg = "createToken method implementation returned null. A valid non-null AuthenticationToken " +
           "must be created in order to execute a login attempt.";
@@ -92,25 +92,27 @@ public class FormAuthenticationFilter extends AuthenticationFilter {
     try {
       Subject subject = getSubject(requestWrapper);
       subject.login(token);
-      onLoginSuccess(token, subject, requestWrapper, context);
+      onLoginSuccess(token, subject, requestWrapper, responseWrapper);
     } catch (AuthenticationException e) {
-      onLoginFailure(token, e, requestWrapper, context);
+      onLoginFailure(token, e, requestWrapper, responseWrapper);
     }
   }
 
-  protected boolean isLoginSubmission(RequestWrapper requestWrapper, Context context) {
+  protected boolean isLoginSubmission(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     return HttpMethod.POST.equals(requestWrapper.getHttpMethod());
   }
 
-  protected AuthenticationToken createToken(RequestWrapper requestWrapper, Context context) {
+  protected AuthenticationToken createToken(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     String username = getUsername(requestWrapper);
     String password = getPassword(requestWrapper);
     boolean rememberMe = isRememberMe(requestWrapper);
     return createToken(username, password, rememberMe, null);
   }
 
-  protected AuthenticationToken createToken(String username, String password,
-                                            boolean rememberMe, String host) {
+  protected AuthenticationToken createToken(String username,
+                                            String password,
+                                            boolean rememberMe,
+                                            String host) {
     return new UsernamePasswordToken(username, password, rememberMe, host);
   }
 
@@ -125,16 +127,16 @@ public class FormAuthenticationFilter extends AuthenticationFilter {
   protected void onLoginSuccess(AuthenticationToken token,
                                 Subject subject,
                                 RequestWrapper requestWrapper,
-                                Context context) {
-    issueSuccessRedirect(requestWrapper, context);
+                                ResponseWrapper responseWrapper) {
+    issueSuccessRedirect(requestWrapper, responseWrapper);
   }
 
   protected void onLoginFailure(AuthenticationToken token,
                                 AuthenticationException e,
                                 RequestWrapper requestWrapper,
-                                Context context) {
-    context.setRedirectTo(getLoginUrl() + "?error=Login failed.");
-    context.setData("error", e.getMessage());
+                                ResponseWrapper responseWrapper) {
+    responseWrapper.setRedirectTo(getLoginUrl() + "?error=Login failed.");
+    responseWrapper.setData("error", e.getMessage());
   }
 
   protected String getUsername(RequestWrapper requestWrapper) {

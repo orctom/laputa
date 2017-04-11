@@ -1,7 +1,7 @@
 package com.orctom.laputa.service.shiro.filter.authz;
 
-import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.model.ResponseWrapper;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.CollectionUtils;
 
@@ -10,7 +10,9 @@ import java.util.Set;
 public class RolesAuthorizationFilter extends AuthorizationFilter {
 
   @Override
-  protected boolean isAccessAllowed(RequestWrapper requestWrapper, Context context, Object mappedValue) {
+  protected boolean isAccessAllowed(RequestWrapper requestWrapper,
+                                    ResponseWrapper responseWrapper,
+                                    Object mappedValue) {
     Subject subject = getSubject(requestWrapper);
     String[] rolesArray = (String[]) mappedValue;
 

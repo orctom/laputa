@@ -1,4 +1,4 @@
-package com.orctom.laputa.service.translator;
+package com.orctom.laputa.service.translator.content;
 
 import com.alibaba.fastjson.JSON;
 import com.orctom.laputa.service.model.Context;
@@ -11,7 +11,7 @@ import java.io.IOException;
  * Encode data to json
  * Created by hao on 11/25/15.
  */
-class JsonResponseTranslator implements ResponseTranslator {
+class JsonContentTranslator implements ContentTranslator {
 
   static final MediaType TYPE = MediaType.APPLICATION_JSON;
 

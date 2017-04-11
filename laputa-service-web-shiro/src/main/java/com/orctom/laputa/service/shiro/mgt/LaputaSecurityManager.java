@@ -1,7 +1,7 @@
 package com.orctom.laputa.service.shiro.mgt;
 
-import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.shiro.cookie.CookieRememberMeManager;
 import com.orctom.laputa.service.shiro.session.DefaultLaputaSessionContext;
 import com.orctom.laputa.service.shiro.session.LaputaSessionKey;
@@ -16,8 +16,8 @@ import org.apache.shiro.subject.SubjectContext;
 
 import java.io.Serializable;
 
-import static com.orctom.laputa.service.shiro.util.RequestPairSourceUtils.getContext;
 import static com.orctom.laputa.service.shiro.util.RequestPairSourceUtils.getRequestWrapper;
+import static com.orctom.laputa.service.shiro.util.RequestPairSourceUtils.getResponseWrapper;
 
 public class LaputaSecurityManager extends DefaultSecurityManager {
 
@@ -48,10 +48,10 @@ public class LaputaSecurityManager extends DefaultSecurityManager {
     if (subjectContext instanceof LaputaSubjectContext) {
       LaputaSubjectContext lsc = (LaputaSubjectContext) subjectContext;
       RequestWrapper requestWrapper = lsc.getRequestWrapper();
-      Context context = lsc.getContext();
+      ResponseWrapper responseWrapper = lsc.getResponseWrapper();
       DefaultLaputaSessionContext webSessionContext = new DefaultLaputaSessionContext(sessionContext);
       webSessionContext.setRequestWrapper(requestWrapper);
-      webSessionContext.setContext(context);
+      webSessionContext.setResponseWrapper(responseWrapper);
       sessionContext = webSessionContext;
     }
     return sessionContext;
@@ -61,7 +61,7 @@ public class LaputaSecurityManager extends DefaultSecurityManager {
   protected SessionKey getSessionKey(SubjectContext subjectContext) {
     Serializable sessionId = subjectContext.getSessionId();
     RequestWrapper requestWrapper = getRequestWrapper(subjectContext);
-    Context context = getContext(subjectContext);
-    return new LaputaSessionKey(sessionId, requestWrapper, context);
+    ResponseWrapper responseWrapper = getResponseWrapper(subjectContext);
+    return new LaputaSessionKey(sessionId, requestWrapper, responseWrapper);
   }
 }

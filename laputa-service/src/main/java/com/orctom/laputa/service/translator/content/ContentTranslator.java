@@ -1,4 +1,4 @@
-package com.orctom.laputa.service.translator;
+package com.orctom.laputa.service.translator.content;
 
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.model.Context;
@@ -12,9 +12,10 @@ import java.nio.charset.Charset;
  * From Java Object to html/json...
  * Created by hao on 11/25/15.
  */
-public interface ResponseTranslator {
+public interface ContentTranslator {
 
   String getMediaType();
+
   String getExtension();
 
   byte[] translate(RequestMapping mapping, Object data, Context ctx) throws IOException;

@@ -8,7 +8,7 @@ import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.exception.TemplateProcessingException;
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestMapping;
-import com.orctom.laputa.service.translator.TemplateResponseTranslator;
+import com.orctom.laputa.service.translator.content.TemplateContentTranslator;
 import de.neuland.jade4j.Jade4J;
 import de.neuland.jade4j.model.JadeModel;
 import de.neuland.jade4j.template.JadeTemplate;
@@ -20,9 +20,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-public class JadeResponseTranslator extends TemplateResponseTranslator {
+public class JadeContentTranslator extends TemplateContentTranslator {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(JadeResponseTranslator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(JadeContentTranslator.class);
 
   private static final String TEMPLATE_SUFFIX = ".jade";
 

@@ -8,8 +8,8 @@ import java.util.Set;
 /**
  * Request processing context.
  * <ol>
- *   <li>Carries some context info</li>
- *   <li>Redirection supports</li>
+ * <li>Carries some context info</li>
+ * <li>Redirection supports</li>
  * </ol>
  */
 public class Context {

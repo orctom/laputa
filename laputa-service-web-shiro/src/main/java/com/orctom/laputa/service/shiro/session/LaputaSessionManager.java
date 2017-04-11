@@ -1,7 +1,7 @@
 package com.orctom.laputa.service.shiro.session;
 
-import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.shiro.cookie.Cookie;
 import com.orctom.laputa.service.shiro.cookie.SimpleCookie;
 import org.apache.shiro.session.ExpiredSessionException;
@@ -16,8 +16,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 
-import static com.orctom.laputa.service.shiro.util.RequestPairSourceUtils.getContext;
 import static com.orctom.laputa.service.shiro.util.RequestPairSourceUtils.getRequestWrapper;
+import static com.orctom.laputa.service.shiro.util.RequestPairSourceUtils.getResponseWrapper;
 
 public class LaputaSessionManager extends DefaultSessionManager {
 
@@ -69,20 +69,20 @@ public class LaputaSessionManager extends DefaultSessionManager {
   @Override
   protected Session createExposedSession(Session session, SessionContext sessionContext) {
     RequestWrapper requestWrapper = getRequestWrapper(sessionContext);
-    Context context = getContext(sessionContext);
-    SessionKey key = new LaputaSessionKey(session.getId(), requestWrapper, context);
+    ResponseWrapper responseWrapper = getResponseWrapper(sessionContext);
+    SessionKey key = new LaputaSessionKey(session.getId(), requestWrapper, responseWrapper);
     return new DelegatingSession(this, key);
   }
 
   @Override
   protected Session createExposedSession(Session session, SessionKey sessionKey) {
     RequestWrapper requestWrapper = getRequestWrapper(sessionKey);
-    Context context = getContext(sessionKey);
-    SessionKey key = new LaputaSessionKey(session.getId(), requestWrapper, context);
+    ResponseWrapper responseWrapper = getResponseWrapper(sessionKey);
+    SessionKey key = new LaputaSessionKey(session.getId(), requestWrapper, responseWrapper);
     return new DelegatingSession(this, key);
   }
 
-  private void storeSessionId(Serializable currentId, RequestWrapper requestWrapper, Context context) {
+  private void storeSessionId(Serializable currentId, RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     if (currentId == null) {
       String msg = "sessionId cannot be null when persisting for subsequent requests.";
       throw new IllegalArgumentException(msg);
@@ -91,20 +91,20 @@ public class LaputaSessionManager extends DefaultSessionManager {
     Cookie cookie = new SimpleCookie(template);
     String idString = currentId.toString();
     cookie.setValue(idString);
-    cookie.saveTo(requestWrapper, context);
+    cookie.saveTo(requestWrapper, responseWrapper);
     LOGGER.trace("Set session ID cookie for session with id {}", idString);
   }
 
-  private void removeSessionIdCookie(RequestWrapper requestWrapper, Context context) {
-    getSessionIdCookie().removeFrom(requestWrapper, context);
+  private void removeSessionIdCookie(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
+    getSessionIdCookie().removeFrom(requestWrapper, responseWrapper);
   }
 
-  private String getSessionIdCookieValue(RequestWrapper requestWrapper, Context context) {
+  private String getSessionIdCookieValue(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     if (!isSessionIdCookieEnabled()) {
       LOGGER.debug("Session ID cookie is disabled - session id will not be acquired from a request cookie.");
       return null;
     }
-    return getSessionIdCookie().readValue(requestWrapper, context);
+    return getSessionIdCookie().readValue(requestWrapper, responseWrapper);
   }
 
   @Override
@@ -121,8 +121,8 @@ public class LaputaSessionManager extends DefaultSessionManager {
 
   private void onInvalidation(SessionKey key) {
     RequestWrapper requestWrapper = getRequestWrapper(key);
-    Context context = getContext(key);
-    removeSessionIdCookie(requestWrapper, context);
+    ResponseWrapper responseWrapper = getResponseWrapper(key);
+    removeSessionIdCookie(requestWrapper, responseWrapper);
   }
 
   @Override
@@ -130,11 +130,11 @@ public class LaputaSessionManager extends DefaultSessionManager {
     super.onStart(session, sessionContext);
 
     RequestWrapper requestWrapper = getRequestWrapper(sessionContext);
-    Context context = getContext(sessionContext);
+    ResponseWrapper responseWrapper = getResponseWrapper(sessionContext);
 
     if (isSessionIdCookieEnabled()) {
       Serializable sessionId = session.getId();
-      storeSessionId(sessionId, requestWrapper, context);
+      storeSessionId(sessionId, requestWrapper, responseWrapper);
     } else {
       LOGGER.debug("Session ID cookie is disabled.  No cookie has been set for new session with id {}", session.getId());
     }
@@ -148,15 +148,15 @@ public class LaputaSessionManager extends DefaultSessionManager {
     }
 
     RequestWrapper requestWrapper = getRequestWrapper(key);
-    Context context = getContext(key);
-    return getSessionIdCookieValue(requestWrapper, context);
+    ResponseWrapper responseWrapper = getResponseWrapper(key);
+    return getSessionIdCookieValue(requestWrapper, responseWrapper);
   }
 
   @Override
   protected void onStop(Session session, SessionKey key) {
     super.onStop(session, key);
     RequestWrapper requestWrapper = getRequestWrapper(key);
-    Context context = getContext(key);
-    removeSessionIdCookie(requestWrapper, context);
+    ResponseWrapper responseWrapper = getResponseWrapper(key);
+    removeSessionIdCookie(requestWrapper, responseWrapper);
   }
 }

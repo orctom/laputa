@@ -1,7 +1,7 @@
 package com.orctom.laputa.service.shiro.cookie;
 
-import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.model.ResponseWrapper;
 
 public interface Cookie {
 
@@ -47,9 +47,9 @@ public interface Cookie {
 
   boolean isHttpOnly();
 
-  void saveTo(RequestWrapper requestWrapper, Context context);
+  void saveTo(RequestWrapper requestWrapper, ResponseWrapper responseWrapper);
 
-  void removeFrom(RequestWrapper requestWrapper, Context context);
+  void removeFrom(RequestWrapper requestWrapper, ResponseWrapper responseWrapper);
 
-  String readValue(RequestWrapper requestWrapper, Context context);
+  String readValue(RequestWrapper requestWrapper, ResponseWrapper responseWrapper);
 }

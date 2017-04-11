@@ -1,7 +1,8 @@
 package com.orctom.laputa.service.shiro.filter;
 
-import com.orctom.laputa.service.model.Context;
+import com.orctom.laputa.service.filter.FilterChain;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.model.ResponseWrapper;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
@@ -27,28 +28,30 @@ public abstract class AccessControlFilter extends PathMatchingFilter {
     return pathsMatch(getLoginUrl(), requestWrapper.getPath());
   }
 
-  protected abstract boolean isAccessAllowed(RequestWrapper requestWrapper, Context context, Object mappedValue);
+  protected abstract boolean isAccessAllowed(RequestWrapper requestWrapper,
+                                             ResponseWrapper responseWrapper,
+                                             Object mappedValue);
 
   protected abstract void checkAccess(RequestWrapper requestWrapper,
-                                      Context context,
+                                      ResponseWrapper responseWrapper,
                                       Object mappedValue,
                                       FilterChain filterChain);
 
   @Override
   public void onFilterInternal(RequestWrapper requestWrapper,
-                               Context context,
+                               ResponseWrapper responseWrapper,
                                Object mappedValue,
                                FilterChain filterChain) {
-    if (isAccessAllowed(requestWrapper, context, mappedValue)) {
+    if (isAccessAllowed(requestWrapper, responseWrapper, mappedValue)) {
       return;
     }
 
-    checkAccess(requestWrapper, context, mappedValue, filterChain);
+    checkAccess(requestWrapper, responseWrapper, mappedValue, filterChain);
   }
 
-  protected void saveRequestAndRedirectToLogin(RequestWrapper requestWrapper, Context context) {
+  protected void saveRequestAndRedirectToLogin(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     saveRequest(requestWrapper);
-    redirectToLogin(requestWrapper, context);
+    redirectToLogin(requestWrapper, responseWrapper);
   }
 
   protected void saveRequest(RequestWrapper requestWrapper) {
@@ -57,7 +60,7 @@ public abstract class AccessControlFilter extends PathMatchingFilter {
     session.setAttribute(KEY_REDIRECT_URL, requestWrapper.getUri());
   }
 
-  protected void redirectToLogin(RequestWrapper requestWrapper, Context context) {
-    context.setRedirectTo(getLoginUrl());
+  protected void redirectToLogin(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
+    responseWrapper.setRedirectTo(getLoginUrl());
   }
 }

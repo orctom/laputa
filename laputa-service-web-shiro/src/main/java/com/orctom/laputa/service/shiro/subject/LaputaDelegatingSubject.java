@@ -1,7 +1,7 @@
 package com.orctom.laputa.service.shiro.subject;
 
-import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.shiro.session.DefaultLaputaSessionContext;
 import com.orctom.laputa.service.shiro.session.LaputaSessionContext;
 import com.orctom.laputa.service.shiro.util.RequestPairSource;
@@ -15,7 +15,7 @@ import org.apache.shiro.util.StringUtils;
 public class LaputaDelegatingSubject extends DelegatingSubject implements LaputaSubject, RequestPairSource {
 
   private RequestWrapper requestWrapper;
-  private Context context;
+  private ResponseWrapper responseWrapper;
 
   public LaputaDelegatingSubject(PrincipalCollection principals,
                                  boolean authenticated,
@@ -23,19 +23,19 @@ public class LaputaDelegatingSubject extends DelegatingSubject implements Laputa
                                  Session session,
                                  boolean sessionCreationEnabled,
                                  RequestWrapper requestWrapper,
-                                 Context context,
+                                 ResponseWrapper responseWrapper,
                                  SecurityManager securityManager) {
     super(principals, authenticated, host, session, sessionCreationEnabled, securityManager);
     this.requestWrapper = requestWrapper;
-    this.context = context;
+    this.responseWrapper = responseWrapper;
   }
 
   public RequestWrapper getRequestWrapper() {
     return requestWrapper;
   }
 
-  public Context getContext() {
-    return context;
+  public ResponseWrapper getResponseWrapper() {
+    return responseWrapper;
   }
 
   @Override
@@ -51,7 +51,7 @@ public class LaputaDelegatingSubject extends DelegatingSubject implements Laputa
       wsc.setHost(host);
     }
     wsc.setRequestWrapper(this.requestWrapper);
-    wsc.setContext(this.context);
+    wsc.setResponseWrapper(this.responseWrapper);
     return wsc;
   }
 }

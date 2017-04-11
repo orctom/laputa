@@ -1,4 +1,4 @@
-package com.orctom.laputa.service.translator;
+package com.orctom.laputa.service.translator.content;
 
 import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.MediaType;
@@ -11,7 +11,7 @@ import java.io.IOException;
  * Encode data to xml
  * Created by hao on 11/25/15.
  */
-class XmlResponseTranslator implements ResponseTranslator {
+class XmlContentTranslator implements ContentTranslator {
 
   static final MediaType TYPE = MediaType.APPLICATION_XML;
 

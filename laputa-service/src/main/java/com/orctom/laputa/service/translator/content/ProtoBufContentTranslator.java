@@ -1,4 +1,4 @@
-package com.orctom.laputa.service.translator;
+package com.orctom.laputa.service.translator.content;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -18,7 +18,7 @@ import java.util.concurrent.ExecutionException;
  * Encode data to protobuff format
  * Created by hao on 11/25/15.
  */
-class ProtoBufResponseTranslator implements ResponseTranslator {
+class ProtoBufContentTranslator implements ContentTranslator {
 
   static final MediaType TYPE = MediaType.PROTO_BUF;
 

@@ -1,7 +1,7 @@
 package com.orctom.laputa.service.shiro.util;
 
-import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.model.ResponseWrapper;
 
 public abstract class RequestPairSourceUtils {
 
@@ -12,9 +12,9 @@ public abstract class RequestPairSourceUtils {
     return null;
   }
 
-  public static Context getContext(Object source) {
+  public static ResponseWrapper getResponseWrapper(Object source) {
     if (source instanceof RequestPairSource) {
-      return ((RequestPairSource) source).getContext();
+      return ((RequestPairSource) source).getResponseWrapper();
     }
     return null;
   }

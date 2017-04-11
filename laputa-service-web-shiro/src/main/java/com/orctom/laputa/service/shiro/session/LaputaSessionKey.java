@@ -1,7 +1,7 @@
 package com.orctom.laputa.service.shiro.session;
 
-import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.shiro.util.RequestPairSource;
 import org.apache.shiro.session.mgt.DefaultSessionKey;
 
@@ -10,21 +10,21 @@ import java.io.Serializable;
 public class LaputaSessionKey extends DefaultSessionKey implements RequestPairSource {
 
   private RequestWrapper requestWrapper;
-  private Context context;
+  private ResponseWrapper responseWrapper;
 
-  public LaputaSessionKey(RequestWrapper requestWrapper, Context context) {
+  public LaputaSessionKey(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     if (requestWrapper == null) {
       throw new NullPointerException("request wrapper argument cannot be null.");
     }
-    if (context == null) {
-      throw new NullPointerException("context argument cannot be null.");
+    if (responseWrapper == null) {
+      throw new NullPointerException("response wrapper argument cannot be null.");
     }
     this.requestWrapper = requestWrapper;
-    this.context = context;
+    this.responseWrapper = responseWrapper;
   }
 
-  public LaputaSessionKey(Serializable sessionId, RequestWrapper requestWrapper, Context context) {
-    this(requestWrapper, context);
+  public LaputaSessionKey(Serializable sessionId, RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
+    this(requestWrapper, responseWrapper);
     setSessionId(sessionId);
   }
 
@@ -34,7 +34,7 @@ public class LaputaSessionKey extends DefaultSessionKey implements RequestPairSo
   }
 
   @Override
-  public Context getContext() {
-    return context;
+  public ResponseWrapper getResponseWrapper() {
+    return responseWrapper;
   }
 }
