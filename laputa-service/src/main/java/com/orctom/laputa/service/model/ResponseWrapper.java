@@ -26,45 +26,6 @@ public class ResponseWrapper {
     this.mediaType = mediaType;
   }
 
-  public ResponseWrapper(String mediaType, byte[] content) {
-    this.content = content;
-    this.mediaType = mediaType;
-  }
-
-  public ResponseWrapper(String mediaType, HttpResponseStatus status) {
-    this.mediaType = mediaType;
-    this.status = status;
-  }
-
-  public ResponseWrapper(String mediaType, File file) {
-    this.mediaType = mediaType;
-    this.file = file;
-  }
-
-  public ResponseWrapper(String mediaType, byte[] content, HttpResponseStatus status) {
-    this.content = content;
-    this.mediaType = mediaType;
-    this.status = status;
-  }
-
-  public ResponseWrapper(String mediaType, byte[] content, HttpResponseStatus status, Set<ResponseCookie> cookies) {
-    this.content = content;
-    this.mediaType = mediaType;
-    this.status = status;
-    this.cookies = cookies;
-  }
-
-  public ResponseWrapper(String redirectTo, boolean permanentRedirect) {
-    this.redirectTo = redirectTo;
-    this.permanentRedirect = permanentRedirect;
-  }
-
-  public ResponseWrapper(String redirectTo, boolean permanentRedirect, Set<ResponseCookie> cookies) {
-    this.redirectTo = redirectTo;
-    this.permanentRedirect = permanentRedirect;
-    this.cookies = cookies;
-  }
-
   public String getMediaType() {
     return mediaType;
   }

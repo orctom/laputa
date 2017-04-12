@@ -129,7 +129,7 @@ public class LaputaRequestProcessor {
   }
 
   private void sendResponse(ChannelHandlerContext ctx, FullHttpRequest req, ResponseWrapper responseWrapper) {
-    ResponseTranslators.forEach(translator -> {
+    ResponseTranslators.search(translator -> {
       if (translator.fits(responseWrapper)) {
         translator.translate(ctx, req, responseWrapper);
         return true;

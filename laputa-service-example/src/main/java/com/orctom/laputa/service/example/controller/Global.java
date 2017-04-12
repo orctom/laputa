@@ -10,4 +10,14 @@ public class Global {
   public String error() {
     return "server error";
   }
+
+  @Path("/")
+  public String index() {
+    return "hello index";
+  }
+
+  @Path("/login")
+  public String login() {
+    return "hello login";
+  }
 }

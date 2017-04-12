@@ -50,7 +50,9 @@ public class FileResponseTranslator extends AbstractResponseTranslator implement
         file = new RandomAccessFile(responseWrapper.getFile(), "r");
       } catch (FileNotFoundException ignore) {
         ignore.printStackTrace();
-        sendError(ctx, req, new ResponseWrapper(MediaType.TEXT_PLAIN.getValue(), NOT_FOUND));
+        responseWrapper.setMediaType(MediaType.TEXT_PLAIN.getValue());
+        responseWrapper.setStatus(NOT_FOUND);
+        sendError(ctx, req, responseWrapper);
         return;
       }
 

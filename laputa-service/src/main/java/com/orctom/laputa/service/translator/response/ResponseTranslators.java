@@ -24,7 +24,7 @@ public abstract class ResponseTranslators {
     LOGGER.info("Registered ResponseTranslator: {}", translator);
   }
 
-  public static void forEach(Function<ResponseTranslator, Boolean> function) {
+  public static void search(Function<ResponseTranslator, Boolean> function) {
     for (ResponseTranslator translator : REGISTRY) {
       if (function.apply(translator)) {
         return;

@@ -51,11 +51,14 @@ public class Bootstrapper extends Thread {
   @Override
   public void run() {
     Config config = Configurator.getInstance().getConfig();
+
     bossGroup = new NioEventLoopGroup(1);
     workerGroup = new NioEventLoopGroup();
 
     try {
       setupSSLContext();
+      LaputaServerHandler handler = new LaputaServerHandler(null != sslContext);
+
       ServerBootstrap b = new ServerBootstrap();
       b.option(ChannelOption.SO_BACKLOG, 1024);
       b.group(bossGroup, workerGroup)
@@ -64,7 +67,8 @@ public class Bootstrapper extends Thread {
           .childHandler(new LaputaServerInitializer(
               sslContext,
               getCorsConfig(config),
-              getWebSocketPath(config)
+              getWebSocketPath(config),
+              handler
           ));
 
       Channel ch = b.bind(port).sync().channel();

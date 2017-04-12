@@ -8,7 +8,8 @@ import io.netty.handler.codec.http.FullHttpResponse;
 public class ContentResponseTranslator extends AbstractResponseTranslator implements ResponseTranslator {
 
   public boolean fits(ResponseWrapper responseWrapper) {
-    return null != responseWrapper.getContent();
+//    return null != responseWrapper.getContent();
+    return true;
   }
 
   @Override
