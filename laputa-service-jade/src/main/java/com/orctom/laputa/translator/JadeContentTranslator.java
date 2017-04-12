@@ -1,5 +1,7 @@
 package com.orctom.laputa.translator;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.orctom.laputa.exception.IllegalConfigException;
 import com.orctom.laputa.service.exception.TemplateProcessingException;
 import com.orctom.laputa.service.model.ResponseWrapper;
@@ -7,6 +9,7 @@ import com.orctom.laputa.service.translator.content.TemplateContentTranslator;
 import de.neuland.jade4j.Jade4J;
 import de.neuland.jade4j.model.JadeModel;
 import de.neuland.jade4j.template.JadeTemplate;
+import org.apache.commons.collections.map.HashedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,12 +34,11 @@ public class JadeContentTranslator extends TemplateContentTranslator<JadeTemplat
       JadeTemplate template = getTemplate(responseWrapper.getTemplate());
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       Writer writer = new BufferedWriter(new OutputStreamWriter(out));
-      Map<String, Object> model = new HashMap<>(responseWrapper.getMessenger().getData());
-      model.put("model", responseWrapper.getResult());
+      Map<String, Object> model = getModel(responseWrapper);
       template.process(new JadeModel(model), writer);
       return out.toByteArray();
     } catch (ExecutionException e) {
-      throw new TemplateProcessingException(e.getMessage());
+      throw new TemplateProcessingException(e.getMessage(), e);
     }
   }
 

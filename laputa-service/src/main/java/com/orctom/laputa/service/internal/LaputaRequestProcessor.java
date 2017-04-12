@@ -143,6 +143,10 @@ class LaputaRequestProcessor {
   }
 
   private void translateContent(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
+    if (null != responseWrapper.getMessenger().getRedirectTo()) {
+      return;
+    }
+
     ContentTranslator translator = ContentTranslators.getTranslator(requestWrapper);
     if (null == responseWrapper.getResult() && !(translator instanceof TemplateContentTranslator)) {
       return;

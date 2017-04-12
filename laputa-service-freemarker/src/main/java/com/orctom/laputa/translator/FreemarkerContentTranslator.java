@@ -15,7 +15,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -47,12 +46,11 @@ public class FreemarkerContentTranslator extends TemplateContentTranslator<Templ
       Template template = getTemplate(responseWrapper.getTemplate());
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       Writer writer = new BufferedWriter(new OutputStreamWriter(out));
-      Map<String, Object> model = new HashMap<>(responseWrapper.getMessenger().getData());
-      model.put("model", responseWrapper.getResult());
+      Map<String, Object> model = getModel(responseWrapper);
       template.process(model, writer);
       return out.toByteArray();
     } catch (Exception e) {
-      throw new TemplateProcessingException(e.getMessage());
+      throw new TemplateProcessingException(e.getMessage(), e);
     }
   }
 
