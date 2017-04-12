@@ -10,5 +10,5 @@ public interface Filter {
     return 0;
   }
 
-  void filter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain);
+  void doFilter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain);
 }

@@ -24,5 +24,4 @@ public class RolesAuthorizationFilter extends AuthorizationFilter {
     Set<String> roles = CollectionUtils.asSet(rolesArray);
     return subject.hasAllRoles(roles);
   }
-
 }

@@ -1,6 +1,5 @@
 package com.orctom.laputa.service.shiro.filter.authc;
 
-import com.orctom.laputa.service.filter.FilterChain;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.utils.Booleans;
@@ -66,35 +65,34 @@ public class FormAuthenticationFilter extends AuthenticationFilter {
   }
 
   @Override
-  protected void checkAccess(RequestWrapper requestWrapper,
-                             ResponseWrapper responseWrapper,
-                             Object mappedValue,
-                             FilterChain filterChain) {
+  protected boolean onAccessDenied(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     if (isLoginRequest(requestWrapper)) {
       if (isLoginSubmission(requestWrapper, responseWrapper)) {
-        executeLogin(requestWrapper, responseWrapper);
+        return executeLogin(requestWrapper, responseWrapper);
       } else {
-        filterChain.doFilter(requestWrapper, responseWrapper);
+        return true;
       }
 
     } else {
       saveRequestAndRedirectToLogin(requestWrapper, responseWrapper);
+      return false;
     }
   }
 
-  protected void executeLogin(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
+  protected boolean executeLogin(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     AuthenticationToken token = createToken(requestWrapper, responseWrapper);
     if (token == null) {
       String msg = "createToken method implementation returned null. A valid non-null AuthenticationToken " +
           "must be created in order to execute a login attempt.";
       throw new IllegalStateException(msg);
     }
+    
     try {
       Subject subject = getSubject(requestWrapper);
       subject.login(token);
-      onLoginSuccess(token, subject, requestWrapper, responseWrapper);
+      return onLoginSuccess(token, subject, requestWrapper, responseWrapper);
     } catch (AuthenticationException e) {
-      onLoginFailure(token, e, requestWrapper, responseWrapper);
+      return onLoginFailure(token, e, requestWrapper, responseWrapper);
     }
   }
 
@@ -124,19 +122,21 @@ public class FormAuthenticationFilter extends AuthenticationFilter {
     return Booleans.isBooleam(values.get(0));
   }
 
-  protected void onLoginSuccess(AuthenticationToken token,
-                                Subject subject,
-                                RequestWrapper requestWrapper,
-                                ResponseWrapper responseWrapper) {
+  protected boolean onLoginSuccess(AuthenticationToken token,
+                                   Subject subject,
+                                   RequestWrapper requestWrapper,
+                                   ResponseWrapper responseWrapper) {
     issueSuccessRedirect(requestWrapper, responseWrapper);
+    return false;
   }
 
-  protected void onLoginFailure(AuthenticationToken token,
-                                AuthenticationException e,
-                                RequestWrapper requestWrapper,
-                                ResponseWrapper responseWrapper) {
+  protected boolean onLoginFailure(AuthenticationToken token,
+                                   AuthenticationException e,
+                                   RequestWrapper requestWrapper,
+                                   ResponseWrapper responseWrapper) {
     responseWrapper.setRedirectTo(getLoginUrl() + "?error=Login failed.");
     responseWrapper.setData("error", e.getMessage());
+    return false;
   }
 
   protected String getUsername(RequestWrapper requestWrapper) {

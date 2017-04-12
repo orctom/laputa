@@ -14,15 +14,27 @@ public abstract class AbstractFilter implements Filter {
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFilter.class);
 
   @Override
-  public final void filter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
+  public final void doFilter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
     try {
-      doFilter(requestWrapper, responseWrapper, filterChain);
+      boolean continueChain = preHandle(requestWrapper, responseWrapper);
+      if (continueChain) {
+        executeChain(requestWrapper, responseWrapper, filterChain);
+      }
+      postHandle(requestWrapper, responseWrapper);
     } catch (Exception e) {
       onException(requestWrapper, responseWrapper, e);
     }
   }
 
-  protected void doFilter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
+  protected boolean preHandle(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
+    return true;
+  }
+
+  protected void executeChain(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
+    filterChain.doFilter(requestWrapper, responseWrapper);
+  }
+
+  protected void postHandle(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
   }
 
   protected void onException(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, Exception e) {

@@ -13,7 +13,6 @@ public class LaputaFilterChainResolverFactory extends IniFactorySupport<LaputaFi
   public static final String URLS = "urls";
 
   private Map<String, ?> defaultBeans;
-  private Map<String, Filter> filters;
 
   private LaputaFilterChainResolverFactory(Ini ini) {
     super(ini);

@@ -1,20 +1,17 @@
 package com.orctom.laputa.service.shiro.filter.authc;
 
-import com.orctom.laputa.service.filter.FilterChain;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 
 public class PassThruAuthenticationFilter extends AuthenticationFilter {
 
   @Override
-  protected void checkAccess(RequestWrapper requestWrapper,
-                             ResponseWrapper responseWrapper,
-                             Object mappedValue,
-                             FilterChain filterChain) {
-    if (!isLoginRequest(requestWrapper)) {
-      saveRequestAndRedirectToLogin(requestWrapper, responseWrapper);
+  protected boolean onAccessDenied(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
+    if (isLoginRequest(requestWrapper)) {
+      return true;
     }
 
-    filterChain.doFilter(requestWrapper, responseWrapper);
+    saveRequestAndRedirectToLogin(requestWrapper, responseWrapper);
+    return false;
   }
 }

@@ -49,7 +49,7 @@ public class LaputaFilterChainManager {
     return filters;
   }
 
-  public void createChain(String chainName, String chainDefinition) {
+  void createChain(String chainName, String chainDefinition) {
     if (!StringUtils.hasText(chainName)) {
       throw new NullPointerException("chainName cannot be null or empty.");
     }
@@ -58,17 +58,17 @@ public class LaputaFilterChainManager {
     }
     String[] filterTokens = splitChainDefinition(chainDefinition);
 
-    //each token is specific to each filter.
-    //strip the name and extract any filter-specific config between brackets [ ]
+    //each token is specific to each doFilter.
+    //strip the name and extract any doFilter-specific config between brackets [ ]
     for (String token : filterTokens) {
       String[] nameConfigPair = toNameConfigPair(token);
 
-      //now we have the filter name, path and (possibly null) path-specific config.  Let's apply them:
+      //now we have the doFilter name, path and (possibly null) path-specific config.  Let's apply them:
       addToChain(chainName, nameConfigPair[0], nameConfigPair[1]);
     }
   }
 
-  protected String[] splitChainDefinition(String chainDefinition) {
+  private String[] splitChainDefinition(String chainDefinition) {
     return StringUtils.split(
         chainDefinition,
         StringUtils.DEFAULT_DELIMITER_CHAR,
@@ -79,14 +79,14 @@ public class LaputaFilterChainManager {
     );
   }
 
-  protected String[] toNameConfigPair(String token) throws ConfigurationException {
+  private String[] toNameConfigPair(String token) throws ConfigurationException {
 
     try {
       String[] pair = token.split("\\[", 2);
       String name = StringUtils.clean(pair[0]);
 
       if (name == null) {
-        throw new IllegalArgumentException("Filter name not found for filter chain definition token: " + token);
+        throw new IllegalArgumentException("Filter name not found for doFilter chain definition token: " + token);
       }
       String config = null;
 
@@ -119,7 +119,7 @@ public class LaputaFilterChainManager {
       return new String[]{name, config};
 
     } catch (Exception e) {
-      String msg = "Unable to parse filter chain definition token: " + token;
+      String msg = "Unable to parse doFilter chain definition token: " + token;
       throw new ConfigurationException(msg, e);
     }
   }
@@ -134,9 +134,9 @@ public class LaputaFilterChainManager {
     }
     Filter filter = getFilter(filterName);
     if (filter == null) {
-      throw new IllegalArgumentException("There is no filter with name '" + filterName +
+      throw new IllegalArgumentException("There is no doFilter with name '" + filterName +
           "' to apply to chain [" + chainName + "] in the pool of available Filters.  Ensure a " +
-          "filter with that name/path has first been registered with the addFilter method(s).");
+          "doFilter with that name/path has first been registered with the addFilter method(s).");
     }
 
     applyChainConfig(chainName, filter, chainSpecificFilterConfig);
@@ -150,11 +150,11 @@ public class LaputaFilterChainManager {
       ((PathMatchingFilter) filter).processPathConfig(chainName, chainSpecificFilterConfig);
     } else {
       if (StringUtils.hasText(chainSpecificFilterConfig)) {
-        //they specified a filter configuration, but the Filter doesn't implement PathConfigProcessor
+        //they specified a doFilter configuration, but the Filter doesn't implement PathConfigProcessor
         //this is an erroneous config:
         String msg = "chainSpecificFilterConfig was specified, but the underlying " +
             "Filter instance is not an 'instanceof' " +
-            PathMatchingFilter.class.getName() + ".  This is required if the filter is to accept " +
+            PathMatchingFilter.class.getName() + ".  This is required if the doFilter is to accept " +
             "chain-specific configuration.";
         throw new ConfigurationException(msg);
       }

@@ -30,14 +30,14 @@ public class ProxiedFilterChain implements FilterChain {
   public void doFilter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     if (this.filters == null || this.filters.size() == this.index) {
       if (LOGGER.isTraceEnabled()) {
-        LOGGER.trace("Invoking original filter chain.");
+        LOGGER.trace("Invoking original doFilter chain.");
       }
       this.orig.doFilter(requestWrapper, responseWrapper);
     } else {
       if (LOGGER.isTraceEnabled()) {
-        LOGGER.trace("Invoking wrapped filter at index [" + this.index + "]");
+        LOGGER.trace("Invoking wrapped doFilter at index [" + this.index + "]");
       }
-      this.filters.get(this.index++).filter(requestWrapper, responseWrapper, this);
+      this.filters.get(this.index++).doFilter(requestWrapper, responseWrapper, this);
     }
   }
 }

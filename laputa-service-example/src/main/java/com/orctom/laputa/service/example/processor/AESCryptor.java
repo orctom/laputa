@@ -22,7 +22,7 @@ public class AESCryptor implements Filter {
   private static final String UTF8 = "UTF-8";
 
   @Override
-  public void filter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
+  public void doFilter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
     try {
       decryptQueryString(requestWrapper);
 

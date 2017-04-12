@@ -32,7 +32,7 @@ public class LaputaFilterChain implements FilterChain {
     if (pos == size) {
       processor.service(requestWrapper, responseWrapper);
     } else {
-      filters.get(pos++).filter(requestWrapper, responseWrapper, this);
+      filters.get(pos++).doFilter(requestWrapper, responseWrapper, this);
     }
   }
 }

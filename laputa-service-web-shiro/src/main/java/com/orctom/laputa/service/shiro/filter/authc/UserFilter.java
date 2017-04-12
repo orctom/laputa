@@ -1,6 +1,5 @@
 package com.orctom.laputa.service.shiro.filter.authc;
 
-import com.orctom.laputa.service.filter.FilterChain;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.shiro.filter.AccessControlFilter;
@@ -22,10 +21,8 @@ public class UserFilter extends AccessControlFilter {
   }
 
   @Override
-  protected void checkAccess(RequestWrapper requestWrapper,
-                             ResponseWrapper responseWrapper,
-                             Object mappedValue,
-                             FilterChain filterChain) {
+  protected boolean onAccessDenied(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     saveRequestAndRedirectToLogin(requestWrapper, responseWrapper);
+    return false;
   }
 }

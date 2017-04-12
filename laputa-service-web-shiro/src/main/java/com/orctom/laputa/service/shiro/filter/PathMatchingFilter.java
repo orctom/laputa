@@ -1,7 +1,6 @@
 package com.orctom.laputa.service.shiro.filter;
 
 import com.orctom.laputa.service.filter.Filter;
-import com.orctom.laputa.service.filter.FilterChain;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import org.apache.shiro.util.AntPathMatcher;
@@ -35,24 +34,22 @@ public abstract class PathMatchingFilter extends AbstractFilter {
   }
 
   @Override
-  protected void doFilter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
+  protected boolean preHandle(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     if (this.appliedPaths == null || this.appliedPaths.isEmpty()) {
-      filterChain.doFilter(requestWrapper, responseWrapper);
-      return;
+      return true;
     }
 
     for (String path : this.appliedPaths.keySet()) {
       if (pathsMatch(path, requestWrapper.getPath())) {
         Object config = this.appliedPaths.get(path);
-        onFilterInternal(requestWrapper, responseWrapper, config, filterChain);
-        return;
+        return onPreHandle(requestWrapper, responseWrapper, config);
       }
     }
+
+    return true;
   }
 
-  protected void onFilterInternal(RequestWrapper requestWrapper,
-                                  ResponseWrapper responseWrapper,
-                                  Object mappedValue,
-                                  FilterChain filterChain) {
+  protected boolean onPreHandle(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, Object mappedValue) {
+    return true;
   }
 }

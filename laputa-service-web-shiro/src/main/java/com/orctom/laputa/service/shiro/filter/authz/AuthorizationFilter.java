@@ -1,6 +1,5 @@
 package com.orctom.laputa.service.shiro.filter.authz;
 
-import com.orctom.laputa.service.filter.FilterChain;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.shiro.filter.AccessControlFilter;
@@ -20,10 +19,7 @@ public abstract class AuthorizationFilter extends AccessControlFilter {
   }
 
   @Override
-  protected void checkAccess(RequestWrapper requestWrapper,
-                             ResponseWrapper responseWrapper,
-                             Object mappedValue,
-                             FilterChain filterChain) {
+  protected boolean onAccessDenied(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     Subject subject = SecurityUtils.getSubject();
     // If the subject isn't identified, redirect to login URL
     if (subject.getPrincipal() == null) {
@@ -31,5 +27,6 @@ public abstract class AuthorizationFilter extends AccessControlFilter {
     } else {
       responseWrapper.setRedirectTo(getUnauthorizedUrl());
     }
+    return false;
   }
 }

@@ -1,6 +1,5 @@
 package com.orctom.laputa.service.shiro.filter.authc;
 
-import com.orctom.laputa.service.filter.FilterChain;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.shiro.filter.AbstractFilter;
@@ -25,7 +24,7 @@ public class LogoutFilter extends AbstractFilter {
   }
 
   @Override
-  protected void doFilter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
+  protected boolean preHandle(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     Subject subject = getSubject(requestWrapper);
     String redirectUrl = getRedirectUrl();
     try {
@@ -34,6 +33,7 @@ public class LogoutFilter extends AbstractFilter {
       LOGGER.debug("Encountered session exception during logout.  This can generally safely be ignored.", ise);
     }
     issueRedirect(requestWrapper, responseWrapper, redirectUrl);
+    return false;
   }
 
   protected Subject getSubject(RequestWrapper requestWrapper) {

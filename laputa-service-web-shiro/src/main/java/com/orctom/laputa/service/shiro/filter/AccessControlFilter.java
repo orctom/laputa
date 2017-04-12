@@ -1,6 +1,5 @@
 package com.orctom.laputa.service.shiro.filter;
 
-import com.orctom.laputa.service.filter.FilterChain;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import org.apache.shiro.SecurityUtils;
@@ -24,29 +23,24 @@ public abstract class AccessControlFilter extends PathMatchingFilter {
     return SecurityUtils.getSubject();
   }
 
-  protected boolean isLoginRequest(RequestWrapper requestWrapper) {
-    return pathsMatch(getLoginUrl(), requestWrapper.getPath());
-  }
-
   protected abstract boolean isAccessAllowed(RequestWrapper requestWrapper,
                                              ResponseWrapper responseWrapper,
                                              Object mappedValue);
 
-  protected abstract void checkAccess(RequestWrapper requestWrapper,
-                                      ResponseWrapper responseWrapper,
-                                      Object mappedValue,
-                                      FilterChain filterChain);
+  private boolean onAccessDenied(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, Object mappedValue) {
+    return onAccessDenied(requestWrapper, responseWrapper);
+  }
+
+  protected abstract boolean onAccessDenied(RequestWrapper requestWrapper, ResponseWrapper responseWrapper);
 
   @Override
-  public void onFilterInternal(RequestWrapper requestWrapper,
-                               ResponseWrapper responseWrapper,
-                               Object mappedValue,
-                               FilterChain filterChain) {
-    if (isAccessAllowed(requestWrapper, responseWrapper, mappedValue)) {
-      return;
-    }
+  public boolean onPreHandle(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, Object mappedValue) {
+    return isAccessAllowed(requestWrapper, responseWrapper, mappedValue) ||
+        onAccessDenied(requestWrapper, responseWrapper, mappedValue);
+  }
 
-    checkAccess(requestWrapper, responseWrapper, mappedValue, filterChain);
+  protected boolean isLoginRequest(RequestWrapper requestWrapper) {
+    return pathsMatch(getLoginUrl(), requestWrapper.getPath());
   }
 
   protected void saveRequestAndRedirectToLogin(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
