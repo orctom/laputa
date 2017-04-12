@@ -1,6 +1,5 @@
 package com.orctom.laputa.service.shiro.filter;
 
-import com.orctom.laputa.service.filter.Filter;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import org.apache.shiro.util.AntPathMatcher;
@@ -19,14 +18,13 @@ public abstract class PathMatchingFilter extends AbstractFilter {
 
   protected Map<String, String[]> resources = new LinkedHashMap<>();
 
-  public Filter processPathConfig(String path, String config) {
+  public void processPathConfig(String path, String config) {
     String[] values = null;
     if (config != null) {
       values = split(config);
     }
 
     this.appliedPaths.put(path, values);
-    return this;
   }
 
   protected boolean pathsMatch(String pattern, String path) {

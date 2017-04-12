@@ -86,7 +86,7 @@ public class FormAuthenticationFilter extends AuthenticationFilter {
           "must be created in order to execute a login attempt.";
       throw new IllegalStateException(msg);
     }
-    
+
     try {
       Subject subject = getSubject(requestWrapper);
       subject.login(token);

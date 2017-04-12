@@ -27,7 +27,7 @@ public class ShiroFilter implements Filter {
   }
 
   @Override
-  public void  doFilter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
+  public void doFilter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
     final Subject subject = createSubject(requestWrapper, responseWrapper);
     subject.execute(() -> {
       updateSessionLastAccessTime(requestWrapper, responseWrapper);
