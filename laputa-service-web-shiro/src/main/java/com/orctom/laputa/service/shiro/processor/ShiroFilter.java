@@ -1,9 +1,7 @@
 package com.orctom.laputa.service.shiro.processor;
 
-import com.google.common.base.Strings;
 import com.orctom.laputa.service.filter.Filter;
 import com.orctom.laputa.service.filter.FilterChain;
-import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.shiro.mgt.FilterChainResolver;
@@ -37,11 +35,11 @@ public class ShiroFilter implements Filter {
     });
   }
 
-  protected LaputaSubject createSubject(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
+  private LaputaSubject createSubject(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     return new LaputaSubject.Builder(getSecurityManager(), requestWrapper, responseWrapper).buildSubject();
   }
 
-  protected void updateSessionLastAccessTime(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
+  private void updateSessionLastAccessTime(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     Subject subject = SecurityUtils.getSubject();
     //Subject should never _ever_ be null, but just in case:
     if (subject != null) {
@@ -57,12 +55,8 @@ public class ShiroFilter implements Filter {
     }
   }
 
-  protected void executeChain(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
+  private void executeChain(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
     FilterChain chain = getExecutionChain(requestWrapper, responseWrapper, filterChain);
-    if (null == chain) {
-      return;
-    }
-
     chain.doFilter(requestWrapper, responseWrapper);
   }
 
@@ -71,9 +65,5 @@ public class ShiroFilter implements Filter {
                                         FilterChain filterChain) {
     FilterChainResolver resolver = getFilterChainResolver();
     return resolver.getChain(requestWrapper, responseWrapper, filterChain);
-  }
-
-  private boolean hasRedirection(Context ctx) {
-    return !Strings.isNullOrEmpty(ctx.getRedirectTo());
   }
 }

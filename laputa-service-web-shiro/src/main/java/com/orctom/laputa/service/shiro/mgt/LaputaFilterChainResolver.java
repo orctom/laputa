@@ -33,7 +33,7 @@ public class LaputaFilterChainResolver implements FilterChainResolver {
                               ResponseWrapper responseWrapper,
                               FilterChain filterChain) {
     if (!filterChainManager.hasChains()) {
-      return null;
+      return filterChain;
     }
 
     String path = requestWrapper.getPath();
@@ -47,7 +47,7 @@ public class LaputaFilterChainResolver implements FilterChainResolver {
       }
     }
 
-    return null;
+    return filterChain;
   }
 
   protected boolean pathMatches(String pattern, String path) {

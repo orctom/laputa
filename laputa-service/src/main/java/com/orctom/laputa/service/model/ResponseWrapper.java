@@ -4,8 +4,12 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 /**
  * Encoded response
@@ -16,11 +20,11 @@ public class ResponseWrapper {
   private String mediaType;
   private byte[] content;
   private File file;
-  private HttpResponseStatus status = HttpResponseStatus.OK;
+  private HttpResponseStatus status = OK;
   private String redirectTo;
   private boolean permanentRedirect;
   private Map<String, Object> data = new HashMap<>();
-  private Set<ResponseCookie> cookies;
+  private Set<ResponseCookie> cookies = new HashSet<>();
 
   public ResponseWrapper(String mediaType) {
     this.mediaType = mediaType;
@@ -107,5 +111,9 @@ public class ResponseWrapper {
     ResponseCookie cookie = new ResponseCookie(name, value, maxAge, secure, httpOnly);
     cookie.setDomain(domain);
     this.cookies.add(cookie);
+  }
+
+  public boolean hasContent() {
+    return OK != status || null != redirectTo || null != content || null != file;
   }
 }

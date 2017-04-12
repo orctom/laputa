@@ -60,20 +60,16 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
-  private static FilterChain filterChain;
+  private static List<Filter> filters;
 
-  public DefaultRequestProcessor() {
+  DefaultRequestProcessor() {
     initFilterChain();
   }
 
   private void initFilterChain() {
-    List<Filter> filters = new ArrayList<>(getBeansOfType(Filter.class));
-    if (filters.isEmpty()) {
-      filterChain = new LaputaFilterChain(this);
-
-    } else {
+    filters = new ArrayList<>(getBeansOfType(Filter.class));
+    if (!filters.isEmpty()) {
       filters.sort(Comparator.comparingInt(Filter::getOrder));
-      filterChain = new LaputaFilterChain(this, filters);
     }
   }
 
@@ -85,12 +81,20 @@ public class DefaultRequestProcessor implements RequestProcessor {
   @Override
   public void handleRequest(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     try {
-      filterChain.doFilter(requestWrapper, responseWrapper);
+      createFilterChain().doFilter(requestWrapper, responseWrapper);
     } catch (Exception e) {
       responseWrapper.setRedirectTo(PATH_500);
       responseWrapper.setData("error", INTERNAL_SERVER_ERROR.reasonPhrase());
       LOGGER.error(e.getMessage(), e);
     }
+  }
+
+  private FilterChain createFilterChain() {
+    if (null == filters || filters.isEmpty()) {
+      return new LaputaFilterChain(this);
+    }
+
+    return new LaputaFilterChain(this, filters);
   }
 
   void service(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {

@@ -23,6 +23,17 @@ public class AESCryptor implements Filter {
 
   @Override
   public void filter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
+    try {
+      decryptQueryString(requestWrapper);
+
+      filterChain.doFilter(requestWrapper, responseWrapper);
+
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(e.getMessage(), e);
+    }
+  }
+
+  private void decryptQueryString(RequestWrapper requestWrapper) throws UnsupportedEncodingException {
     Map<String, List<String>> requestParams = requestWrapper.getParams();
 
     List<String> encrypted = requestParams.remove("data");
@@ -31,20 +42,13 @@ public class AESCryptor implements Filter {
     }
 
     String decrypted = Base64.getEncoder().encodeToString(AES.decrypt(encrypted.get(0).getBytes(), KEY));
-    try {
-      String decoded = URLDecoder.decode(decrypted, UTF8);
-      Splitter
-          .on("&")
-          .omitEmptyStrings()
-          .trimResults()
-          .withKeyValueSeparator("=")
-          .split(decoded)
-          .forEach((key, value) -> requestParams.put(key, Lists.newArrayList(value)));
-
-      filterChain.doFilter(requestWrapper, responseWrapper);
-
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e.getMessage(), e);
-    }
+    String decoded = URLDecoder.decode(decrypted, UTF8);
+    Splitter
+        .on("&")
+        .omitEmptyStrings()
+        .trimResults()
+        .withKeyValueSeparator("=")
+        .split(decoded)
+        .forEach((key, value) -> requestParams.put(key, Lists.newArrayList(value)));
   }
 }

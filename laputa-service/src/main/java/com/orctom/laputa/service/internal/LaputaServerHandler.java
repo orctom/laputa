@@ -38,11 +38,11 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
 
   private static final int MAX_FRAME_PAYLOAD_LENGTH = 5 * 1024 * 1024;
 
-  private static LaputaRequestProcessor requestProcessor = new LaputaRequestProcessor();
-
-  private static boolean isUseSSL = false;
-
   private static String webSocketPath;
+
+  private final boolean isUseSSL;
+  private final LaputaRequestProcessor requestProcessor;
+
   private WebSocketServerHandshaker handshaker;
 
   static {
@@ -57,8 +57,9 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     webSocketPath = config.getString(CFG_WEBSOCKET_PATH);
   }
 
-  public LaputaServerHandler(boolean isUseSSL) {
-    LaputaServerHandler.isUseSSL = isUseSSL;
+  public LaputaServerHandler(boolean isUseSSL, LaputaRequestProcessor requestProcessor) {
+    this.isUseSSL = isUseSSL;
+    this.requestProcessor = requestProcessor;
   }
 
   @Override
@@ -118,7 +119,7 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     requestProcessor.handleRequest(ctx, req);
   }
 
-  private static String getWebSocketLocation(FullHttpRequest req) {
+  private String getWebSocketLocation(FullHttpRequest req) {
     String location = req.headers().get(HttpHeaderNames.HOST) + webSocketPath;
     if (isUseSSL) {
       return "wss://" + location;

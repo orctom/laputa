@@ -41,13 +41,14 @@ import java.util.concurrent.TimeUnit;
 
 import static com.orctom.laputa.service.model.MediaType.TEXT_PLAIN;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
-import static io.netty.handler.codec.http.HttpResponseStatus.*;
+import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
+import static io.netty.handler.codec.http.HttpResponseStatus.TOO_MANY_REQUESTS;
 
 /**
  * request processor
  * Created by hao on 1/6/16.
  */
-public class LaputaRequestProcessor {
+class LaputaRequestProcessor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LaputaRequestProcessor.class);
 
@@ -73,13 +74,22 @@ public class LaputaRequestProcessor {
       simpleMeter = SimpleMetrics.create(LOGGER).meter(METER_REQUESTS);
     }
 
+    initRateLimiter();
+
+    loadRequestProcessors();
+  }
+
+  private void initRateLimiter() {
     Integer maxRequestsPerSecond = Configurator.getInstance().getThrottle();
     if (null != maxRequestsPerSecond) {
       rateLimiter = RateLimiter.create(maxRequestsPerSecond);
     }
+  }
 
+  private void loadRequestProcessors() {
     ServiceLoader.load(RequestProcessor.class).forEach(requestProcessors::add);
     requestProcessors.sort(Comparator.comparingInt(RequestProcessor::getOrder));
+    requestProcessors.add(new DefaultRequestProcessor());
   }
 
   void handleRequest(ChannelHandlerContext ctx, FullHttpRequest req) {
@@ -120,7 +130,7 @@ public class LaputaRequestProcessor {
   private void process(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     for (RequestProcessor requestProcessor : requestProcessors) {
       requestProcessor.handleRequest(requestWrapper, responseWrapper);
-      if (NOT_FOUND != responseWrapper.getStatus()) {
+      if (responseWrapper.hasContent()) {
         return;
       }
     }

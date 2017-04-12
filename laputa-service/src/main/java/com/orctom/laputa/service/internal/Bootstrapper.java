@@ -35,6 +35,8 @@ public class Bootstrapper extends Thread {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Bootstrapper.class);
 
+  private static LaputaRequestProcessor requestProcessor = new LaputaRequestProcessor();
+
   private int port;
   private boolean useSSL;
 
@@ -57,7 +59,6 @@ public class Bootstrapper extends Thread {
 
     try {
       setupSSLContext();
-      LaputaServerHandler handler = new LaputaServerHandler(null != sslContext);
 
       ServerBootstrap b = new ServerBootstrap();
       b.option(ChannelOption.SO_BACKLOG, 1024);
@@ -68,7 +69,7 @@ public class Bootstrapper extends Thread {
               sslContext,
               getCorsConfig(config),
               getWebSocketPath(config),
-              handler
+              requestProcessor
           ));
 
       Channel ch = b.bind(port).sync().channel();
@@ -77,12 +78,16 @@ public class Bootstrapper extends Thread {
       LOGGER.warn("Service started {}{}:{}", (useSSL ? "https://" : "http://"), ip, port);
 
       ch.closeFuture().sync();
+
     } catch (IllegalConfigException e) {
       LOGGER.error(e.getMessage());
+
     } catch (IOException e) {
       LOGGER.error(e.getMessage() + ", port: " + port, e);
+
     } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
+
     } finally {
       shutdown();
     }

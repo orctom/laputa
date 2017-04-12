@@ -28,7 +28,7 @@ public interface LaputaSubject extends Subject, RequestPairSource {
       this.requestWrapper = requestWrapper;
       this.responseWrapper = responseWrapper;
       setRequestWrapper(requestWrapper);
-
+      setResponseWrapper(responseWrapper);
     }
 
     private void setRequestWrapper(RequestWrapper requestWrapper) {

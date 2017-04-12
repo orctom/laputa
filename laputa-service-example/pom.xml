@@ -23,6 +23,11 @@
     </dependency>
     <dependency>
       <groupId>com.orctom.laputa</groupId>
+      <artifactId>laputa-service-web</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.orctom.laputa</groupId>
       <artifactId>laputa-service-web-shiro</artifactId>
       <version>${project.version}</version>
     </dependency>

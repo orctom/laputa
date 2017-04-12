@@ -37,6 +37,7 @@ public abstract class PathMatchingFilter extends AbstractFilter {
   @Override
   protected void doFilter(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
     if (this.appliedPaths == null || this.appliedPaths.isEmpty()) {
+      filterChain.doFilter(requestWrapper, responseWrapper);
       return;
     }
 

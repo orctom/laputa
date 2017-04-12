@@ -21,16 +21,16 @@ class LaputaServerInitializer extends ChannelInitializer<SocketChannel> {
   private final SslContext sslContext;
   private final CorsConfig corsConfig;
   private final String webSocketPath;
-  private final LaputaServerHandler handler;
+  private final LaputaRequestProcessor requestProcessor;
 
   LaputaServerInitializer(SslContext sslContext,
                           CorsConfig corsConfig,
                           String webSocketPath,
-                          LaputaServerHandler handler) {
+                          LaputaRequestProcessor requestProcessor) {
     this.sslContext = sslContext;
     this.corsConfig = corsConfig;
     this.webSocketPath = webSocketPath;
-    this.handler = handler;
+    this.requestProcessor = requestProcessor;
   }
 
   @Override
@@ -49,6 +49,6 @@ class LaputaServerInitializer extends ChannelInitializer<SocketChannel> {
     }
     p.addLast(new WebSocketServerCompressionHandler());
     p.addLast(new WebSocketServerProtocolHandler(webSocketPath, null, true));
-    p.addLast(handler);
+    p.addLast(new LaputaServerHandler(null != sslContext, requestProcessor));
   }
 }
