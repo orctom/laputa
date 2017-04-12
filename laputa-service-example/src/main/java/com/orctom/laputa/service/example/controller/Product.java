@@ -9,7 +9,7 @@ import com.orctom.laputa.service.annotation.Path;
 import com.orctom.laputa.service.annotation.RedirectTo;
 import com.orctom.laputa.service.example.model.Products;
 import com.orctom.laputa.service.example.model.SKU;
-import com.orctom.laputa.service.model.Context;
+import com.orctom.laputa.service.model.Messenger;
 import com.orctom.laputa.service.model.MultipartFile;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
@@ -43,9 +43,9 @@ public class Product {
   }
 
   @Path("/test2/{id}")
-  public SKU getSku(@Param("id") String id, Context ctx) {
+  public SKU getSku(@Param("id") String id, Messenger messenger) {
     if ("test".equals(id)) {
-      ctx.setRedirectTo("/product/sku");
+      messenger.setRedirectTo("/product/sku");
       return null;
     }
 

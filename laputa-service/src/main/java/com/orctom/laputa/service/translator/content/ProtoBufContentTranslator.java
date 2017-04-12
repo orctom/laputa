@@ -3,9 +3,8 @@ package com.orctom.laputa.service.translator.content;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.MediaType;
-import com.orctom.laputa.service.model.RequestMapping;
+import com.orctom.laputa.service.model.ResponseWrapper;
 import io.protostuff.GraphIOUtil;
 import io.protostuff.LinkedBuffer;
 import io.protostuff.Schema;
@@ -43,13 +42,14 @@ class ProtoBufContentTranslator implements ContentTranslator {
 
   @Override
   @SuppressWarnings("unchecked")
-  public byte[] translate(RequestMapping mapping, Object data, Context ctx) throws IOException {
+  public byte[] translate(ResponseWrapper responseWrapper) throws IOException {
+    Object result = responseWrapper.getResult();
     Schema schema;
     try {
-      schema = schemaCache.get(data.getClass());
+      schema = schemaCache.get(result.getClass());
     } catch (ExecutionException e) {
-      schema = RuntimeSchema.getSchema(data.getClass());
+      schema = RuntimeSchema.getSchema(result.getClass());
     }
-    return GraphIOUtil.toByteArray(data, schema, LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE));
+    return GraphIOUtil.toByteArray(result, schema, LinkedBuffer.allocate(LinkedBuffer.DEFAULT_BUFFER_SIZE));
   }
 }

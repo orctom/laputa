@@ -55,8 +55,8 @@ public class RequestMapping {
         break;
       }
 
-      if (Context.class.isAssignableFrom(paramType)) {
-        _handlerParameters.put("_ctx_", new ParamInfo(paramType));
+      if (Messenger.class.isAssignableFrom(paramType)) {
+        _handlerParameters.put("_messenger_", new ParamInfo(paramType));
         continue;
       }
 

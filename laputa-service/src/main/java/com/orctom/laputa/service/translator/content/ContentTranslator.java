@@ -1,8 +1,7 @@
 package com.orctom.laputa.service.translator.content;
 
 import com.orctom.laputa.service.config.Configurator;
-import com.orctom.laputa.service.model.Context;
-import com.orctom.laputa.service.model.RequestMapping;
+import com.orctom.laputa.service.model.ResponseWrapper;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -18,7 +17,7 @@ public interface ContentTranslator {
 
   String getExtension();
 
-  byte[] translate(RequestMapping mapping, Object data, Context ctx) throws IOException;
+  byte[] translate(ResponseWrapper responseWrapper) throws IOException;
 
   default byte[] toBytes(String string) {
     Charset charset = Configurator.getInstance().getCharset();

@@ -9,6 +9,9 @@ import com.orctom.laputa.service.exception.RequestProcessingException;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.processor.RequestProcessor;
+import com.orctom.laputa.service.translator.content.ContentTranslator;
+import com.orctom.laputa.service.translator.content.ContentTranslators;
+import com.orctom.laputa.service.translator.content.TemplateContentTranslator;
 import com.orctom.laputa.service.translator.response.ResponseTranslators;
 import com.orctom.laputa.utils.SimpleMeter;
 import com.orctom.laputa.utils.SimpleMetrics;
@@ -39,10 +42,10 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
 
+import static com.orctom.laputa.service.Constants.PATH_500;
 import static com.orctom.laputa.service.model.MediaType.TEXT_PLAIN;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
-import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
-import static io.netty.handler.codec.http.HttpResponseStatus.TOO_MANY_REQUESTS;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 
 /**
  * request processor
@@ -109,7 +112,8 @@ class LaputaRequestProcessor {
 
       long start = System.currentTimeMillis();
 
-      process(requestWrapper, responseWrapper);
+      processRequest(requestWrapper, responseWrapper);
+      translateContent(requestWrapper, responseWrapper);
 
       long end = System.currentTimeMillis();
       if (LOGGER.isDebugEnabled()) {
@@ -127,7 +131,7 @@ class LaputaRequestProcessor {
     }
   }
 
-  private void process(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
+  private void processRequest(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     for (RequestProcessor requestProcessor : requestProcessors) {
       requestProcessor.handleRequest(requestWrapper, responseWrapper);
       if (responseWrapper.hasContent()) {
@@ -136,6 +140,23 @@ class LaputaRequestProcessor {
     }
 
     LOGGER.error("Unhandled request: {}", requestWrapper.getUri());
+  }
+
+  private void translateContent(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
+    ContentTranslator translator = ContentTranslators.getTranslator(requestWrapper);
+    if (null == responseWrapper.getResult() && !(translator instanceof TemplateContentTranslator)) {
+      return;
+    }
+
+    try {
+      byte[] content = translator.translate(responseWrapper);
+      responseWrapper.setContent(content);
+
+    } catch (IOException e) {
+      responseWrapper.setRedirectTo(PATH_500);
+      responseWrapper.setData("error", INTERNAL_SERVER_ERROR.reasonPhrase());
+      LOGGER.error(e.getMessage(), e);
+    }
   }
 
   private void sendResponse(ChannelHandlerContext ctx, FullHttpRequest req, ResponseWrapper responseWrapper) {

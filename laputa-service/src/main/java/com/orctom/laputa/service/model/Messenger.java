@@ -6,29 +6,18 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Request processing context.
- * <ol>
- * <li>Carries some context info</li>
- * <li>Redirection supports</li>
- * </ol>
+ * Messenger from controller to response
  */
-public class Context {
+public class Messenger {
 
-  private String path;
-  private Map<String, Object> data = new HashMap<>();
-  private Set<ResponseCookie> cookies = new HashSet<>();
-
-  public Context(String path) {
-    this.path = path;
-  }
-
+  private Map<String, Object> data;
+  private Set<ResponseCookie> cookies;
   private String redirectTo;
 
-  public String getPath() {
-    return path;
-  }
-
   public void setData(String key, Object value) {
+    if (null == data) {
+      data = new HashMap<>();
+    }
     data.put(key, value);
   }
 
@@ -41,17 +30,35 @@ public class Context {
   }
 
   public void setCookie(String name, String value) {
+    ensureCookieSet();
     this.cookies.add(new ResponseCookie(name, value));
   }
 
   public void setCookie(String name, String value, long maxAge, boolean secure, boolean httpOnly) {
+    ensureCookieSet();
     this.cookies.add(new ResponseCookie(name, value, maxAge, secure, httpOnly));
   }
 
   public void setCookie(String name, String value, long maxAge, boolean secure, boolean httpOnly, String domain) {
+    ensureCookieSet();
     ResponseCookie cookie = new ResponseCookie(name, value, maxAge, secure, httpOnly);
     cookie.setDomain(domain);
     this.cookies.add(cookie);
+  }
+
+  public void addCookie(Set<ResponseCookie> cookies) {
+    if (null == cookies || cookies.isEmpty()) {
+      return;
+    }
+
+    ensureCookieSet();
+    this.cookies.addAll(cookies);
+  }
+
+  private void ensureCookieSet() {
+    if (null == cookies) {
+      cookies = new HashSet<>();
+    }
   }
 
   public void setRedirectTo(String location) {

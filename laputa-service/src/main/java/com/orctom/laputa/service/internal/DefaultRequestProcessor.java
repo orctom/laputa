@@ -1,15 +1,19 @@
 package com.orctom.laputa.service.internal;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.base.Strings;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.orctom.laputa.service.LaputaService;
+import com.orctom.laputa.service.annotation.Template;
 import com.orctom.laputa.service.config.MappingConfig;
 import com.orctom.laputa.service.exception.ParameterValidationException;
 import com.orctom.laputa.service.exception.RequestProcessingException;
 import com.orctom.laputa.service.filter.Filter;
 import com.orctom.laputa.service.filter.FilterChain;
-import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.HTTPMethod;
 import com.orctom.laputa.service.model.ParamInfo;
 import com.orctom.laputa.service.model.RequestMapping;
@@ -18,8 +22,6 @@ import com.orctom.laputa.service.model.Response;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.model.ValidationError;
 import com.orctom.laputa.service.processor.RequestProcessor;
-import com.orctom.laputa.service.translator.content.ContentTranslator;
-import com.orctom.laputa.service.translator.content.ContentTranslators;
 import com.orctom.laputa.service.util.ArgsResolver;
 import com.orctom.laputa.service.util.ParamResolver;
 import com.orctom.laputa.utils.ClassUtils;
@@ -32,7 +34,6 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.executable.ExecutableValidator;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -41,9 +42,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.regex.Pattern;
 
-import static com.orctom.laputa.service.Constants.PATH_403;
-import static com.orctom.laputa.service.Constants.PATH_500;
+import static com.orctom.laputa.service.Constants.*;
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 
 public class DefaultRequestProcessor implements RequestProcessor {
@@ -60,7 +62,21 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
   private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
+  private static final Pattern BRACE_LEFT = Pattern.compile("\\{");
+  private static final Pattern BRACE_RIGHT = Pattern.compile("}");
+  private static final String EMPTY_STR = "";
+
   private static List<Filter> filters;
+
+  private static LoadingCache<RequestMapping, String> templates = CacheBuilder.newBuilder()
+      .build(
+          new CacheLoader<RequestMapping, String>() {
+            @Override
+            public String load(RequestMapping mapping) throws Exception {
+              return getTemplate0(mapping);
+            }
+          }
+      );
 
   DefaultRequestProcessor() {
     initFilterChain();
@@ -98,6 +114,34 @@ public class DefaultRequestProcessor implements RequestProcessor {
   }
 
   void service(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
+    RequestMapping mapping = getRequestMapping(requestWrapper, responseWrapper);
+
+    Object result;
+    try {
+      result = processRequest(requestWrapper, responseWrapper, mapping);
+
+    } catch (ParameterValidationException e) {
+      result = new ValidationError(e.getMessages());
+      responseWrapper.setRedirectTo(PATH_403);
+      responseWrapper.setData("error", e.getMessage());
+
+    } catch (IllegalArgumentException e) {
+      result = new Response(BAD_REQUEST.code(), Lists.newArrayList(BAD_REQUEST.reasonPhrase()));
+      responseWrapper.setRedirectTo(PATH_403);
+      responseWrapper.setData("error", BAD_REQUEST.reasonPhrase());
+      LOGGER.error(e.getMessage(), e);
+
+    } catch (Exception e) {
+      result = new Response(INTERNAL_SERVER_ERROR.code(), Lists.newArrayList(INTERNAL_SERVER_ERROR.reasonPhrase()));
+      responseWrapper.setRedirectTo(PATH_500);
+      responseWrapper.setData("error", INTERNAL_SERVER_ERROR.reasonPhrase());
+      LOGGER.error(e.getMessage(), e);
+    }
+
+    responseWrapper.setResult(result);
+  }
+
+  private RequestMapping getRequestMapping(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     MappingConfig mappingConfig = MappingConfig.getInstance();
     RequestMapping mapping = mappingConfig.getMapping(
         requestWrapper.getPath(),
@@ -109,42 +153,51 @@ public class DefaultRequestProcessor implements RequestProcessor {
       responseWrapper.setStatus(NOT_FOUND);
     }
 
-    Context ctx = getContext(requestWrapper);
-    Object data;
-    try {
-      data = processRequest(requestWrapper, ctx, mapping);
-      responseWrapper.setCookies(ctx.getCookies());
-
-    } catch (ParameterValidationException e) {
-      data = new ValidationError(e.getMessages());
-      responseWrapper.setRedirectTo(PATH_403);
-      responseWrapper.setData("error", e.getMessage());
-
-    } catch (IllegalArgumentException e) {
-      data = new Response(BAD_REQUEST.code(), Lists.newArrayList(BAD_REQUEST.reasonPhrase()));
-      responseWrapper.setRedirectTo(PATH_403);
-      responseWrapper.setData("error", BAD_REQUEST.reasonPhrase());
-      LOGGER.error(e.getMessage(), e);
-
-    } catch (Exception e) {
-      data = new Response(INTERNAL_SERVER_ERROR.code(), Lists.newArrayList(INTERNAL_SERVER_ERROR.reasonPhrase()));
-      responseWrapper.setRedirectTo(PATH_500);
-      responseWrapper.setData("error", INTERNAL_SERVER_ERROR.reasonPhrase());
-      LOGGER.error(e.getMessage(), e);
-    }
-
-    ContentTranslator translator = ContentTranslators.getTranslator(requestWrapper);
-    try {
-      byte[] content = translator.translate(mapping, data, ctx);
-      responseWrapper.setContent(content);
-    } catch (IOException e) {
-      responseWrapper.setRedirectTo(PATH_500);
-      responseWrapper.setData("error", INTERNAL_SERVER_ERROR.reasonPhrase());
-      LOGGER.error(e.getMessage(), e);
-    }
+    setTemplateName(responseWrapper, mapping);
+    return mapping;
   }
 
-  private Object processRequest(RequestWrapper requestWrapper, Context ctx, RequestMapping mapping)
+  private void setTemplateName(ResponseWrapper responseWrapper, RequestMapping mapping) {
+    String template;
+    try {
+      template = templates.get(mapping);
+    } catch (ExecutionException e) {
+      LOGGER.error(e.getMessage(), e);
+      template = getTemplate0(mapping);
+    }
+
+    responseWrapper.setTemplate(template);
+  }
+
+  private static String getTemplate0(RequestMapping mapping) {
+    Template template = mapping.getHandlerMethod().getJavaMethod().getAnnotation(Template.class);
+    if (null != template) {
+      return transformIndex(template.value());
+    }
+
+    return transformIndex(normalized(mapping.getUriPattern()));
+  }
+
+  /**
+   * Removing brackets
+   */
+  private static String normalized(String uriPattern) {
+    return BRACE_RIGHT.matcher(
+        BRACE_LEFT.matcher(uriPattern).replaceAll(EMPTY_STR)
+    ).replaceAll(EMPTY_STR);
+  }
+
+  private static String transformIndex(String template) {
+    if (Strings.isNullOrEmpty(template)) {
+      return PATH_INDEX;
+    }
+    if (template.endsWith(PATH_SEPARATOR)) {
+      return template + PATH_INDEX;
+    }
+    return template;
+  }
+
+  private Object processRequest(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, RequestMapping mapping)
       throws InvocationTargetException, IllegalAccessException {
     FastMethod handlerMethod = mapping.getHandlerMethod();
     Object target = mapping.getTarget();
@@ -168,7 +221,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
 
     Map<String, String> params = ParamResolver.extractParams(mapping, requestWrapper);
 
-    Object[] args = ArgsResolver.resolveArgs(params, parameters, requestWrapper, ctx);
+    Object[] args = ArgsResolver.resolveArgs(params, parameters, requestWrapper, responseWrapper.getMessenger());
 
     validate(target, handlerMethod.getJavaMethod(), args);
 
@@ -192,10 +245,6 @@ public class DefaultRequestProcessor implements RequestProcessor {
     }
 
     return HTTPMethod.GET;
-  }
-
-  private Context getContext(RequestWrapper requestWrapper) {
-    return new Context(requestWrapper.getPath());
   }
 
   private void validate(Object target, Method method, Object[] args) {

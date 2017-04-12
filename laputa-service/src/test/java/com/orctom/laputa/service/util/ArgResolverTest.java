@@ -7,7 +7,7 @@ import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.domain.Categories;
 import com.orctom.laputa.service.domain.Category;
 import com.orctom.laputa.service.domain.SKU;
-import com.orctom.laputa.service.model.Context;
+import com.orctom.laputa.service.model.Messenger;
 import com.orctom.laputa.service.model.ParamInfo;
 import com.orctom.laputa.service.model.RequestWrapper;
 import io.netty.handler.codec.http.HttpMethod;
@@ -72,7 +72,7 @@ public class ArgResolverTest {
     paramValues.put("c", "ccc");
 
     Object[] expected = new Object[]{"aaa", "bbb", "ccc"};
-    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Context("/"));
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Messenger());
     assertArrayEquals(expected, actual);
   }
 
@@ -84,7 +84,7 @@ public class ArgResolverTest {
     paramValues.put("name", "the name");
 
     Object[] expected = new Object[]{new Category(10000L, "the name")};
-    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Context("/"));
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Messenger());
     assertArrayEquals(expected, actual);
   }
 
@@ -96,7 +96,7 @@ public class ArgResolverTest {
     paramValues.put("category.name", "the name");
 
     Object[] expected = new Object[]{new Category(10000L, "the name")};
-    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Context("/"));
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Messenger());
     assertArrayEquals(expected, actual);
   }
 
@@ -111,7 +111,7 @@ public class ArgResolverTest {
       paramValues.put("category.name", "category name");
 
       Object[] expected = new Object[]{new SKU(1000L, "sku name", new Category(1111L, "category name"))};
-      Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Context("/"));
+      Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Messenger());
       assertArrayEquals(expected, actual);
     } catch (Exception e) {
       e.printStackTrace();
@@ -128,7 +128,7 @@ public class ArgResolverTest {
     paramValues.put("category.name", "category name");
 
     Object[] expected = new Object[]{"aaa", "bbb", new Category(1000L, "category name")};
-    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Context("/"));
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Messenger());
     assertArrayEquals(expected, actual);
   }
 
@@ -141,7 +141,7 @@ public class ArgResolverTest {
     paramValues.put("date", "2016-09-09");
 
     Object[] expected = new Object[]{new Category(10000L, "the name")};
-    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Context("/"));
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Messenger());
     assertArrayEquals(expected, actual);
   }
 
@@ -164,7 +164,7 @@ public class ArgResolverTest {
         new Category(10001L, "the other name", DateTime.parse("2016-09-10").toDate())
     ));
     Object[] expected = new Object[]{categories};
-    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Context("/"));
+    Object[] actual = ArgsResolver.resolveArgs(paramValues, getParams(method), requestMapper, new Messenger());
     assertArrayEquals(expected, actual);
   }
 
@@ -182,7 +182,7 @@ public class ArgResolverTest {
         break;
       }
 
-      if (Context.class.isAssignableFrom(paramType)) {
+      if (Messenger.class.isAssignableFrom(paramType)) {
         handlerParams.put("_ctx_", new ParamInfo(paramType));
         continue;
       }

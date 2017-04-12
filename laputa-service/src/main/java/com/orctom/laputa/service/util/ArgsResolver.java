@@ -5,7 +5,7 @@ import com.orctom.laputa.service.annotation.Cookies;
 import com.orctom.laputa.service.annotation.HttpHeader;
 import com.orctom.laputa.service.annotation.HttpHeaders;
 import com.orctom.laputa.service.exception.ParameterValidationException;
-import com.orctom.laputa.service.model.Context;
+import com.orctom.laputa.service.model.Messenger;
 import com.orctom.laputa.service.model.ParamInfo;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.utils.ClassUtils;
@@ -30,7 +30,7 @@ public abstract class ArgsResolver {
   public static Object[] resolveArgs(Map<String, String> paramValues,
                                      Map<String, ParamInfo> parameters,
                                      RequestWrapper requestWrapper,
-                                     Context ctx) {
+                                     Messenger messenger) {
     if (parameters.isEmpty()) {
       return null;
     }
@@ -42,7 +42,7 @@ public abstract class ArgsResolver {
     int resolved = resolveSimpleTypeArgs(paramValues, parameters, requestWrapper, args, complexParameters);
 
     if (paramLength != resolved) { // complex types exist
-      resolveComplexTypeArgs(paramValues, args, complexParameters, ctx);
+      resolveComplexTypeArgs(paramValues, args, complexParameters, messenger);
     }
 
     return args;
@@ -104,7 +104,7 @@ public abstract class ArgsResolver {
   private static void resolveComplexTypeArgs(Map<String, String> paramValues,
                                              Object[] args,
                                              Map<Map.Entry<String, ParamInfo>, Integer> complexParameters,
-                                             Context ctx) {
+                                             Messenger messenger) {
     for (Map.Entry<Map.Entry<String, ParamInfo>, Integer> entry : complexParameters.entrySet()) {
       Map.Entry<String, ParamInfo> key = entry.getKey();
       String paramName = key.getKey();
@@ -112,8 +112,8 @@ public abstract class ArgsResolver {
       Class<?> type = paramInfo.getType();
       int index = entry.getValue();
 
-      if (Context.class.isAssignableFrom(type)) {
-        args[index] = ctx;
+      if (Messenger.class.isAssignableFrom(type)) {
+        args[index] = messenger;
         continue;
       }
 

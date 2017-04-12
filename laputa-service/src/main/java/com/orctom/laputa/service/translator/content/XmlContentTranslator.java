@@ -1,8 +1,7 @@
 package com.orctom.laputa.service.translator.content;
 
-import com.orctom.laputa.service.model.Context;
 import com.orctom.laputa.service.model.MediaType;
-import com.orctom.laputa.service.model.RequestMapping;
+import com.orctom.laputa.service.model.ResponseWrapper;
 import com.thoughtworks.xstream.XStream;
 
 import java.io.IOException;
@@ -28,7 +27,7 @@ class XmlContentTranslator implements ContentTranslator {
   }
 
   @Override
-  public byte[] translate(RequestMapping mapping, Object data, Context ctx) throws IOException {
-    return toBytes(xstream.toXML(data));
+  public byte[] translate(ResponseWrapper responseWrapper) throws IOException {
+    return toBytes(xstream.toXML(responseWrapper.getResult()));
   }
 }

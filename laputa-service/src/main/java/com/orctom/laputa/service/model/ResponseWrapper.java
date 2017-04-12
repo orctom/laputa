@@ -3,10 +3,7 @@ package com.orctom.laputa.service.model;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
@@ -18,13 +15,13 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 public class ResponseWrapper {
 
   private String mediaType;
+  private Object result;
   private byte[] content;
+  private String template;
   private File file;
   private HttpResponseStatus status = OK;
-  private String redirectTo;
   private boolean permanentRedirect;
-  private Map<String, Object> data = new HashMap<>();
-  private Set<ResponseCookie> cookies = new HashSet<>();
+  private Messenger messenger = new Messenger();
 
   public ResponseWrapper(String mediaType) {
     this.mediaType = mediaType;
@@ -38,12 +35,28 @@ public class ResponseWrapper {
     this.mediaType = mediaType;
   }
 
+  public Object getResult() {
+    return result;
+  }
+
+  public void setResult(Object result) {
+    this.result = result;
+  }
+
   public byte[] getContent() {
     return content;
   }
 
   public void setContent(byte[] content) {
     this.content = content;
+  }
+
+  public String getTemplate() {
+    return template;
+  }
+
+  public void setTemplate(String template) {
+    this.template = template;
   }
 
   public File getFile() {
@@ -63,11 +76,11 @@ public class ResponseWrapper {
   }
 
   public String getRedirectTo() {
-    return redirectTo;
+    return messenger.getRedirectTo();
   }
 
   public void setRedirectTo(String redirectTo) {
-    this.redirectTo = redirectTo;
+    messenger.setRedirectTo(redirectTo);
   }
 
   public boolean isPermanentRedirect() {
@@ -78,42 +91,36 @@ public class ResponseWrapper {
     this.permanentRedirect = permanentRedirect;
   }
 
+  public Messenger getMessenger() {
+    return messenger;
+  }
+
   public void setData(String key, Object value) {
-    data.put(key, value);
+    messenger.setData(key, value);
   }
 
   public Map<String, Object> getData() {
-    return data;
+    return messenger.getData();
   }
 
   public Set<ResponseCookie> getCookies() {
-    return cookies;
+    return messenger.getCookies();
   }
 
   public void setCookies(Set<ResponseCookie> cookies) {
-    this.cookies = cookies;
+    messenger.addCookie(cookies);
   }
 
-  public void permanentRedirectTo(String permanentRedirectTo) {
-    this.redirectTo = permanentRedirectTo;
+  public void permanentRedirectTo(String redirectTo) {
+    messenger.setRedirectTo(redirectTo);
     this.permanentRedirect = true;
   }
 
-  public void setCookie(String name, String value) {
-    this.cookies.add(new ResponseCookie(name, value));
-  }
-
-  public void setCookie(String name, String value, long maxAge, boolean secure, boolean httpOnly) {
-    this.cookies.add(new ResponseCookie(name, value, maxAge, secure, httpOnly));
-  }
-
   public void setCookie(String name, String value, long maxAge, boolean secure, boolean httpOnly, String domain) {
-    ResponseCookie cookie = new ResponseCookie(name, value, maxAge, secure, httpOnly);
-    cookie.setDomain(domain);
-    this.cookies.add(cookie);
+    messenger.setCookie(name, value, maxAge, secure, httpOnly, domain);
   }
 
   public boolean hasContent() {
-    return OK != status || null != redirectTo || null != content || null != file;
+    return OK != status || null != messenger.getRedirectTo() || null != content || null != file;
   }
 }
