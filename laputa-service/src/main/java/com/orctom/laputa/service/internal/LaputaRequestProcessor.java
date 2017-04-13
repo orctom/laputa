@@ -127,7 +127,7 @@ class LaputaRequestProcessor {
       responseWrapper.setContent(e.getMessage().getBytes());
 
     } finally {
-      sendResponse(ctx, req, responseWrapper);
+      translateResponse(ctx, req, responseWrapper);
     }
   }
 
@@ -163,7 +163,7 @@ class LaputaRequestProcessor {
     }
   }
 
-  private void sendResponse(ChannelHandlerContext ctx, FullHttpRequest req, ResponseWrapper responseWrapper) {
+  private void translateResponse(ChannelHandlerContext ctx, FullHttpRequest req, ResponseWrapper responseWrapper) {
     ResponseTranslators.search(translator -> {
       if (translator.fits(responseWrapper)) {
         translator.translate(ctx, req, responseWrapper);
