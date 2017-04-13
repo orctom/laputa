@@ -54,7 +54,7 @@ public class WebRequestProcessor implements RequestProcessor {
 
   public WebRequestProcessor() {
     initStaticPaths();
-    registerFileResponseTranslator();
+    registerTranslator();
   }
 
   @SuppressWarnings("unchecked")
@@ -66,7 +66,7 @@ public class WebRequestProcessor implements RequestProcessor {
     }
   }
 
-  private void registerFileResponseTranslator() {
+  private void registerTranslator() {
     ResponseTranslators.register(new FileResponseTranslator());
   }
 
