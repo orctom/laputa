@@ -121,6 +121,6 @@ public class ResponseWrapper {
   }
 
   public boolean hasContent() {
-    return OK != status || null != messenger.getRedirectTo() || null != content || null != file;
+    return null != result || OK != status || null != messenger.getRedirectTo() || null != content || null != file;
   }
 }
