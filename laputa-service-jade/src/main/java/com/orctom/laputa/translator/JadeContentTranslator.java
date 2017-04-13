@@ -28,7 +28,7 @@ public class JadeContentTranslator extends TemplateContentTranslator<JadeTemplat
   @Override
   public byte[] translate(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) throws IOException {
     try {
-      JadeTemplate template = getTemplate(responseWrapper.getTemplate());
+      JadeTemplate template = getTemplate(requestWrapper, responseWrapper);
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       Writer writer = new BufferedWriter(new OutputStreamWriter(out));
       Map<String, Object> model = getModel(responseWrapper);
