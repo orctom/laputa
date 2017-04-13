@@ -4,6 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.orctom.laputa.service.model.MediaType;
+import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import io.protostuff.GraphIOUtil;
 import io.protostuff.LinkedBuffer;
@@ -42,7 +43,7 @@ class ProtoBufContentTranslator implements ContentTranslator {
 
   @Override
   @SuppressWarnings("unchecked")
-  public byte[] translate(ResponseWrapper responseWrapper) throws IOException {
+  public byte[] translate(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) throws IOException {
     Object result = responseWrapper.getResult();
     Schema schema;
     try {

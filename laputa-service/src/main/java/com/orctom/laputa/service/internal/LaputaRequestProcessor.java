@@ -151,7 +151,7 @@ class LaputaRequestProcessor {
     }
 
     try {
-      byte[] content = translator.translate(responseWrapper);
+      byte[] content = translator.translate(requestWrapper, responseWrapper);
       responseWrapper.setContent(content);
 
     } catch (IOException e) {

@@ -2,6 +2,7 @@ package com.orctom.laputa.service.translator.content;
 
 import com.alibaba.fastjson.JSON;
 import com.orctom.laputa.service.model.MediaType;
+import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ class JsonContentTranslator implements ContentTranslator {
   }
 
   @Override
-  public byte[] translate(ResponseWrapper responseWrapper) throws IOException {
+  public byte[] translate(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) throws IOException {
     return toBytes(JSON.toJSONString(responseWrapper.getResult()));
   }
 }

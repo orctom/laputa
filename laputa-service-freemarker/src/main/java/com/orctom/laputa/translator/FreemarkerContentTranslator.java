@@ -2,6 +2,7 @@ package com.orctom.laputa.translator;
 
 import com.orctom.laputa.exception.IllegalConfigException;
 import com.orctom.laputa.service.exception.TemplateProcessingException;
+import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.translator.content.TemplateContentTranslator;
 import freemarker.template.Configuration;
@@ -41,9 +42,9 @@ public class FreemarkerContentTranslator extends TemplateContentTranslator<Templ
   }
 
   @Override
-  public byte[] translate(ResponseWrapper responseWrapper) throws IOException {
+  public byte[] translate(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) throws IOException {
     try {
-      Template template = getTemplate(responseWrapper.getTemplate());
+      Template template = getTemplate(requestWrapper, responseWrapper);
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       Writer writer = new BufferedWriter(new OutputStreamWriter(out));
       Map<String, Object> model = getModel(responseWrapper);

@@ -1,15 +1,13 @@
 package com.orctom.laputa.translator;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.orctom.laputa.exception.IllegalConfigException;
 import com.orctom.laputa.service.exception.TemplateProcessingException;
+import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.translator.content.TemplateContentTranslator;
 import de.neuland.jade4j.Jade4J;
 import de.neuland.jade4j.model.JadeModel;
 import de.neuland.jade4j.template.JadeTemplate;
-import org.apache.commons.collections.map.HashedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +16,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -29,7 +26,7 @@ public class JadeContentTranslator extends TemplateContentTranslator<JadeTemplat
   private static final String TEMPLATE_SUFFIX = ".jade";
 
   @Override
-  public byte[] translate(ResponseWrapper responseWrapper) throws IOException {
+  public byte[] translate(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) throws IOException {
     try {
       JadeTemplate template = getTemplate(responseWrapper.getTemplate());
       ByteArrayOutputStream out = new ByteArrayOutputStream();

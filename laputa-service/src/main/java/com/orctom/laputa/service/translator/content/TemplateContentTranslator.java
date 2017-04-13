@@ -7,6 +7,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.model.MediaType;
+import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 
 import java.util.Collections;
@@ -64,9 +65,10 @@ public abstract class TemplateContentTranslator<T> implements ContentTranslator 
     }
   }
 
-  protected T getTemplate(String template) throws ExecutionException {
+  protected T getTemplate(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) throws ExecutionException {
+    String template = responseWrapper.getTemplate();
     if (Strings.isNullOrEmpty(template)) {
-      throw new NullPointerException("Template path is null");
+      throw new NullPointerException("Template path is null, url: " + requestWrapper.getPath());
     }
 
     if (isDebugEnabled) {
