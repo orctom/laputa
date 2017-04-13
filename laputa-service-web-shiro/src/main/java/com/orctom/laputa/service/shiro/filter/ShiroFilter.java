@@ -1,4 +1,4 @@
-package com.orctom.laputa.service.shiro.processor;
+package com.orctom.laputa.service.shiro.filter;
 
 import com.orctom.laputa.service.filter.Filter;
 import com.orctom.laputa.service.filter.FilterChain;
@@ -12,6 +12,8 @@ import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
 
 import static com.orctom.laputa.service.shiro.ShiroContext.getFilterChainResolver;
 import static com.orctom.laputa.service.shiro.ShiroContext.getSecurityManager;
@@ -58,6 +60,14 @@ public class ShiroFilter implements Filter {
   private void executeChain(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, FilterChain filterChain) {
     FilterChain chain = getExecutionChain(requestWrapper, responseWrapper, filterChain);
     chain.doFilter(requestWrapper, responseWrapper);
+    setUsernameToResponse(responseWrapper);
+  }
+
+  private void setUsernameToResponse(ResponseWrapper responseWrapper) {
+    Object username = SecurityUtils.getSubject().getPrincipal();
+    if (Objects.nonNull(username)) {
+      responseWrapper.setData("username", username);
+    }
   }
 
   private FilterChain getExecutionChain(RequestWrapper requestWrapper,

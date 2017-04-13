@@ -19,9 +19,9 @@ public abstract class AuthenticationFilter extends AccessControlFilter {
     this.successUrl = successUrl;
   }
 
-  protected boolean isAccessAllowed(RequestWrapper requestWrapper,
-                                    ResponseWrapper responseWrapper,
-                                    Object mappedValue) {
+  protected final boolean isAccessAllowed(RequestWrapper requestWrapper,
+                                          ResponseWrapper responseWrapper,
+                                          Object mappedValue) {
     Subject subject = getSubject(requestWrapper);
     return subject.isAuthenticated();
   }
