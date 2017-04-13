@@ -47,9 +47,13 @@ public class RequestWrapper {
   }
 
   private String decode(String raw) {
+    if (null == raw || raw.startsWith("--")) {
+      return raw;
+    }
+
     try {
       return URLDecoder.decode(raw, UTF_8);
-    } catch (UnsupportedEncodingException e) {
+    } catch (UnsupportedEncodingException | IllegalArgumentException e) {
       return raw;
     }
   }
