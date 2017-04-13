@@ -21,8 +21,12 @@
   <div class="row">
     <div class="col-lg-12 chart-canvas" id="canvas">
       <ul>
-        <li><a href="/login.html">login.html</a></li>
+      <#if username??>
+        <li>Logged in as ${username}</li>
         <li><a href="/logout.html">logout.html</a></li>
+      <#else>
+        <li><a href="/login.html">login.html</a></li>
+      </#if>
         <li><a href="/product/sku.html">product/sku.html (login required)</a></li>
       </ul>
     </div>

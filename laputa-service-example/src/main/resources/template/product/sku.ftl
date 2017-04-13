@@ -21,8 +21,12 @@
   <div class="row">
     <div class="col-lg-12 chart-canvas" id="canvas">
       <ul>
-        <li><a href="/login.html">login.html</a></li>
+      <#if username??>
+        <li>Logged in as ${username}</li>
         <li><a href="/logout.html">logout.html</a></li>
+      <#else>
+        <li><a href="/login.html">login.html</a></li>
+      </#if>
       </ul>
     </div>
   </div>
@@ -30,9 +34,9 @@
     <div class="col-lg-12 chart-canvas" id="canvas">
       sku<br/>
       
-      sku: ${result.sku}
+      sku: ${model.sku}
       <br/>
-      desc: ${result.desc}
+      desc: ${model.desc}
     </div>
   </div>
 </div>

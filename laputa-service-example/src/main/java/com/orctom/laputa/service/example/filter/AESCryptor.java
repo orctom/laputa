@@ -1,4 +1,4 @@
-package com.orctom.laputa.service.example.processor;
+package com.orctom.laputa.service.example.filter;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;

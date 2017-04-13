@@ -11,14 +11,11 @@ import com.orctom.laputa.service.example.model.Products;
 import com.orctom.laputa.service.example.model.SKU;
 import com.orctom.laputa.service.model.Messenger;
 import com.orctom.laputa.service.model.MultipartFile;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 
 import javax.validation.constraints.Size;
-import java.util.List;
 
 @Controller
 @Path("/product")
@@ -54,11 +51,6 @@ public class Product {
 
   @Path("/sku")
   public SKU sku() {
-    Subject subject = SecurityUtils.getSubject();
-    List<Object> list = subject.getPrincipals().asList();
-    for (Object o : list) {
-      System.out.println(o);
-    }
     return new SKU("315515", "folder", 123456, 100000);
   }
 
