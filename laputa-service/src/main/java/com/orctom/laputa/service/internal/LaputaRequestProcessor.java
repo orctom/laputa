@@ -138,8 +138,6 @@ class LaputaRequestProcessor {
         return;
       }
     }
-
-    LOGGER.error("Unhandled request: {}", requestWrapper.getUri());
   }
 
   private void translateContent(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
