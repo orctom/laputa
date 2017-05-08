@@ -1,4 +1,4 @@
-package com.orctom.laputa.config.model;
+package com.orctom.laputa.consul.model;
 
 import java.util.List;
 import java.util.Objects;
@@ -59,7 +59,9 @@ public class Service {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
+    if (this == o) {
+      return true;
+    }
     if (o == null || getClass() != o.getClass()) {
       return false;
     }

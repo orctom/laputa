@@ -1,4 +1,4 @@
-package com.orctom.laputa.config.model;
+package com.orctom.laputa.consul.model;
 
 import java.util.List;
 import java.util.Objects;

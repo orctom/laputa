@@ -38,9 +38,10 @@
   <modules>
     <module>laputa-utils</module>
     <module>laputa-http-client</module>
+    <module>laputa-consul-client</module>
+    <module>laputa-config</module>
     <module>laputa-client</module>
     <module>laputa-service</module>
-    <module>laputa-config</module>
     <module>laputa-service-web</module>
     <module>laputa-service-web-shiro</module>
     <module>laputa-service-freemarker</module>
