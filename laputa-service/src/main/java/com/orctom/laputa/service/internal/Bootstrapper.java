@@ -8,7 +8,10 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.cors.CorsConfig;
 import io.netty.handler.codec.http.cors.CorsConfigBuilder;
@@ -53,17 +56,27 @@ public class Bootstrapper extends Thread {
   @Override
   public void run() {
     Config config = Configurator.getInstance().getConfig();
+    boolean useNativeEpoll = config.hasPath(CFG_SERVER_USE_EPOLL) && config.getBoolean(CFG_SERVER_USE_EPOLL);
 
-    bossGroup = new NioEventLoopGroup(1);
-    workerGroup = new NioEventLoopGroup();
+    Class<? extends ServerSocketChannel> channelClass;
+    if (useNativeEpoll) {
+      bossGroup = new EpollEventLoopGroup(1);
+      workerGroup = new EpollEventLoopGroup();
+      channelClass = EpollServerSocketChannel.class;
+
+    } else {
+      bossGroup = new NioEventLoopGroup(1);
+      workerGroup = new NioEventLoopGroup();
+      channelClass = NioServerSocketChannel.class;
+    }
 
     try {
       setupSSLContext();
 
       ServerBootstrap b = new ServerBootstrap();
-      b.option(ChannelOption.SO_BACKLOG, 1024);
-      b.group(bossGroup, workerGroup)
-          .channel(NioServerSocketChannel.class)
+      b.option(ChannelOption.SO_BACKLOG, 1024)
+          .group(bossGroup, workerGroup)
+          .channel(channelClass)
           .handler(new LoggingHandler(LogLevel.INFO))
           .childHandler(new LaputaServerInitializer(
               sslContext,

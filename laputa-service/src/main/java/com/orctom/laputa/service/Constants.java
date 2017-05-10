@@ -17,6 +17,7 @@ public class Constants {
   public static final String CFG_URI = "uri";
   public static final String CFG_PATH = "path";
   public static final String CFG_UPLOAD_DIR = "upload.dir";
+  public static final String CFG_SERVER_USE_EPOLL = "server.epoll";
   public static final String CFG_STATIC_FILE_CACHE = "static.file.cache";
   public static final String CFG_SERVER_HTTP_PORT = "server.http.port";
   public static final String CFG_SERVER_HTTPS_PORT = "server.https.port";
