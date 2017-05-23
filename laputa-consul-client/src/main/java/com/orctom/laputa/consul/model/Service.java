@@ -5,56 +5,88 @@ import java.util.Objects;
 
 public class Service {
 
-  private String node;
-  private String nodeAddress;
-  private String serviceAddress;
-  private String serviceId;
-  private String serviceName;
-  private List<String> serviceTags;
-  private int servicePort;
+  private String name;
+  private String id;
+  private List<String> tags;
+  private String address;
+  private int port;
+  private List<Check> checks;
 
-  public Service(String node,
-                 String nodeAddress,
-                 String serviceAddress,
-                 String serviceId,
-                 String serviceName,
-                 List<String> serviceTags,
-                 int servicePort) {
-    this.node = node;
-    this.nodeAddress = nodeAddress;
-    this.serviceAddress = serviceAddress;
-    this.serviceId = serviceId;
-    this.serviceName = serviceName;
-    this.serviceTags = serviceTags;
-    this.servicePort = servicePort;
+  public Service() {
   }
 
-  public String getNode() {
-    return node;
+  public Service(String name,
+                 String id,
+                 List<String> tags,
+                 String address,
+                 int port) {
+    this.name = name;
+    this.id = id;
+    this.tags = tags;
+    this.address = address;
+    this.port = port;
   }
 
-  public String getNodeAddress() {
-    return nodeAddress;
+  public Service(String name,
+                 String id,
+                 List<String> tags,
+                 String address,
+                 int port,
+                 List<Check> checks) {
+    this.name = name;
+    this.id = id;
+    this.tags = tags;
+    this.address = address;
+    this.port = port;
+    this.checks = checks;
   }
 
-  public String getServiceAddress() {
-    return serviceAddress;
+  public String getId() {
+    return id;
   }
 
-  public String getServiceId() {
-    return serviceId;
+  public String getName() {
+    return name;
   }
 
-  public String getServiceName() {
-    return serviceName;
+  public void setName(String name) {
+    this.name = name;
   }
 
-  public List<String> getServiceTags() {
-    return serviceTags;
+  public void setId(String id) {
+    this.id = id;
   }
 
-  public int getServicePort() {
-    return servicePort;
+  public List<String> getTags() {
+    return tags;
+  }
+
+  public void setTags(List<String> tags) {
+    this.tags = tags;
+  }
+
+  public String getAddress() {
+    return address;
+  }
+
+  public void setAddress(String address) {
+    this.address = address;
+  }
+
+  public int getPort() {
+    return port;
+  }
+
+  public void setPort(int port) {
+    this.port = port;
+  }
+
+  public List<Check> getChecks() {
+    return checks;
+  }
+
+  public void setChecks(List<Check> checks) {
+    this.checks = checks;
   }
 
   @Override
@@ -68,17 +100,53 @@ public class Service {
 
     Service that = (Service) o;
 
-    return Objects.equals(node, that.node)
-        && Objects.equals(nodeAddress, that.nodeAddress)
-        && Objects.equals(serviceId, that.serviceId)
-        && Objects.equals(serviceName, that.serviceName)
-        && Objects.equals(serviceTags, that.serviceTags)
-        && Objects.equals(serviceAddress, that.serviceAddress)
-        && Objects.equals(servicePort, that.servicePort);
+    return Objects.equals(id, that.id)
+        && Objects.equals(name, that.name)
+        && Objects.equals(tags, that.tags)
+        && Objects.equals(address, that.address)
+        && Objects.equals(port, that.port);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(node, nodeAddress, serviceId, serviceName, serviceTags, serviceAddress, servicePort);
+    return Objects.hash(name, id, tags, address, port);
+  }
+
+  public static class ServiceBuilder {
+
+    private String name;
+    private String id;
+    private List<String> tags;
+    private String address;
+    private int port;
+
+    public ServiceBuilder id(String id) {
+      this.id = id;
+      return this;
+    }
+
+    public ServiceBuilder name(String name) {
+      this.name = name;
+      return this;
+    }
+
+    public ServiceBuilder tags(List<String> tags) {
+      this.tags = tags;
+      return this;
+    }
+
+    public ServiceBuilder address(String address) {
+      this.address = address;
+      return this;
+    }
+
+    public ServiceBuilder port(int port) {
+      this.port = port;
+      return this;
+    }
+
+    public Service build() {
+      return new Service(name, id, tags, address, port);
+    }
   }
 }
