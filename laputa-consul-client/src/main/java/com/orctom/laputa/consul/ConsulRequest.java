@@ -9,9 +9,9 @@ public abstract class ConsulRequest {
   }
 
   public void execute() {
-    ConsulRequestExecutor.submit(() -> {
-
-    });
+//    ConsulRequestExecutor.submit(() -> {
+//
+//    });
   }
 
   Consul getConsul() {

@@ -83,6 +83,13 @@ public class Product {
     return "success..";
   }
 
+  @Path("/bytes")
+  @POST
+  public String bytes(@Data byte[] bytes) {
+    System.out.println(bytes.length);
+    return "success..";
+  }
+
   // curl -F "file=@sent.txt" http://localhost:7000/product/upload | less
   @POST
   @Path("/upload")
