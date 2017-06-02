@@ -11,7 +11,7 @@ import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.SubjectContext;
 
-public class laputaSubjectFactory extends DefaultSubjectFactory {
+public class LaputaSubjectFactory extends DefaultSubjectFactory {
 
   public Subject createSubject(SubjectContext subjectContext) {
     if (!(subjectContext instanceof LaputaSubjectContext)) {

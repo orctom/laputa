@@ -24,7 +24,7 @@ public class LaputaSecurityManager extends DefaultSecurityManager {
   public LaputaSecurityManager() {
     super();
     ((DefaultSubjectDAO) this.subjectDAO).setSessionStorageEvaluator(new LaputaSessionStorageEvaluator());
-    setSubjectFactory(new laputaSubjectFactory());
+    setSubjectFactory(new LaputaSubjectFactory());
     setRememberMeManager(new CookieRememberMeManager());
     setSessionManager(new LaputaSessionManager());
   }
