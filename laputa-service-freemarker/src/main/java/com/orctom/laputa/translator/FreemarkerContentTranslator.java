@@ -11,12 +11,11 @@ import freemarker.template.TemplateExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.StringWriter;
 import java.util.Map;
+
+import static com.orctom.laputa.service.Constants.PATH_SEPARATOR;
 
 /**
  * Freemarker web page renderer
@@ -31,7 +30,7 @@ public class FreemarkerContentTranslator extends TemplateContentTranslator<Templ
   private static final Configuration cfg = new Configuration(Configuration.VERSION_2_3_23);
 
   public FreemarkerContentTranslator() {
-    cfg.setClassForTemplateLoading(FreemarkerContentTranslator.class, TEMPLATE_PREFIX);
+    cfg.setClassForTemplateLoading(FreemarkerContentTranslator.class, PATH_SEPARATOR + TEMPLATE_PREFIX);
     cfg.setDefaultEncoding("UTF-8");
     cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
     cfg.setLogTemplateExceptions(false);
@@ -45,11 +44,10 @@ public class FreemarkerContentTranslator extends TemplateContentTranslator<Templ
   public byte[] translate(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) throws IOException {
     try {
       Template template = getTemplate(requestWrapper, responseWrapper);
-      ByteArrayOutputStream out = new ByteArrayOutputStream();
-      Writer writer = new BufferedWriter(new OutputStreamWriter(out));
+      StringWriter writer = new StringWriter();
       Map<String, Object> model = getModel(responseWrapper);
       template.process(model, writer);
-      return out.toByteArray();
+      return writer.toString().getBytes();
     } catch (Exception e) {
       throw new TemplateProcessingException(e.getMessage(), e);
     }

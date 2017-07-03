@@ -145,6 +145,10 @@ class LaputaRequestProcessor {
       return;
     }
 
+    if (null == responseWrapper.getTemplate()) {
+      return;
+    }
+
     ContentTranslator translator = ContentTranslators.getTranslator(requestWrapper);
     if (null == responseWrapper.getResult() && !(translator instanceof TemplateContentTranslator)) {
       return;

@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutionException;
 
 public abstract class TemplateContentTranslator<T> implements ContentTranslator {
 
-  protected static final String TEMPLATE_PREFIX = "/template";
+  protected static final String TEMPLATE_PREFIX = "template";
 
   protected static final MediaType TYPE = MediaType.TEXT_HTML;
 
