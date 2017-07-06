@@ -11,8 +11,10 @@ import freemarker.template.TemplateExceptionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.Map;
 
 import static com.orctom.laputa.service.Constants.PATH_SEPARATOR;
@@ -44,10 +46,12 @@ public class FreemarkerContentTranslator extends TemplateContentTranslator<Templ
   public byte[] translate(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) throws IOException {
     try {
       Template template = getTemplate(requestWrapper, responseWrapper);
-      StringWriter writer = new StringWriter();
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
       Map<String, Object> model = getModel(responseWrapper);
-      template.process(model, writer);
-      return writer.toString().getBytes();
+      try (Writer writer = new OutputStreamWriter(out)) {
+        template.process(model, writer);
+      }
+      return out.toByteArray();
     } catch (Exception e) {
       throw new TemplateProcessingException(e.getMessage(), e);
     }

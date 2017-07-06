@@ -12,8 +12,10 @@ import de.neuland.jade4j.template.JadeTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -29,11 +31,13 @@ public class JadeContentTranslator extends TemplateContentTranslator<JadeTemplat
   public byte[] translate(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) throws IOException {
     try {
       JadeTemplate template = getTemplate(requestWrapper, responseWrapper);
-      StringWriter writer = new StringWriter();
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
       Map<String, Object> model = getModel(responseWrapper);
-      template.process(new JadeModel(model), writer);
+      try (Writer writer = new OutputStreamWriter(out)) {
+        template.process(new JadeModel(model), writer);
+      }
+      return out.toByteArray();
 
-      return writer.toString().getBytes();
     } catch (ExecutionException e) {
       throw new TemplateProcessingException(e.getMessage(), e);
     }
