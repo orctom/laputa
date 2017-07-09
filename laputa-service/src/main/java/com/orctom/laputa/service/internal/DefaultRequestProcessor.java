@@ -98,10 +98,13 @@ public class DefaultRequestProcessor implements RequestProcessor {
   public void handleRequest(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     try {
       createFilterChain().doFilter(requestWrapper, responseWrapper);
+    } catch (RequestProcessingException e) {
+      throw e;
     } catch (Exception e) {
-      responseWrapper.setRedirectTo(PATH_500);
-      responseWrapper.setData("error", INTERNAL_SERVER_ERROR.reasonPhrase());
-      LOGGER.error(e.getMessage(), e);
+      throw new RequestProcessingException(e.getMessage(), e);
+//      responseWrapper.setRedirectTo(PATH_500);
+//      responseWrapper.setData("error", INTERNAL_SERVER_ERROR.reasonPhrase());
+//      LOGGER.error(e.getMessage(), e);
     }
   }
 
@@ -132,10 +135,11 @@ public class DefaultRequestProcessor implements RequestProcessor {
       LOGGER.error(e.getMessage(), e);
 
     } catch (Exception e) {
-      result = new Response(INTERNAL_SERVER_ERROR.code(), Lists.newArrayList(INTERNAL_SERVER_ERROR.reasonPhrase()));
-      responseWrapper.setRedirectTo(PATH_500);
-      responseWrapper.setData("error", INTERNAL_SERVER_ERROR.reasonPhrase());
-      LOGGER.error(e.getMessage(), e);
+      throw new RequestProcessingException(e.getMessage(), e);
+//      result = new Response(INTERNAL_SERVER_ERROR.code(), Lists.newArrayList(INTERNAL_SERVER_ERROR.reasonPhrase()));
+//      responseWrapper.setRedirectTo(PATH_500);
+//      responseWrapper.setData("error", INTERNAL_SERVER_ERROR.reasonPhrase());
+//      LOGGER.error(e.getMessage(), e);
     }
 
     responseWrapper.setResult(result);
@@ -229,12 +233,10 @@ public class DefaultRequestProcessor implements RequestProcessor {
       return handlerMethod.invoke(target, args);
 
     } catch (InvocationTargetException e) {
-      LOGGER.error(e.getMessage(), e);
-      throw new RequestProcessingException(e.getTargetException().getMessage());
+      throw new RequestProcessingException(e.getTargetException().getMessage(), e);
 
     } catch (Exception e) {
-      LOGGER.error(e.getMessage(), e);
-      throw new RequestProcessingException(e.getMessage());
+      throw new RequestProcessingException(e.getMessage(), e);
     }
   }
 

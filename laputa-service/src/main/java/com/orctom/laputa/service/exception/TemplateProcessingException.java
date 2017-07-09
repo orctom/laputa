@@ -1,8 +1,6 @@
 package com.orctom.laputa.service.exception;
 
-import com.orctom.laputa.exception.FastException;
-
-public class TemplateProcessingException extends FastException {
+public class TemplateProcessingException extends RuntimeException {
 
   public TemplateProcessingException(String message) {
     super(message);

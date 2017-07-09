@@ -61,7 +61,7 @@ public class FreemarkerContentTranslator extends TemplateContentTranslator<Templ
     try {
       String templatePath = template + TEMPLATE_SUFFIX;
       return cfg.getTemplate(templatePath);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new IllegalConfigException(e.getMessage());
     }
   }

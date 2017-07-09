@@ -1,8 +1,6 @@
 package com.orctom.laputa.service.exception;
 
-import com.orctom.laputa.exception.FastException;
-
-public class FileUploadException extends FastException {
+public class FileUploadException extends RuntimeException {
 
   public FileUploadException(String message) {
     super(message);

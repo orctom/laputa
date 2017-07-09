@@ -1,5 +1,6 @@
 package com.orctom.laputa.service.shiro.filter;
 
+import com.orctom.laputa.service.exception.RequestProcessingException;
 import com.orctom.laputa.service.filter.Filter;
 import com.orctom.laputa.service.filter.FilterChain;
 import com.orctom.laputa.service.model.RequestWrapper;
@@ -38,7 +39,8 @@ public abstract class AbstractFilter implements Filter {
   }
 
   protected void onException(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, Exception e) {
-    LOGGER.error(e.getMessage(), e);
-    responseWrapper.setRedirectTo(PATH_500);
+    throw new RequestProcessingException(e.getMessage(), e);
+//    LOGGER.error(e.getMessage(), e);
+//    responseWrapper.setRedirectTo(PATH_500);
   }
 }

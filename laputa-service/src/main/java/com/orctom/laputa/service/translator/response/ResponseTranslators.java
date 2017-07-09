@@ -14,9 +14,9 @@ public abstract class ResponseTranslators {
   private static final List<ResponseTranslator> REGISTRY = new ArrayList<>();
 
   static {
-    REGISTRY.add(new ErrorResponseTranslator());
     REGISTRY.add(new RedirectResponseTranslator());
     REGISTRY.add(new ContentResponseTranslator());
+    REGISTRY.add(new ErrorResponseTranslator());
   }
 
   public synchronized static void register(ResponseTranslator translator) {

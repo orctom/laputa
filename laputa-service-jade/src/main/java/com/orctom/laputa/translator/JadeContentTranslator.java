@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import static com.orctom.laputa.service.Constants.PATH_SEPARATOR;
 
@@ -38,7 +37,7 @@ public class JadeContentTranslator extends TemplateContentTranslator<JadeTemplat
       }
       return out.toByteArray();
 
-    } catch (ExecutionException e) {
+    } catch (Exception e) {
       throw new TemplateProcessingException(e.getMessage(), e);
     }
   }
@@ -48,7 +47,7 @@ public class JadeContentTranslator extends TemplateContentTranslator<JadeTemplat
       String templatePath = TEMPLATE_PREFIX + PATH_SEPARATOR + template + TEMPLATE_SUFFIX;
       return getJadeTemplate(templatePath);
 
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new IllegalConfigException(e.getMessage());
     }
   }

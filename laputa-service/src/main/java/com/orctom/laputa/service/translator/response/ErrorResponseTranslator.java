@@ -8,6 +8,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 
 import static com.orctom.laputa.service.model.MediaType.TEXT_HTML;
 import static com.orctom.laputa.service.model.MediaType.TEXT_PLAIN;
+import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
 
 public class ErrorResponseTranslator extends AbstractResponseTranslator implements ResponseTranslator {
 
@@ -24,6 +25,10 @@ public class ErrorResponseTranslator extends AbstractResponseTranslator implemen
     res.headers().set(HttpHeaderNames.CONTENT_TYPE, mediaType);
     setNoCacheHeader(res);
     setCookies(res, responseWrapper.getCookies());
+
+    if (null == responseWrapper.getContent() || 0 == responseWrapper.getContent().length) {
+      responseWrapper.setContent(INTERNAL_SERVER_ERROR.reasonPhrase().getBytes());
+    }
     writeResponse(ctx, req, res, responseWrapper.getStatus());
   }
 }

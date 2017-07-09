@@ -1,8 +1,6 @@
 package com.orctom.laputa.service.exception;
 
-import com.orctom.laputa.exception.FastException;
-
-public class RequestProcessingException extends FastException {
+public class RequestProcessingException extends RuntimeException {
 
   public RequestProcessingException(String message) {
     super(message);

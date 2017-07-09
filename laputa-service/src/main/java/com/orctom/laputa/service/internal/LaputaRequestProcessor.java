@@ -6,6 +6,7 @@ import com.google.common.util.concurrent.RateLimiter;
 import com.orctom.laputa.service.config.Configurator;
 import com.orctom.laputa.service.exception.FileUploadException;
 import com.orctom.laputa.service.exception.RequestProcessingException;
+import com.orctom.laputa.service.model.MediaType;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.processor.RequestProcessor;
@@ -122,12 +123,20 @@ class LaputaRequestProcessor {
 
     } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
+      responseWrapper.setTemplate("/500");
       responseWrapper.setMediaType(TEXT_PLAIN.getValue());
-      responseWrapper.setStatus(BAD_REQUEST);
-      responseWrapper.setContent(e.getMessage().getBytes());
+      responseWrapper.setStatus(INTERNAL_SERVER_ERROR);
+      if (null != e.getMessage()) {
+        responseWrapper.setContent(e.getMessage().getBytes());
+      }
 
     } finally {
-      translateResponse(ctx, req, responseWrapper);
+      try {
+        translateResponse(ctx, req, responseWrapper);
+      } catch (Exception e) {
+        LOGGER.error(e.getMessage(), e);
+        render500(requestWrapper, responseWrapper);
+      }
     }
   }
 
@@ -157,10 +166,21 @@ class LaputaRequestProcessor {
     try {
       byte[] content = translator.translate(requestWrapper, responseWrapper);
       responseWrapper.setContent(content);
+      responseWrapper.setMediaType(MediaType.TEXT_HTML.getValue());
 
     } catch (IOException e) {
-      responseWrapper.setRedirectTo(PATH_500);
-      responseWrapper.setData("error", INTERNAL_SERVER_ERROR.reasonPhrase());
+      throw new RequestProcessingException(e.getMessage(), e);
+    }
+  }
+
+  private void render500(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
+    ContentTranslator translator = ContentTranslators.getTranslator(requestWrapper);
+    try {
+      responseWrapper.setTemplate("/500");
+      byte[] content = translator.translate(requestWrapper, responseWrapper);
+      responseWrapper.setContent(content);
+      responseWrapper.setMediaType(MediaType.TEXT_HTML.getValue());
+    } catch (Exception e) {
       LOGGER.error(e.getMessage(), e);
     }
   }
@@ -239,7 +259,7 @@ class LaputaRequestProcessor {
       String name = attribute.getName();
       List<String> params = parameters.computeIfAbsent(name, k -> new ArrayList<>());
       params.add(value);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new RequestProcessingException(e.getMessage(), e);
     }
   }
@@ -250,7 +270,7 @@ class LaputaRequestProcessor {
       parameters.put(fileUpload.getName() + FILE, Lists.newArrayList(uploadedFile.getAbsolutePath()));
       parameters.put(fileUpload.getName() + FILENAME, Lists.newArrayList(fileUpload.getFilename()));
       parameters.put(fileUpload.getName() + CONTENT_TYPE, Lists.newArrayList(fileUpload.getContentType()));
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new FileUploadException("Failed to upload file: " + e.getMessage(), e);
     }
   }
