@@ -5,6 +5,7 @@ import com.orctom.laputa.service.exception.TemplateProcessingException;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.translator.content.TemplateContentTranslator;
+import com.orctom.laputa.utils.URLUtils;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;
@@ -59,7 +60,7 @@ public class FreemarkerContentTranslator extends TemplateContentTranslator<Templ
 
   protected Template getTemplate0(String template) {
     try {
-      String templatePath = template + TEMPLATE_SUFFIX;
+      String templatePath = URLUtils.removeDoubleSlashes(template + TEMPLATE_SUFFIX);
       return cfg.getTemplate(templatePath);
     } catch (Exception e) {
       throw new IllegalConfigException(e.getMessage());

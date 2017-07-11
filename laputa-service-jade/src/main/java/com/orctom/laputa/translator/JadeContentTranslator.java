@@ -5,6 +5,7 @@ import com.orctom.laputa.service.exception.TemplateProcessingException;
 import com.orctom.laputa.service.model.RequestWrapper;
 import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.translator.content.TemplateContentTranslator;
+import com.orctom.laputa.utils.URLUtils;
 import de.neuland.jade4j.JadeConfiguration;
 import de.neuland.jade4j.model.JadeModel;
 import de.neuland.jade4j.template.ClasspathTemplateLoader;
@@ -44,7 +45,7 @@ public class JadeContentTranslator extends TemplateContentTranslator<JadeTemplat
 
   protected JadeTemplate getTemplate0(String template) {
     try {
-      String templatePath = TEMPLATE_PREFIX + PATH_SEPARATOR + template + TEMPLATE_SUFFIX;
+      String templatePath = URLUtils.removeDoubleSlashes(TEMPLATE_PREFIX + PATH_SEPARATOR + template + TEMPLATE_SUFFIX);
       return getJadeTemplate(templatePath);
 
     } catch (Exception e) {

@@ -12,16 +12,21 @@ import static java.util.stream.Collectors.toList;
 public abstract class URLUtils {
 
   private static final Pattern PATTERN_AND = Pattern.compile("&");
+  private static final Pattern PATTERN_DOUBLE_SLASHES = Pattern.compile("(?<!(http:|https:))[/+]+");
 
-  public Map<String, List<String>> parseQueryString(URI uri) {
+  public static Map<String, List<String>> parseQueryString(URI uri) {
     return PATTERN_AND.splitAsStream(uri.getQuery())
         .map(s -> Arrays.copyOf(s.split("="), 2))
         .collect(Collectors.groupingBy(s -> s[0], Collectors.mapping(s -> s[1], toList())));
   }
 
-  public Map<String, List<String>> parseQueryString(String queryString) {
+  public static Map<String, List<String>> parseQueryString(String queryString) {
     return PATTERN_AND.splitAsStream(queryString)
           .map(s -> Arrays.copyOf(s.split("="), 2))
         .collect(Collectors.groupingBy(s -> s[0], Collectors.mapping(s -> s[1], toList())));
+  }
+
+  public static String removeDoubleSlashes(String url) {
+    return PATTERN_DOUBLE_SLASHES.matcher(url).replaceAll("/");
   }
 }
