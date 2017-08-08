@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.orctom.laputa.service.model.Accepts;
 import com.orctom.laputa.service.model.MediaType;
 import com.orctom.laputa.service.model.RequestWrapper;
+import com.orctom.laputa.service.model.ResponseWrapper;
 import com.orctom.laputa.service.util.PathUtils;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import org.slf4j.Logger;
@@ -45,7 +46,7 @@ public abstract class ContentTranslators {
     REGISTRY.put(contentTranslator.getMediaType(), contentTranslator);
   }
 
-  public static ContentTranslator getTranslator(RequestWrapper requestWrapper) {
+  public static ContentTranslator getTranslator(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
     // 1, by extension
     String path = requestWrapper.getPath();
     String extension = PathUtils.getExtension(path);
@@ -56,7 +57,12 @@ public abstract class ContentTranslators {
       }
     }
 
-    // 2, by accept header
+    // 2, if media type is empty
+    if (Strings.isNullOrEmpty(responseWrapper.getMediaType())) {
+      return new StreamTranslator(responseWrapper.getMediaType(), extension);
+    }
+
+    // 3, by accept header
     String accept = requestWrapper.getHeaders().get(HttpHeaderNames.ACCEPT);
     if (Strings.isNullOrEmpty(accept)) {
       return getResponseTranslatorOfType(MediaType.APPLICATION_JSON);
@@ -68,9 +74,9 @@ public abstract class ContentTranslators {
     }
 
     for (String type : accepts) {
-      ContentTranslator encoder = REGISTRY.get(type);
-      if (null != encoder) {
-        return encoder;
+      ContentTranslator translator = REGISTRY.get(type);
+      if (null != translator) {
+        return translator;
       }
     }
 

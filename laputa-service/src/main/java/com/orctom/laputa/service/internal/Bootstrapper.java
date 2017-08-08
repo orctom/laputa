@@ -88,7 +88,7 @@ public class Bootstrapper extends Thread {
       Channel ch = b.bind(port).sync().channel();
 
       String ip = HostUtils.getIP();
-      LOGGER.warn("Service started {}{}:{}", (useSSL ? "https://" : "http://"), ip, port);
+      LOGGER.info("Service started {}{}:{}", (useSSL ? "https://" : "http://"), ip, port);
 
       ch.closeFuture().sync();
 

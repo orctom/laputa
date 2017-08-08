@@ -154,11 +154,17 @@ class LaputaRequestProcessor {
       return;
     }
 
+    Object result = responseWrapper.getResult();
+    if (null != result && result instanceof byte[]) {
+      responseWrapper.setContent((byte[]) result);
+      return;
+    }
+
     if (null == responseWrapper.getTemplate()) {
       return;
     }
 
-    ContentTranslator translator = ContentTranslators.getTranslator(requestWrapper);
+    ContentTranslator translator = ContentTranslators.getTranslator(requestWrapper, responseWrapper);
     if (null == responseWrapper.getResult() && !(translator instanceof TemplateContentTranslator)) {
       return;
     }
@@ -174,7 +180,7 @@ class LaputaRequestProcessor {
   }
 
   private void render500(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) {
-    ContentTranslator translator = ContentTranslators.getTranslator(requestWrapper);
+    ContentTranslator translator = ContentTranslators.getTranslator(requestWrapper, responseWrapper);
     try {
       responseWrapper.setTemplate("/500");
       byte[] content = translator.translate(requestWrapper, responseWrapper);
