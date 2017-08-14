@@ -123,11 +123,11 @@
           <execution>
             <phase>prepare-package</phase>
             <configuration>
-              <tasks>
+              <target>
                 <replace token="@version: alpha" value="@version: ${project.version}" dir="target/classes">
                   <include name="laputa"/>
                 </replace>
-              </tasks>
+              </target>
             </configuration>
             <goals>
               <goal>run</goal>

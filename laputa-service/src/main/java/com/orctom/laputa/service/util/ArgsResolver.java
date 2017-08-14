@@ -162,6 +162,8 @@ public abstract class ArgsResolver {
         return null == value ? null : Float.valueOf(value);
       } else if (Long.class.isAssignableFrom(type) || long.class.isAssignableFrom(type)) {
         return null == value ? null : Long.valueOf(value);
+      } else if (Boolean.class.isAssignableFrom(type) || boolean.class.isAssignableFrom(type)) {
+        return null == value ? false : Boolean.valueOf(value);
       } else {
         throw new IllegalArgumentException("Unsupported param type" + type + " " + paramName);
       }
