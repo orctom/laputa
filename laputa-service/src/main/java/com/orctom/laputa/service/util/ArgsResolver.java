@@ -154,15 +154,25 @@ public abstract class ArgsResolver {
     try {
       if (String.class.isAssignableFrom(type)) {
         return value;
-      } else if (Integer.class.isAssignableFrom(type) || int.class.isAssignableFrom(type)) {
+      } else if (Integer.class.isAssignableFrom(type)) {
         return null == value ? null : Integer.valueOf(value);
-      } else if (Double.class.isAssignableFrom(type) || double.class.isAssignableFrom(type)) {
+      } else if (int.class.isAssignableFrom(type)) {
+        return null == value ? 0 : Integer.valueOf(value);
+      } else if (Double.class.isAssignableFrom(type)) {
         return null == value ? null : Double.valueOf(value);
-      } else if (Float.class.isAssignableFrom(type) || float.class.isAssignableFrom(type)) {
+      } else if (double.class.isAssignableFrom(type)) {
+        return null == value ? 0.0d : Double.valueOf(value);
+      } else if (Float.class.isAssignableFrom(type)) {
         return null == value ? null : Float.valueOf(value);
-      } else if (Long.class.isAssignableFrom(type) || long.class.isAssignableFrom(type)) {
+      } else if (float.class.isAssignableFrom(type)) {
+        return null == value ? 0.0F : Float.valueOf(value);
+      } else if (Long.class.isAssignableFrom(type)) {
         return null == value ? null : Long.valueOf(value);
-      } else if (Boolean.class.isAssignableFrom(type) || boolean.class.isAssignableFrom(type)) {
+      } else if (long.class.isAssignableFrom(type)) {
+        return null == value ? 0 : Long.valueOf(value);
+      } else if (Boolean.class.isAssignableFrom(type)) {
+        return null == value ? null : Boolean.valueOf(value);
+      } else if (boolean.class.isAssignableFrom(type)) {
         return null == value ? false : Boolean.valueOf(value);
       } else {
         throw new IllegalArgumentException("Unsupported param type" + type + " " + paramName);

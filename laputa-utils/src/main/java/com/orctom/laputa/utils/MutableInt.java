@@ -30,8 +30,16 @@ public class MutableInt implements Comparable<MutableInt> {
     return value.incrementAndGet();
   }
 
+  public int getAndIncrease() {
+    return value.getAndIncrement();
+  }
+
   public int increaseBy(int delta) {
     return value.addAndGet(delta);
+  }
+
+  public int getAndIncreaseBy(int delta) {
+    return value.getAndAdd(delta);
   }
 
   public int decrease() {
