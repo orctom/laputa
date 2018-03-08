@@ -23,18 +23,25 @@ public class RequestMapping {
   private Class<?> dataType;
   private String httpMethod;
   private String redirectTo;
+  private boolean honorExtension;
 
-  public RequestMapping(String uriPattern,
+  public static RequestMappingBuilder builder() {
+    return new RequestMappingBuilder();
+  }
+
+  private RequestMapping(String uriPattern,
                         Object target,
                         Class<?> handlerClass,
                         Method handlerMethod,
                         String httpMethod,
-                        String redirectTo) {
+                        String redirectTo,
+                        boolean honorExtension) {
     this.uriPattern = uriPattern;
     this.target = target;
     this.handlerMethod = FastClass.create(handlerClass).getMethod(handlerMethod);
     this.httpMethod = httpMethod;
     this.redirectTo = redirectTo;
+    this.honorExtension = honorExtension;
     init(handlerMethod);
   }
 
@@ -97,8 +104,68 @@ public class RequestMapping {
     return redirectTo;
   }
 
+  public boolean isHonorExtension() {
+    return honorExtension;
+  }
+
   @Override
   public String toString() {
     return uriPattern + " " + httpMethod + " -> " + handlerMethod.getJavaMethod().toGenericString();
+  }
+
+  public static class RequestMappingBuilder {
+    private String uriPattern;
+    private Object target;
+    private Class<?> handlerClass;
+    private Method handlerMethod;
+    private String httpMethod;
+    private String redirectTo;
+    private boolean honorExtension;
+
+    public RequestMappingBuilder uriPattern(String uriPattern) {
+      this.uriPattern = uriPattern;
+      return this;
+    }
+
+    public RequestMappingBuilder target(Object target) {
+      this.target = target;
+      return this;
+    }
+
+    public RequestMappingBuilder handlerClass(Class<?> handlerClass) {
+      this.handlerClass = handlerClass;
+      return this;
+    }
+
+    public RequestMappingBuilder handlerMethod(Method handlerMethod) {
+      this.handlerMethod = handlerMethod;
+      return this;
+    }
+
+    public RequestMappingBuilder httpMethod(String httpMethod) {
+      this.httpMethod = httpMethod;
+      return this;
+    }
+
+    public RequestMappingBuilder redirectTo(String redirectTo) {
+      this.redirectTo = redirectTo;
+      return this;
+    }
+
+    public RequestMappingBuilder honorExtension(boolean honorExtension) {
+      this.honorExtension = honorExtension;
+      return this;
+    }
+
+    public RequestMapping build() {
+      return new RequestMapping(
+          uriPattern,
+          target,
+          handlerClass,
+          handlerMethod,
+          httpMethod,
+          redirectTo,
+          honorExtension);
+    }
   }
 }

@@ -28,8 +28,17 @@ public class PathTrie {
                   Class<?> handlerClass,
                   Method handlerMethod,
                   String httpMethod,
-                  String redirectTo) {
-    this.handler = new RequestMapping(uri, instance, handlerClass, handlerMethod, httpMethod, redirectTo);
+                  String redirectTo,
+                  boolean honorException) {
+    this.handler = RequestMapping.builder()
+        .uriPattern(uri)
+        .target(instance)
+        .handlerClass(handlerClass)
+        .handlerMethod(handlerMethod)
+        .httpMethod(httpMethod)
+        .redirectTo(redirectTo)
+        .honorExtension(honorException)
+        .build();
   }
 
   public RequestMapping getHandler() {

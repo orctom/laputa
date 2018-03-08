@@ -198,7 +198,7 @@ public class MappingConfig {
             "Empty value of Path annotation on " + clazz.getCanonicalName() + " " + method.getName());
       }
       String uri = basePath + pathValue;
-      addToMappings(instance, clazz, method, uri);
+      addToMappings(instance, clazz, method, uri, path.hounerExtension());
     }
   }
 
@@ -219,7 +219,7 @@ public class MappingConfig {
     return supportedHTTPMethods;
   }
 
-  private void addToMappings(Object instance, Class<?> clazz, Method method, String rawPath) {
+  private void addToMappings(Object instance, Class<?> clazz, Method method, String rawPath, boolean honorException) {
     String uri = normalize(rawPath);
     List<HTTPMethod> httpMethods = getSupportedHTTPMethods(method);
     if (null == httpMethods || httpMethods.isEmpty()) {
@@ -229,11 +229,19 @@ public class MappingConfig {
     for (HTTPMethod httpMethod : httpMethods) {
       String httpMethodKey = httpMethod.getKey();
       if (uri.contains("{")) {
-        addToWildCardMappings(instance, clazz, method, uri, httpMethodKey);
+        addToWildCardMappings(instance, clazz, method, uri, httpMethodKey, honorException);
       } else {
         RequestMapping mapping = staticMappings.put(
             uri + "/" + httpMethodKey,
-            new RequestMapping(uri, instance, clazz, method, httpMethodKey, getRedirectTo(method))
+            RequestMapping.builder()
+                .uriPattern(uri)
+                .target(instance)
+                .handlerClass(clazz)
+                .handlerMethod(method)
+                .httpMethod(httpMethodKey)
+                .redirectTo(getRedirectTo(method))
+                .honorExtension(honorException)
+                .build()
         );
         if (null != mapping && !(mapping.getTarget() instanceof DefaultController)) {
           throw new IllegalArgumentException("Conflicts found in configured @Path:\n" + uri + ", " + httpMethodKey +
@@ -250,7 +258,12 @@ public class MappingConfig {
     return uri;
   }
 
-  private void addToWildCardMappings(Object instance, Class<?> clazz, Method method, String uri, String httpMethodKey) {
+  private void addToWildCardMappings(Object instance,
+                                     Class<?> clazz,
+                                     Method method,
+                                     String uri,
+                                     String httpMethodKey,
+                                     boolean honorException) {
     String[] paths = uri.split("/");
 
     if (paths.length < 2) {
@@ -271,7 +284,7 @@ public class MappingConfig {
       children = child.getChildren();
     }
 
-    PathTrie leaf = new PathTrie(uri, instance, clazz, method, httpMethodKey, getRedirectTo(method));
+    PathTrie leaf = new PathTrie(uri, instance, clazz, method, httpMethodKey, getRedirectTo(method), honorException);
     children.put(httpMethodKey, leaf);
   }
 

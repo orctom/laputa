@@ -44,12 +44,11 @@ public class JadeContentTranslator extends TemplateContentTranslator<JadeTemplat
   }
 
   protected JadeTemplate getTemplate0(String template) {
+    String templatePath = URLUtils.removeDoubleSlashes(TEMPLATE_PREFIX + PATH_SEPARATOR + template + TEMPLATE_SUFFIX);
     try {
-      String templatePath = URLUtils.removeDoubleSlashes(TEMPLATE_PREFIX + PATH_SEPARATOR + template + TEMPLATE_SUFFIX);
       return getJadeTemplate(templatePath);
-
     } catch (Exception e) {
-      throw new IllegalConfigException(e.getMessage());
+      throw new IllegalConfigException("Failed to process template: " + templatePath + ", due to: " + e.getMessage());
     }
   }
 

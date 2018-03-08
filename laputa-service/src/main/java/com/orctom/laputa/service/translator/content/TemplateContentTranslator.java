@@ -68,7 +68,7 @@ public abstract class TemplateContentTranslator<T> implements ContentTranslator 
   protected T getTemplate(RequestWrapper requestWrapper, ResponseWrapper responseWrapper) throws ExecutionException {
     String template = responseWrapper.getTemplate();
     if (Strings.isNullOrEmpty(template)) {
-      throw new NullPointerException("Template path is null, url: " + requestWrapper.getPath());
+      throw new NullPointerException("Template path not specified, url: " + requestWrapper.getPath());
     }
 
     if (isDebugEnabled) {

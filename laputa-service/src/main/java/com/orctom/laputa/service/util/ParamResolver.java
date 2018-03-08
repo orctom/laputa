@@ -25,7 +25,7 @@ import static com.orctom.laputa.service.Constants.SIGN_DOT;
 public class ParamResolver {
 
   public static Map<String, String> extractParams(RequestMapping mapping, RequestWrapper requestWrapper) {
-    String path = requestWrapper.getPath();
+    String path = processExtention(mapping, requestWrapper.getPath());
     Map<String, List<String>> queryParameters = requestWrapper.getParams();
 
     String pattern = mapping.getUriPattern();
@@ -36,6 +36,14 @@ public class ParamResolver {
     params.putAll(extractPathParams(pattern, path));
 
     return params;
+  }
+
+  private static String processExtention(RequestMapping mapping, String path) {
+    if (mapping.isHonorExtension()) {
+      return path;
+    }
+
+    return removeExtension(path);
   }
 
   public static Map<String, String> extractDefaultValues(RequestMapping mapping) {
@@ -77,7 +85,11 @@ public class ParamResolver {
 
     Map<String, String> params = new HashMap<>();
     String[] patternItems = pattern.split(PATH_SEPARATOR);
-    String[] pathItems = removeExtension(path).split(PATH_SEPARATOR);
+    String[] pathItems = path.split(PATH_SEPARATOR);
+    if (0 == patternItems.length || 0 == pathItems.length) {
+      return params;
+    }
+
     for (int i = 0; i < patternItems.length; i++) {
       String patternItem = patternItems[i];
       String pathItem = pathItems[i];

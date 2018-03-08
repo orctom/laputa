@@ -14,4 +14,6 @@ import java.lang.annotation.Target;
 public @interface Path {
 
   String value();
+
+  boolean hounerExtension() default false;
 }

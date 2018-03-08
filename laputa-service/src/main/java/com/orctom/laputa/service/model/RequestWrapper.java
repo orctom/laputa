@@ -1,6 +1,7 @@
 package com.orctom.laputa.service.model;
 
 import com.google.common.base.Strings;
+import com.orctom.laputa.service.util.PathUtils;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
@@ -40,7 +41,7 @@ public class RequestWrapper {
     this.httpMethod = httpMethod;
     this.headers = headers;
     this.uri = decode(uri);
-    this.path = decode(path);
+    this.path = PathUtils.removeDuplicatedSlashes(decode(path));
     this.params = params;
     this.data = decode(data);
     initCookies();
@@ -87,7 +88,7 @@ public class RequestWrapper {
   }
 
   public void setPath(String path) {
-    this.path = path;
+    this.path = PathUtils.removeDuplicatedSlashes(path);
   }
 
   public String getUri() {

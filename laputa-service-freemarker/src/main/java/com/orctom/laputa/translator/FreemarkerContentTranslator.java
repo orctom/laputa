@@ -59,11 +59,11 @@ public class FreemarkerContentTranslator extends TemplateContentTranslator<Templ
   }
 
   protected Template getTemplate0(String template) {
+    String templatePath = URLUtils.removeDoubleSlashes(template + TEMPLATE_SUFFIX);
     try {
-      String templatePath = URLUtils.removeDoubleSlashes(template + TEMPLATE_SUFFIX);
       return cfg.getTemplate(templatePath);
     } catch (Exception e) {
-      throw new IllegalConfigException(e.getMessage());
+      throw new IllegalConfigException("Failed to process template: " + templatePath + ", due to: " + e.getMessage());
     }
   }
 }
