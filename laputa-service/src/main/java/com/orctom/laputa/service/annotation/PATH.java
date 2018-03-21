@@ -11,9 +11,9 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface Path {
+public @interface PATH {
 
   String value();
 
-  boolean hounerExtension() default false;
+  boolean honorExtension() default false;
 }

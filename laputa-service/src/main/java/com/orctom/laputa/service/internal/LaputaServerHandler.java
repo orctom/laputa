@@ -140,11 +140,14 @@ public class LaputaServerHandler extends ChannelInboundHandlerAdapter {
     }
     if (frame instanceof TextWebSocketFrame) {
       // Echo the frame
+      String request = ((TextWebSocketFrame) frame).text();
+      System.out.println("Message from " + ctx.channel() + ": " + request);
       ctx.write(frame.retain());
       return;
     }
     if (frame instanceof BinaryWebSocketFrame) {
       // Echo the frame
+      BinaryWebSocketFrame msg = (BinaryWebSocketFrame) frame;
       ctx.write(frame.retain());
     }
   }

@@ -1,22 +1,22 @@
 package com.orctom.laputa.service.example.controller;
 
-import com.orctom.laputa.service.annotation.Path;
+import com.orctom.laputa.service.annotation.PATH;
 import org.springframework.stereotype.Controller;
 
 @Controller
 public class Global {
 
-  @Path("/500")
+  @PATH("/500")
   public String error() {
     return "server error";
   }
 
-  @Path("/")
+  @PATH("/")
   public String index() {
     return "hello index";
   }
 
-  @Path("/login")
+  @PATH("/login")
   public String login() {
     return "hello login";
   }

@@ -1,6 +1,6 @@
 package com.orctom.laputa.service.controller;
 
-import com.orctom.laputa.service.annotation.Path;
+import com.orctom.laputa.service.annotation.PATH;
 
 import static com.orctom.laputa.service.Constants.*;
 
@@ -10,22 +10,22 @@ import static com.orctom.laputa.service.Constants.*;
  */
 public class DefaultController {
 
-  @Path(PATH_FAVICON)
+  @PATH(PATH_FAVICON)
   public String _favicon() {
     return null;
   }
 
-  @Path(PATH_404)
+  @PATH(PATH_404)
   public String _404() {
     return "The requested resource does not exist.";
   }
 
-  @Path(PATH_500)
+  @PATH(PATH_500)
   public String _500() {
     return "The server can not process your last request, please try again later.";
   }
 
-  @Path(PATH_ERROR)
+  @PATH(PATH_ERROR)
   public String error() {
     return "Please verify your request and try again later.";
   }

@@ -6,9 +6,9 @@ import com.orctom.laputa.service.annotation.DELETE;
 import com.orctom.laputa.service.annotation.GET;
 import com.orctom.laputa.service.annotation.HEAD;
 import com.orctom.laputa.service.annotation.OPTIONS;
+import com.orctom.laputa.service.annotation.PATH;
 import com.orctom.laputa.service.annotation.POST;
 import com.orctom.laputa.service.annotation.PUT;
-import com.orctom.laputa.service.annotation.Path;
 import com.orctom.laputa.service.annotation.RedirectTo;
 import com.orctom.laputa.service.controller.DefaultController;
 import com.orctom.laputa.service.model.HTTPMethod;
@@ -183,12 +183,12 @@ public class MappingConfig {
 
   private void configureMappings(Object instance, Class<?> clazz) {
     String basePath = "";
-    if (clazz.isAnnotationPresent(Path.class)) {
-      basePath = clazz.getAnnotation(Path.class).value();
+    if (clazz.isAnnotationPresent(PATH.class)) {
+      basePath = clazz.getAnnotation(PATH.class).value();
     }
 
     for (Method method : clazz.getMethods()) {
-      Path path = AnnotationUtils.findAnnotation(method, Path.class);
+      PATH path = AnnotationUtils.findAnnotation(method, PATH.class);
       if (null == path) {
         continue;
       }
@@ -198,7 +198,7 @@ public class MappingConfig {
             "Empty value of Path annotation on " + clazz.getCanonicalName() + " " + method.getName());
       }
       String uri = basePath + pathValue;
-      addToMappings(instance, clazz, method, uri, path.hounerExtension());
+      addToMappings(instance, clazz, method, uri, path.honorExtension());
     }
   }
 
@@ -244,7 +244,7 @@ public class MappingConfig {
                 .build()
         );
         if (null != mapping && !(mapping.getTarget() instanceof DefaultController)) {
-          throw new IllegalArgumentException("Conflicts found in configured @Path:\n" + uri + ", " + httpMethodKey +
+          throw new IllegalArgumentException("Conflicts found in configured @PATH:\n" + uri + ", " + httpMethodKey +
               "\n\t\t" + mapping.getHandlerMethod().toString() + "\n\t\t" + method.toString());
         }
       }

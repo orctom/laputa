@@ -202,7 +202,7 @@ public class DefaultRequestProcessor implements RequestProcessor {
   }
 
   private Object processRequest(RequestWrapper requestWrapper, ResponseWrapper responseWrapper, RequestMapping mapping)
-      throws InvocationTargetException, IllegalAccessException {
+      throws InvocationTargetException {
     FastMethod handlerMethod = mapping.getHandlerMethod();
     Object target = mapping.getTarget();
 
