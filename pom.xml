@@ -8,7 +8,7 @@
   </parent>
   <groupId>com.orctom.laputa</groupId>
   <artifactId>laputa</artifactId>
-  <version>0.3</version>
+  <version>0.4-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <description>A microservice framework</description>
@@ -23,7 +23,7 @@
     <url>https://github.com/orctom/laputa/</url>
     <connection>scm:git:git@github.com:orctom/laputa.git</connection>
     <developerConnection>scm:git:git@github.com:orctom/laputa.git</developerConnection>
-    <tag>0.3</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>

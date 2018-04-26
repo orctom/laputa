@@ -4,7 +4,7 @@
   <parent>
     <artifactId>laputa</artifactId>
     <groupId>com.orctom.laputa</groupId>
-    <version>0.3</version>
+    <version>0.4-SNAPSHOT</version>
   </parent>
 
   <artifactId>laputa-service-freemarker</artifactId>
